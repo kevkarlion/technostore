@@ -41,17 +41,17 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   return (
     <div className="space-y-6">
       <header className="space-y-2">
-        <h1 className="text-xl font-semibold tracking-tight text-[var(--foreground)]">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
           {category.name}
         </h1>
         {category.description && (
-          <p className="max-w-xl text-xs text-[var(--foreground-muted)]">
+          <p className="max-w-xl text-xs text-(--foreground-muted)">
             {category.description}
           </p>
         )}
       </header>
       <section className="space-y-4">
-        <div className="flex items-center justify-between text-xs text-[var(--foreground-muted)]">
+        <div className="flex items-center justify-between text-xs text-(--foreground-muted)">
           <span>{products.length} products</span>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

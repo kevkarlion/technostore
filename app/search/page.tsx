@@ -16,20 +16,20 @@ export default function SearchPage() {
     <div className="space-y-6">
       <header className="space-y-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-[var(--foreground)]">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">
             Search
           </h1>
-          <p className="text-xs text-[var(--foreground-muted)]">
+          <p className="text-xs text-(--foreground-muted)">
             Find laptops, components and peripherals across the full catalog.
           </p>
         </div>
         <form
           role="search"
-          className="flex flex-col gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4 sm:flex-row sm:items-center"
+          className="flex flex-col gap-3 rounded-2xl border border-border-subtle bg-accent-soft p-4 sm:flex-row sm:items-center"
         >
           <label
             htmlFor="query"
-            className="text-xs font-medium text-[var(--foreground-muted)] sm:w-32"
+            className="text-xs font-medium text-(--foreground-muted) sm:w-32"
           >
             Search query
           </label>
@@ -42,7 +42,7 @@ export default function SearchPage() {
         </form>
       </header>
       <section className="space-y-4">
-        <p className="text-xs text-[var(--foreground-muted)]">
+        <p className="text-xs text-(--foreground-muted)">
           Showing {results.length} products
         </p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -10,6 +10,10 @@ export interface Product {
   status: ProductStatus;
   categories: string[];
   imageUrls: string[];
+  // Scraper fields
+  externalId?: string;
+  supplier?: string;
+  lastSyncedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -11,6 +11,9 @@ type ProductDocument = WithId<{
   status: string;
   categories: string[];
   imageUrls: string[];
+  externalId?: string;
+  supplier?: string;
+  lastSyncedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }>;
@@ -27,6 +30,9 @@ export const productMapper = {
       status: doc.status as Product["status"],
       categories: doc.categories,
       imageUrls: doc.imageUrls,
+      externalId: doc.externalId,
+      supplier: doc.supplier,
+      lastSyncedAt: doc.lastSyncedAt,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
     };
@@ -43,6 +49,9 @@ export const productMapper = {
       status: product.status,
       categories: product.categories,
       imageUrls: product.imageUrls,
+      externalId: product.externalId,
+      supplier: product.supplier,
+      lastSyncedAt: product.lastSyncedAt?.toISOString(),
       createdAt: product.createdAt.toISOString(),
       updatedAt: product.updatedAt.toISOString(),
     };

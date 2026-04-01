@@ -5,6 +5,12 @@ const envSchema = z.object({
   MONGODB_URI: z.string().min(1, "MONGODB_URI is required"),
   MONGODB_DB_NAME: z.string().min(1, "MONGODB_DB_NAME is required"),
   NEXT_PUBLIC_API_BASE_URL: z.string().url().optional(),
+  // Supplier scraper configuration
+  SUPPLIER_URL: z.string().url().optional(),
+  SUPPLIER_LOGIN_URL: z.string().url().optional(),
+  SUPPLIER_EMAIL: z.string().min(1).optional(), // Can be username or email
+  SUPPLIER_PASSWORD: z.string().min(1).optional(),
+  SUPPLIER_DELAY_MS: z.coerce.number().min(0).default(5000),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -19,6 +25,11 @@ export function getEnv(): Env {
     MONGODB_URI: process.env.MONGODB_URI,
     MONGODB_DB_NAME: process.env.MONGODB_DB_NAME,
     NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+    SUPPLIER_URL: process.env.SUPPLIER_URL,
+    SUPPLIER_LOGIN_URL: process.env.SUPPLIER_LOGIN_URL,
+    SUPPLIER_EMAIL: process.env.SUPPLIER_EMAIL,
+    SUPPLIER_PASSWORD: process.env.SUPPLIER_PASSWORD,
+    SUPPLIER_DELAY_MS: process.env.SUPPLIER_DELAY_MS,
   });
 
   return _env;

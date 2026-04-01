@@ -20,6 +20,16 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function DELETE(req: NextRequest) {
+  try {
+    const { productRepository } = await import("@/api/repository/product.repository");
+    const result = await productRepository.deleteAll();
+    return NextResponse.json({ message: `Deleted ${result.deletedCount} products`, status: result.deletedCount }, { status: 200 });
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
 function handleError(error: unknown) {
   if (error instanceof HttpError) {
     return NextResponse.json(

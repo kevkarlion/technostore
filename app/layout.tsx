@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import { SiteHeader } from "@/components/layout/site-header";
+import { SiteHeaderServer } from "@/components/layout/site-header-server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,7 +49,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ts-shell antialiased`}
       >
         <ThemeProvider>
-          <SiteHeader />
+          <SiteHeaderServer />
           <main className="ts-container pb-16 pt-10">{children}</main>
           <footer className="border-t border-[var(--border-subtle)] bg-[var(--background)]">
             <div className="ts-container flex flex-col gap-4 py-6 text-xs text-[var(--foreground-muted)] sm:flex-row sm:items-center sm:justify-between">

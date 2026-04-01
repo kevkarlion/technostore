@@ -9,13 +9,30 @@ export const createProductSchema = z.object({
   stock: z.number().int().nonnegative().default(0),
   status: z.custom<ProductStatus>().default("draft"),
   categories: z.array(z.string()).default([]),
-  imageUrls: z.array(z.string().url()).default([]),
+  imageUrls: z.array(z.string()).default([]),
 });
 
 export const updateProductSchema = createProductSchema.partial();
 
 export type CreateProductDTO = z.infer<typeof createProductSchema>;
 export type UpdateProductDTO = z.infer<typeof updateProductSchema>;
+
+// Schema for products scraped from supplier
+export const scrapedProductSchema = z.object({
+  externalId: z.string(),
+  supplier: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+  price: z.number().nonnegative(),
+  currency: z.string().min(1).default("USD"),
+  stock: z.number().int().nonnegative().default(0),
+  sku: z.string().optional(),
+  imageUrls: z.array(z.string()).default([]),
+  categories: z.array(z.string()).default([]),
+  rawData: z.record(z.string(), z.unknown()).optional(),
+});
+
+export type ScrapedProductDTO = z.infer<typeof scrapedProductSchema>;
 
 export interface ProductResponseDTO {
   id: string;
@@ -27,6 +44,9 @@ export interface ProductResponseDTO {
   status: ProductStatus;
   categories: string[];
   imageUrls: string[];
+  externalId?: string;
+  supplier?: string;
+  lastSyncedAt?: string;
   createdAt: string;
   updatedAt: string;
 }

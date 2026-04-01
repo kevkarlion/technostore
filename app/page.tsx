@@ -1,48 +1,19 @@
 import Link from "next/link";
-import type { Product as CatalogProduct, CategorySlug } from "@/types/domain";
-import type { Product as BackendProduct } from "@/domain/models/product";
-import { categories } from "@/lib/mock-data";
+import type { Product as CatalogProduct } from "@/types/domain";
 import { ProductCard } from "@/features/catalog/components/product-card";
 import { productService } from "@/api/services/product.service";
-
-function mapBackendProductToCatalogProduct(
-  product: BackendProduct
-): CatalogProduct {
-  const categorySlug =
-    (product.categories[0] as CategorySlug | undefined) ?? "components";
-  const primaryImageUrl = product.imageUrls[0];
-
-  return {
-    id: product.id,
-    name: product.name,
-    slug: product.id,
-    category: categorySlug,
-    brand: "Generic",
-    price: product.price,
-    originalPrice: undefined,
-    inStock: product.stock > 0,
-    stockQuantity: product.stock,
-    rating: 4.5,
-    ratingCount: 0,
-    badges: product.status === "active" ? ["featured"] : undefined,
-    shortDescription: product.description ?? "",
-    specs: {},
-    images: primaryImageUrl
-      ? [
-          {
-            id: "main",
-            src: primaryImageUrl,
-            alt: product.name,
-          },
-        ]
-      : [],
-  };
-}
+import { categoryRepository } from "@/api/repository/category.repository";
+import { toPresentationProduct } from "@/domain/mappers/product-to-presentation";
 
 export default async function Home() {
+  // Fetch featured products from DB
   const featuredBackendProducts = await productService.listFeaturedProducts(8);
-  const featuredProducts: CatalogProduct[] =
-    featuredBackendProducts.map(mapBackendProductToCatalogProduct);
+  const featuredProducts: CatalogProduct[] = featuredBackendProducts.map(
+    toPresentationProduct
+  );
+
+  // Fetch categories from DB
+  const categories = await categoryRepository.findAll();
 
   return (
     <div className="space-y-10 pb-4">
@@ -51,41 +22,33 @@ export default async function Home() {
         <div className="relative z-10 grid gap-10 lg:grid-cols-[minmax(0,3fr),minmax(0,2fr)] lg:items-center">
           <div className="space-y-5">
             <p className="inline-flex items-center rounded-full bg-accent-soft px-3 py-1 text-[0.7rem] font-medium uppercase tracking-wide text-accent ring-1 ring-(--accent)/40">
-              New this week • RTX, OLED, 65% keyboards
+              Productos de Cappelletti Informática
             </p>
             <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-              Build your next{" "}
+              Tu tienda de{" "}
               <span className="bg-linear-to-r from-[#00dfba] to-[#46488f] bg-clip-text text-transparent">
-                dream setup
+                tecnología
               </span>
               .
             </h1>
             <p className="max-w-xl text-sm leading-relaxed text-(--foreground-muted) sm:text-base">
-              Curated laptops, components and peripherals for creators, gamers
-              and builders. Hand-picked gear, transparent specs and fast
-              shipping.
+              Memorias, discos, periféricos y más. Productos directly import from our supplier with the best prices.
             </p>
             <div className="flex flex-wrap gap-3 text-xs">
               <Link
-                href="/category/laptops"
+                href="/search"
                 className="rounded-full bg-accent px-4 py-2 font-semibold text-background shadow-sm transition hover:opacity-90"
               >
-                Shop laptops
-              </Link>
-              <Link
-                href="/category/components"
-                className="rounded-full border border-border-subtle bg-accent-soft px-4 py-2 font-medium text-foreground transition hover:bg-(--surface-hover)"
-              >
-                Browse components
+                Ver todos los productos
               </Link>
             </div>
           </div>
           <div className="space-y-4 rounded-3xl border border-border-subtle bg-accent-soft p-4 sm:p-5">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-(--foreground-muted)">
-              Browse by category
+              Explorar por categoría
             </p>
             <div className="grid grid-cols-2 gap-3 text-xs sm:text-[0.8rem]">
-              {categories.map((category) => (
+              {categories.slice(0, 10).map((category) => (
                 <Link
                   key={category.id}
                   href={`/category/${category.slug}`}
@@ -94,11 +57,8 @@ export default async function Home() {
                   <p className="text-[0.7rem] font-semibold uppercase tracking-wide text-(--foreground-muted)">
                     {category.name}
                   </p>
-                  <p className="mt-1 line-clamp-2 text-[0.7rem] text-(--foreground-muted) opacity-80">
-                    {category.description}
-                  </p>
                   <span className="mt-2 inline-flex text-[0.65rem] text-accent group-hover:opacity-90">
-                    Shop now →
+                    Ver productos →
                   </span>
                 </Link>
               ))}
@@ -111,17 +71,17 @@ export default async function Home() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="text-sm font-semibold tracking-tight text-foreground sm:text-base">
-              Featured this week
+              Productos destacados
             </h2>
             <p className="text-xs text-(--foreground-muted)">
-              High-signal picks from our team of enthusiasts.
+              Los productos más populares de nuestro catálogo.
             </p>
           </div>
           <Link
             href="/search"
             className="text-xs font-medium text-accent hover:opacity-90"
           >
-            View all products
+            Ver todos los productos
           </Link>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

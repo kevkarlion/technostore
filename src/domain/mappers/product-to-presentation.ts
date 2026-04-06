@@ -26,12 +26,28 @@ export function toPresentationProduct(dbProduct: DbProduct): DomainProduct {
   // Use the first category as the main category, or default to 'components'
   const mainCategory = dbProduct.categories?.[0] || "components";
 
+  // Helper to convert image URLs - handle relative paths from Jotakp
+  const baseImageUrl = "https://jotakp.dyndns.org";
+  const normalizeImageUrl = (url: string): string => {
+    if (!url) return "";
+    // If it's already a full URL, return as-is
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url;
+    }
+    // If it's a relative path (starts with 'imagenes'), prepend the base URL
+    if (url.startsWith("imagenes/") || url.startsWith("/imagenes/")) {
+      return `${baseImageUrl}/${url.replace(/^\//, "")}`;
+    }
+    // Otherwise assume it's a relative path
+    return `${baseImageUrl}/${url}`;
+  };
+
   // Convert imageUrls to the expected format, or use placeholder
   // Try to get image from scraped data, otherwise generate a dynamic placeholder
   const images = (dbProduct.imageUrls && dbProduct.imageUrls.length > 0)
     ? dbProduct.imageUrls.map((url, index) => ({
         id: `img-${index}`,
-        src: url,
+        src: normalizeImageUrl(url),
         alt: dbProduct.name,
       }))
     : [
@@ -45,6 +61,14 @@ export function toPresentationProduct(dbProduct: DbProduct): DomainProduct {
 
   // Determine stock status
   const inStock = dbProduct.stock > 0;
+
+  // Convert attributes to specs object
+  const specs: Record<string, string> = {};
+  if (dbProduct.attributes && dbProduct.attributes.length > 0) {
+    for (const attr of dbProduct.attributes) {
+      specs[attr.key] = attr.value;
+    }
+  }
 
   // Default values for fields that aren't scraped
   return {
@@ -61,7 +85,7 @@ export function toPresentationProduct(dbProduct: DbProduct): DomainProduct {
     ratingCount: Math.floor(Math.random() * 50) + 10, // Random count for demo
     badges: [],
     shortDescription: dbProduct.description || `${cleanProductName(dbProduct.name)} - Available at TechnoStore`,
-    specs: {}, // Could be populated from scraped data in the future
+    specs, // Populated from scraped attributes
     images,
   };
 }

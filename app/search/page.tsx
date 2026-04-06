@@ -35,7 +35,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const presentationProducts = products.map(toPresentationProduct);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
       <header className="space-y-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-foreground">

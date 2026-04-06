@@ -58,11 +58,6 @@ export function ProductCard({ product }: ProductCardProps) {
               <Badge tone="default">Featured</Badge>
             )}
           </div>
-          {!product.inStock && (
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[var(--background)]/80 text-[0.7rem] font-semibold uppercase tracking-wide text-[var(--foreground)]">
-              Out of stock
-            </div>
-          )}
         </div>
         <CardTitle className="line-clamp-2 text-sm leading-snug">
           {product.name}

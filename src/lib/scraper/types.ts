@@ -36,6 +36,8 @@ export interface ScraperCategory {
   id: string;
   name: string;
   idsubrubro1: number;
+  parentId: string | null; // Para jerarquía: parent slug o null si es categoría padre
+  parent?: string; // Optional: parent category name for reference
 }
 
 /**
@@ -110,4 +112,94 @@ export class ScraperError extends Error {
     super(message);
     this.name = "ScraperError";
   }
+}
+
+/**
+ * Request to run scraper for a specific category
+ */
+export interface ScraperRunRequest {
+  /** Category ID to scrape (e.g., "carry-caddy-disk", "memorias", etc.) */
+  categoryId?: string;
+  /** Specific idsubrubro1 to scrape (overrides categoryId) */
+  idsubrubro1?: number;
+  /** Source of the request (e.g., "manual", "cron", "api") */
+  source?: string;
+}
+
+/**
+ * Status of a scraper run
+ */
+export type ScraperRunStatus = "in_progress" | "completed" | "failed" | "stale";
+
+/**
+ * Checkpoint data for resume functionality
+ * Saved after each category/page to enable resume on crash
+ */
+export interface CheckpointData {
+  /** Last category that was being processed */
+  lastCategoryId: string | null;
+  lastCategoryName: string | null;
+  /** Index in categoriesToProcess array */
+  currentCategoryIndex: number;
+  /** Last page number scraped in current category */
+  lastPageNumber: number;
+  /** Last product ID processed (for granular resume) */
+  lastProductId: string | null;
+  /** Offset of products in current page */
+  lastProductOffset: number;
+  /** Number of products scraped so far in this run */
+  productsScraped: number;
+  /** Number of products saved to DB so far */
+  productsSaved: number;
+}
+
+/**
+ * Statistics for a completed run
+ */
+export interface RunStats {
+  productsScraped: number;
+  productsSaved: number;
+  durationMs: number;
+}
+
+/**
+ * Data transfer object for creating a new scraper run
+ */
+export interface CreateScraperRunDTO {
+  source?: string;
+  categoryId?: string;
+  idsubrubro1?: number;
+  categoriesToProcess: string[];
+}
+
+/**
+ * Scraper run entity - represents a single execution of the scraper
+ * with checkpoint data for resume functionality
+ */
+export interface ScraperRun {
+  _id?: import("mongodb").ObjectId;
+  runId: string;
+  status: ScraperRunStatus;
+  source?: string;
+  categoryId?: string;
+  requestedIdsubrubro1?: number;
+  categoriesToProcess: string[];
+  currentCategoryIndex: number;
+  // Checkpoint fields
+  lastCategoryId: string | null;
+  lastCategoryName: string | null;
+  lastPageNumber: number;
+  lastProductId: string | null;
+  lastProductOffset: number;
+  // Stats
+  productsScraped: number;
+  productsSaved: number;
+  resumeCount: number;
+  // Error tracking
+  errorMessage?: string;
+  // Timestamps
+  startedAt: Date;
+  updatedAt: Date;
+  completedAt?: Date;
+  durationMs?: number;
 }

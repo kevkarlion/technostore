@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "tsx src/seeds/seed-products.ts"
+    "seed": "tsx src/seeds/seed-products.ts",
+    "scraper": "tsx run-scraper.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

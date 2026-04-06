@@ -16,6 +16,7 @@ export interface PaginatedResult<T> {
   total: number;
   page: number;
   limit: number;
+  totalPages: number;
 }
 
 export const productRepository = {
@@ -45,6 +46,7 @@ export const productRepository = {
       total,
       page,
       limit,
+      totalPages: Math.ceil(total / limit),
     };
   },
 
@@ -149,6 +151,7 @@ export const productRepository = {
       sku: data.sku,
       imageUrls: data.imageUrls,
       categories: data.categories,
+      attributes: data.attributes || [],
       externalId: data.externalId,
       supplier: data.supplier,
       lastSyncedAt: now,
@@ -175,14 +178,15 @@ export const productRepository = {
     const productsCollection = db.collection(COLLECTION_NAME);
     const categoriesCollection = db.collection("categories");
 
-    // Find category by slug to get its name
+    // Find category by slug to get its name and supplierCategoryId
     const category = await categoriesCollection.findOne({ slug: categorySlug });
     
     // Use both the category name (from DB) and the slug for matching
     // The scraper stores categories with proper case, so we need to match both
     const categoryName = category?.name || categorySlug;
+    const supplierCategoryId = category?.supplierCategoryId?.toString();
     
-    // Search using both the category name and the slug (case-insensitive)
+    // Search using the category name, slug, AND supplierCategoryId (for products scraped with numeric ID)
     // Show all active products (stock will be displayed on the card)
     const docs = await productsCollection
       .find({ 
@@ -190,6 +194,7 @@ export const productRepository = {
         $or: [
           { categories: { $regex: new RegExp(`^${categoryName}$`, "i") } },
           { categories: { $regex: new RegExp(`^${categorySlug}$`, "i") } },
+          ...(supplierCategoryId ? [{ categories: supplierCategoryId }] : []),
         ]
       })
       .sort({ createdAt: -1 })
@@ -197,6 +202,51 @@ export const productRepository = {
       .toArray();
 
     return docs.map((doc) => productMapper.toDomain(doc as any));
+  },
+
+  async findByCategorySlugPaginated(
+    categorySlug: string,
+    page = 1,
+    limit = 20
+  ): Promise<PaginatedResult<Product>> {
+    const db = await getDb();
+    const productsCollection = db.collection(COLLECTION_NAME);
+    const categoriesCollection = db.collection("categories");
+
+    // Find category by slug to get its name and supplierCategoryId
+    const category = await categoriesCollection.findOne({ slug: categorySlug });
+    
+    const categoryName = category?.name || categorySlug;
+    const supplierCategoryId = category?.supplierCategoryId?.toString();
+    
+    const skip = (page - 1) * limit;
+    
+    const filter = { 
+      status: "active",
+      $or: [
+        { categories: { $regex: new RegExp(`^${categoryName}$`, "i") } },
+        { categories: { $regex: new RegExp(`^${categorySlug}$`, "i") } },
+        ...(supplierCategoryId ? [{ categories: supplierCategoryId }] : []),
+      ]
+    };
+
+    const [docs, total] = await Promise.all([
+      productsCollection
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .toArray(),
+      productsCollection.countDocuments(filter),
+    ]);
+
+    return {
+      items: docs.map((doc) => productMapper.toDomain(doc as any)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   },
 
   async findBySlug(slug: string): Promise<Product | null> {

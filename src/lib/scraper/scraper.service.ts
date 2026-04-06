@@ -1,29 +1,90 @@
 import { chromium, type Browser, type Page } from "playwright";
 import { getScraperConfig } from "./config";
 import { transformProducts } from "./data-transformer";
+import { downloadProductImages } from "./image-downloader";
 import { productRepository } from "@/api/repository/product.repository";
-import type { ScraperConfig, ScraperResult, RawProduct } from "./types";
+import { scraperRunRepository } from "@/api/repository/scraper-run.repository";
+import type { ScraperConfig, ScraperResult, RawProduct, ScraperRunRequest, ScraperRun, CheckpointData } from "./types";
 import { ScraperError } from "./types";
 
 export class ScraperService {
   private browser: Browser | null = null;
   private config: ScraperConfig;
+  private request: ScraperRunRequest;
+  private currentRun: ScraperRun | null = null;
+  private currentCategoryIndex = 0;
+  private currentPageNum = 1;
+  private productsScrapedCount = 0;
+  private productsSavedCount = 0;
 
-  constructor(config?: ScraperConfig) {
+  constructor(config?: ScraperConfig, request?: ScraperRunRequest) {
     this.config = config || getScraperConfig();
+    this.request = request || {};
   }
 
   /**
    * Initialize the browser instance
    */
   private async initBrowser(): Promise<Browser> {
-    if (!this.browser) {
+    if (!this.browser || !this.browser.isConnected()) {
+      if (this.browser) {
+        // Browser exists but is closed, clean up
+        try {
+          await this.browser.close();
+        } catch {
+          // Ignore if already closed
+        }
+        this.browser = null;
+      }
       this.browser = await chromium.launch({
         headless: true,
         args: ["--no-sandbox", "--disable-setuid-sandbox"],
       });
     }
     return this.browser;
+  }
+
+  /**
+   * Check if browser is still connected, reconnect if needed
+   */
+  private async ensureBrowser(page: Page): Promise<Page> {
+    try {
+      // Try to check if browser is still alive
+      if (!this.browser || !this.browser.isConnected()) {
+        console.log("[Scraper] Browser disconnected, reconnecting...");
+        await this.reconnect(page);
+      }
+      return page;
+    } catch {
+      console.log("[Scraper] Browser error, reconnecting...");
+      await this.reconnect(page);
+      return page;
+    }
+  }
+
+  /**
+   * Reconnect browser and re-login
+   */
+  private async reconnect(page: Page): Promise<Page> {
+    // Close existing resources
+    try {
+      if (page) await page.close();
+    } catch {
+      // Ignore
+    }
+    await this.closeBrowser();
+
+    // Reinitialize
+    const browser = await this.initBrowser();
+    const context = await browser.newContext();
+    const newPage = await context.newPage();
+
+    // Re-login
+    console.log("[Scraper] Re-logging in after reconnect...");
+    await this.login(newPage);
+    await this.delay();
+
+    return newPage;
   }
 
   /**
@@ -230,7 +291,7 @@ export class ScraperService {
           priceWithIvaRaw: priceWithIvaMatch ? `${priceWithIvaMatch[1]},${priceWithIvaMatch[2]}` : undefined,
           imageUrls,
           categories: [],
-          productUrl: href,
+          productUrl: href.startsWith("http") ? href : `${this.config.baseUrl}/${href}`,
           rawElement: undefined,
         };
 
@@ -249,7 +310,12 @@ export class ScraperService {
    */
   async scrapeProductDetail(page: Page, productUrl: string): Promise<Partial<RawProduct> | null> {
     try {
-      await page.goto(productUrl, { waitUntil: "networkidle", timeout: 15000 });
+      // Ensure URL is complete
+      const fullUrl = productUrl.startsWith("http") 
+        ? productUrl 
+        : `${this.config.baseUrl}/${productUrl}`;
+      
+      await page.goto(fullUrl, { waitUntil: "networkidle", timeout: 15000 });
       await this.delay();
 
       const detail: Partial<RawProduct> = {};
@@ -390,35 +456,41 @@ export class ScraperService {
 
   /**
    * Scrape all products from multiple categories with detail pages and pagination
+   * Can filter by specific category or idsubrubro1
+   * Supports resume from checkpoint
    */
-  async scrapeProducts(page: Page): Promise<RawProduct[]> {
+  async scrapeProducts(page: Page, categoriesToProcess: { id: string; name: string; idsubrubro1: number }[]): Promise<RawProduct[]> {
     const allProducts: RawProduct[] = [];
 
-    // Get categories from config - scrape ALL categories now
-    const { jotakpCategories } = await import("./config");
-    
-    // Get categories that have valid IDs (not parent categories)
-    const validCategories = jotakpCategories.filter(c => c.idsubrubro1 > 0);
+    console.log(`[Scraper] Will scrape ${categoriesToProcess.length} category(ies)`);
 
-    console.log(`[Scraper] Will scrape ${validCategories.length} categories`);
-
-    for (const category of validCategories) {
+    for (let catIndex = 0; catIndex < categoriesToProcess.length; catIndex++) {
+      const category = categoriesToProcess[catIndex];
+      
+      // Update current category index for checkpoint
+      this.currentCategoryIndex = catIndex;
+      
       console.log(`[Scraper] Scraping category: ${category.name} (id=${category.idsubrubro1})`);
       
       try {
-        // Navigate to category page - start at page 1
+        // Navigate to category page - start at page (from checkpoint or 1)
+        const startPage = (catIndex === this.currentCategoryIndex && this.currentPageNum > 1) 
+          ? this.currentPageNum 
+          : 1;
+        
+        let pageNum = startPage;
+        let hasNextPage = true;
+        
         await page.goto(
-          `${this.config.baseUrl}/buscar.aspx?idsubrubro1=${category.idsubrubro1}`,
+          `${this.config.baseUrl}/buscar.aspx?idsubrubro1=${category.idsubrubro1}&pag=${pageNum}`,
           { waitUntil: "networkidle" }
         );
         
-        await this.delay(); // Wait for page to load
-        
-        let pageNum = 1;
-        let hasNextPage = true;
-        
         while (hasNextPage) {
           console.log(`[Scraper] Scraping ${category.name} - page ${pageNum}`);
+          
+          // Save checkpoint before scraping page
+          await this.saveCheckpoint(category, pageNum);
           
           // Scrape products from this page
           const pageProducts = await this.scrapePage(page);
@@ -430,6 +502,9 @@ export class ScraperService {
             if (!product.productUrl) continue;
             
             try {
+              // Check/reconnect browser before each detail request
+              page = await this.ensureBrowser(page);
+              
               const detail = await this.scrapeProductDetail(page, product.productUrl);
               
               if (detail) {
@@ -448,13 +523,15 @@ export class ScraperService {
               console.error(`[Scraper] Error getting detail for ${product.productUrl}:`, error);
             }
             
-            // Add category to product
-            product.categories = [category.name];
+            // Add category to product - use the category ID (slug) not the name
+            // This matches the category slug in the DB (e.g., "carry-caddy-disk")
+            product.categories = [category.id];
             
             // Only add products that have stock (or stock is unknown/undefined - keep them for now)
             // Products with stock = 0 or "sin stock" will be filtered out
             if (product.stock === undefined || product.stock === null || product.stock > 0) {
               allProducts.push(product);
+              this.productsScrapedCount++;
             } else {
               console.log(`[Scraper] Skipping product without stock: ${product.name}`);
             }
@@ -463,31 +540,72 @@ export class ScraperService {
             await this.delay();
           }
           
-          // Check for next page - look for "Siguiente" link that is NOT disabled
+          // Check for next page - look for pagination nav
           try {
-            const nextButton = page.locator("a:has-text('Siguiente')").first();
-            const isDisabled = await nextButton.getAttribute("href");
+            // Check/reconnect before next page
+            page = await this.ensureBrowser(page);
             
-            // If href is "#" or undefined/null, the button is disabled (no more pages)
-            if (!isDisabled || isDisabled === "#") {
-              hasNextPage = false;
-              console.log(`[Scraper] No more pages in ${category.name}`);
-            } else {
-              // Click the next page button
-              await nextButton.click();
-              await page.waitForLoadState("networkidle");
-              await this.delay();
-              pageNum++;
+            // Try multiple selectors for the next page button
+            const nextButtonSelectors = [
+              "a:has-text('Siguiente')",
+              "a.page-link:has-text('Siguiente')",
+              "li.page-item:last-child a",
+              "nav[aria-label='Page navigation example'] a:has-text('Siguiente')",
+            ];
+            
+            let nextButton = null;
+            let foundSelector = "";
+            for (const selector of nextButtonSelectors) {
+              const btn = page.locator(selector).first();
+              const count = await btn.count();
+              console.log(`[Scraper] Trying selector: ${selector}, count: ${count}`);
+              if (count > 0) {
+                nextButton = btn;
+                foundSelector = selector;
+                break;
+              }
             }
-          } catch {
+            
+            if (!nextButton) {
+              hasNextPage = false;
+              console.log(`[Scraper] No next page button found for ${category.name}`);
+            } else {
+              console.log(`[Scraper] Found next button with selector: ${foundSelector}`);
+              const isDisabled = await nextButton.getAttribute("disabled");
+              const href = await nextButton.getAttribute("href");
+              console.log(`[Scraper] href: ${href}, disabled: ${isDisabled}`);
+              
+              // If disabled or href is "#", no more pages
+              if (isDisabled === "disabled" || !href || href === "#") {
+                hasNextPage = false;
+                console.log(`[Scraper] No more pages in ${category.name}`);
+              } else {
+                // Navigate to next page using URL with pag parameter
+                pageNum++;
+                console.log(`[Scraper] Going to page ${pageNum}...`);
+                await page.goto(
+                  `${this.config.baseUrl}/buscar.aspx?idsubrubro1=${category.idsubrubro1}&pag=${pageNum}`,
+                  { waitUntil: "networkidle" }
+                );
+                await this.delay();
+                this.currentPageNum = pageNum;
+              }
+            }
+          } catch (e) {
             // No next button found - we've reached the end
             hasNextPage = false;
+            console.log(`[Scraper] Error checking next page: ${e}`);
             console.log(`[Scraper] No next page button found for ${category.name}`);
           }
         }
         
+        // Save checkpoint after completing category
+        await this.saveCheckpoint(category, pageNum);
+        
       } catch (error) {
         console.error(`[Scraper] Error scraping category ${category.name}:`, error);
+        // Save checkpoint on error
+        await this.saveCheckpoint(category, 1);
       }
     }
 
@@ -497,6 +615,7 @@ export class ScraperService {
 
   /**
    * Run the complete scraping pipeline
+   * Includes checkpoint system for resume on crash
    */
   async run(): Promise<ScraperResult> {
     const startTime = Date.now();
@@ -512,6 +631,62 @@ export class ScraperService {
     let page: Page | null = null;
 
     try {
+      // Ensure indexes exist
+      await scraperRunRepository.ensureIndexes();
+
+      // Step 0: Clean up stale runs (older than 24 hours)
+      console.log("[Scraper] Cleaning up stale runs...");
+      const cleanedCount = await scraperRunRepository.cleanupStaleRuns(24);
+      if (cleanedCount > 0) {
+        console.log(`[Scraper] Marked ${cleanedCount} stale run(s) as stale`);
+      }
+
+      // Step 0b: Check for incomplete run to resume
+      const incompleteRun = await scraperRunRepository.findIncomplete();
+      
+      // Get categories to process
+      const { jotakpCategories } = await import("./config");
+      let validCategories = jotakpCategories.filter(c => c.idsubrubro1 > 0);
+
+      // Filter by request
+      if (this.request.idsubrubro1 !== undefined) {
+        validCategories = validCategories.filter(c => c.idsubrubro1 === this.request.idsubrubro1);
+        console.log(`[Scraper] Filtering to idsubrubro1=${this.request.idsubrubro1}`);
+      } else if (this.request.categoryId) {
+        validCategories = validCategories.filter(c => c.id === this.request.categoryId);
+        console.log(`[Scraper] Filtering to categoryId=${this.request.categoryId}`);
+      }
+
+      const categoriesToProcess = validCategories.map(c => c.id);
+
+      // Create new run or resume from checkpoint
+      if (incompleteRun) {
+        console.log(`[Scraper] Resuming from incomplete run ${incompleteRun.runId}`);
+        this.currentRun = incompleteRun;
+        this.currentCategoryIndex = incompleteRun.currentCategoryIndex;
+        this.currentPageNum = incompleteRun.lastPageNumber;
+        this.productsScrapedCount = incompleteRun.productsScraped;
+        this.productsSavedCount = incompleteRun.productsSaved;
+        
+        // Increment resume count
+        await scraperRunRepository.incrementResumeCount(incompleteRun.runId);
+        
+        // Update categories to process from the run
+        if (incompleteRun.categoriesToProcess.length > 0) {
+          // Filter validCategories based on what was being processed
+          validCategories = validCategories.slice(this.currentCategoryIndex);
+        }
+      } else {
+        // Create new run
+        this.currentRun = await scraperRunRepository.create({
+          source: this.request.source,
+          categoryId: this.request.categoryId,
+          idsubrubro1: this.request.idsubrubro1,
+          categoriesToProcess,
+        });
+        console.log(`[Scraper] Created new run ${this.currentRun.runId}`);
+      }
+
       // Initialize browser
       const browser = await this.initBrowser();
       const context = await browser.newContext();
@@ -526,12 +701,20 @@ export class ScraperService {
 
       // Step 2: Navigate to products page and scrape
       console.log("[Scraper] Starting to scrape products...");
-      const rawProducts = await this.scrapeProducts(page);
+      const rawProducts = await this.scrapeProducts(page, validCategories);
       result.errors.push(`Scraped ${rawProducts.length} raw products from website`);
 
       if (rawProducts.length === 0) {
         result.success = true;
         result.durationMs = Date.now() - startTime;
+        // Mark as completed
+        if (this.currentRun) {
+          await scraperRunRepository.markCompleted(this.currentRun.runId, {
+            productsScraped: this.productsScrapedCount,
+            productsSaved: this.productsSavedCount,
+            durationMs: result.durationMs,
+          });
+        }
         return result;
       }
 
@@ -540,7 +723,31 @@ export class ScraperService {
       const { products, errors } = transformProducts(rawProducts, this.config.supplier);
       result.errors.push(...errors);
 
-      // Step 5: Save to database
+      // Step 5: Download images for each product
+      console.log("[Scraper] Downloading images...");
+      for (let i = 0; i < products.length; i++) {
+        const product = products[i];
+        if (product.imageUrls && product.imageUrls.length > 0) {
+          try {
+            const localImageUrls = await downloadProductImages(
+              product.imageUrls,
+              product.supplier,
+              product.externalId
+            );
+            // Use local paths if any were downloaded, otherwise keep original URLs
+            if (localImageUrls.length > 0) {
+              product.imageUrls = localImageUrls;
+            }
+            console.log(`[Scraper] Downloaded ${localImageUrls.length} images for ${product.name.substring(0, 30)}...`);
+          } catch (imageError) {
+            console.error(`[Scraper] Error downloading images for ${product.externalId}:`, imageError);
+          }
+        }
+        // Small delay between products to not saturate the server
+        await this.delay();
+      }
+
+      // Step 6: Save to database
       // Note: upsertByExternalId handles both create and update internally
       // For accurate counts, we would need to check before, but for performance
       // we'll just count total products processed
@@ -549,6 +756,7 @@ export class ScraperService {
       for (const product of products) {
         try {
           await productRepository.upsertByExternalId(product);
+          this.productsSavedCount++;
         } catch (dbError) {
           const errorMsg = dbError instanceof Error ? dbError.message : "Unknown error";
           result.errors.push(`Failed to save product ${product.name}: ${errorMsg}`);
@@ -559,6 +767,15 @@ export class ScraperService {
       result.created = initialCount - result.errors.filter(e => e.startsWith("Failed")).length;
       result.updated = 0;
 
+      // Mark run as completed
+      if (this.currentRun) {
+        await scraperRunRepository.markCompleted(this.currentRun.runId, {
+          productsScraped: this.productsScrapedCount,
+          productsSaved: this.productsSavedCount,
+          durationMs: result.durationMs,
+        });
+      }
+
       result.success = true;
       console.log(`[Scraper] Completed: ${result.created} created, ${result.updated} updated`);
     } catch (error) {
@@ -567,6 +784,17 @@ export class ScraperService {
 
       result.errors.push(`Error: ${message}`);
       console.error("[Scraper] Pipeline failed:", message);
+
+      // Save checkpoint before throwing (if we have a run)
+      if (this.currentRun) {
+        await scraperRunRepository.updateCheckpoint(this.currentRun.runId, {
+          currentCategoryIndex: this.currentCategoryIndex,
+          lastPageNumber: this.currentPageNum,
+          productsScraped: this.productsScrapedCount,
+          productsSaved: this.productsSavedCount,
+        });
+        await scraperRunRepository.markFailed(this.currentRun.runId, message);
+      }
 
       // Provide more specific error codes
       if (scraperError.code === "AUTH_FAILED") {
@@ -584,12 +812,29 @@ export class ScraperService {
 
     return result;
   }
+
+  /**
+   * Save checkpoint for current progress
+   */
+  private async saveCheckpoint(category: { id: string; name: string; idsubrubro1: number }, pageNum: number): Promise<void> {
+    if (!this.currentRun) return;
+
+    await scraperRunRepository.updateCheckpoint(this.currentRun.runId, {
+      lastCategoryId: category.id,
+      lastCategoryName: category.name,
+      currentCategoryIndex: this.currentCategoryIndex,
+      lastPageNumber: pageNum,
+      productsScraped: this.productsScrapedCount,
+      productsSaved: this.productsSavedCount,
+    });
+  }
 }
 
 /**
  * Create a simple function to run the scraper
+ * @param request - Optional request to filter by category
  */
-export async function runScraper(): Promise<ScraperResult> {
-  const scraper = new ScraperService();
+export async function runScraper(request?: ScraperRunRequest): Promise<ScraperResult> {
+  const scraper = new ScraperService(undefined, request);
   return scraper.run();
 }

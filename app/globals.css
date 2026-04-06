@@ -39,12 +39,18 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont,
     "SF Pro Text", sans-serif;
+  overflow-x: hidden;
 }
 
 .ts-shell {
   min-height: 100vh;
   background-color: var(--background);
   color: var(--foreground);
+  overflow-x: hidden;
+}
+
+html {
+  overflow-x: hidden;
 }
 
 .ts-container {

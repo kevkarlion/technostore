@@ -29,6 +29,10 @@ export const scrapedProductSchema = z.object({
   sku: z.string().optional(),
   imageUrls: z.array(z.string()).default([]),
   categories: z.array(z.string()).default([]),
+  attributes: z.array(z.object({
+    key: z.string(),
+    value: z.string()
+  })).optional().default(() => []),
   rawData: z.record(z.string(), z.unknown()).optional(),
 });
 
@@ -44,6 +48,7 @@ export interface ProductResponseDTO {
   status: ProductStatus;
   categories: string[];
   imageUrls: string[];
+  attributes?: Array<{ key: string; value: string }>;
   externalId?: string;
   supplier?: string;
   lastSyncedAt?: string;

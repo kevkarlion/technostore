@@ -50,9 +50,9 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <SiteHeaderServer />
-          <main className="ts-container pb-16 pt-10">{children}</main>
+          <main className="pb-16 pt-10">{children}</main>
           <footer className="border-t border-[var(--border-subtle)] bg-[var(--background)]">
-            <div className="ts-container flex flex-col gap-4 py-6 text-xs text-[var(--foreground-muted)] sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 py-6 text-xs text-[var(--foreground-muted)] sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 lg:px-8">
               <p>© {new Date().getFullYear()} TechnoStore. All rights reserved.</p>
               <p className="text-[var(--foreground-muted)] opacity-80">
                 Techo Store Marketplace

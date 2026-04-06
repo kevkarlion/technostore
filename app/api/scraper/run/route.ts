@@ -1,8 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runScraperController, getScraperStatus, isScraperRunning } from "@/api/controllers/scraper.controller";
 import { ScraperError } from "@/lib/scraper/types";
+import { jotakpCategories } from "@/lib/scraper/config";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const action = searchParams.get("action");
+
+  // List available categories
+  if (action === "categories") {
+    const categories = jotakpCategories
+      .filter(c => c.idsubrubro1 > 0)
+      .map(c => ({
+        id: c.id,
+        name: c.name,
+        idsubrubro1: c.idsubrubro1,
+      }));
+    return NextResponse.json({ categories }, { status: 200 });
+  }
+
+  // Default: get scraper status
   try {
     const status = getScraperStatus();
     return NextResponse.json(status, { status: 200 });
@@ -15,7 +32,7 @@ export async function GET() {
   }
 }
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
     // Check for concurrent execution
     if (isScraperRunning()) {
@@ -28,9 +45,44 @@ export async function POST() {
       );
     }
 
-    // Run the scraper
-    console.log("[API] Starting scraper execution...");
-    const result = await runScraperController();
+    // Parse request body for optional category filter
+    let body: { categoryId?: string; idsubrubro1?: number } = {};
+    try {
+      body = await request.json();
+    } catch {
+      // No body provided - will scrape all categories
+    }
+
+    // Validate categoryId if provided
+    if (body.categoryId) {
+      const validIds = jotakpCategories.filter(c => c.idsubrubro1 > 0).map(c => c.id);
+      if (!validIds.includes(body.categoryId)) {
+        return NextResponse.json(
+          {
+            error: "Invalid category",
+            message: `Invalid categoryId. Use GET /api/scraper/run?action=categories to see available options.`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate idsubrubro1 if provided
+    if (body.idsubrubro1 !== undefined) {
+      const validIds = jotakpCategories.filter(c => c.idsubrubro1 > 0).map(c => c.idsubrubro1);
+      if (!validIds.includes(body.idsubrubro1)) {
+        return NextResponse.json(
+          {
+            error: "Invalid category",
+            message: `Invalid idsubrubro1. Use GET /api/scraper/run?action=categories to see available options.`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    console.log("[API] Starting scraper execution...", body);
+    const result = await runScraperController(body);
 
     // Return success response
     return NextResponse.json(

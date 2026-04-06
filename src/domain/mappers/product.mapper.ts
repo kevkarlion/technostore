@@ -11,6 +11,7 @@ type ProductDocument = WithId<{
   status: string;
   categories: string[];
   imageUrls: string[];
+  attributes?: Array<{ key: string; value: string }>;
   externalId?: string;
   supplier?: string;
   lastSyncedAt?: Date;
@@ -30,6 +31,7 @@ export const productMapper = {
       status: doc.status as Product["status"],
       categories: doc.categories,
       imageUrls: doc.imageUrls,
+      attributes: doc.attributes,
       externalId: doc.externalId,
       supplier: doc.supplier,
       lastSyncedAt: doc.lastSyncedAt,
@@ -49,6 +51,7 @@ export const productMapper = {
       status: product.status,
       categories: product.categories,
       imageUrls: product.imageUrls,
+      attributes: product.attributes,
       externalId: product.externalId,
       supplier: product.supplier,
       lastSyncedAt: product.lastSyncedAt?.toISOString(),

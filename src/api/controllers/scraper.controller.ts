@@ -1,5 +1,5 @@
 import { runScraper } from "@/lib/scraper/scraper.service";
-import type { ScraperResult } from "@/lib/scraper/types";
+import type { ScraperResult, ScraperRunRequest } from "@/lib/scraper/types";
 import { ScraperError } from "@/lib/scraper/types";
 import { getScraperConfig } from "@/lib/scraper/config";
 
@@ -16,11 +16,12 @@ export function isScraperRunning(): boolean {
 }
 
 /**
- * Run the scraper
+ * Run the scraper for a specific category or all categories
+ * @param request - Optional request to filter by category
  * @returns Promise with ScraperResult
  * @throws ScraperError if scraper fails
  */
-export async function runScraperController(): Promise<ScraperResult> {
+export async function runScraperController(request?: ScraperRunRequest): Promise<ScraperResult> {
   // Check if already running
   if (isRunning) {
     throw new Error("Scraper is already running");
@@ -37,8 +38,8 @@ export async function runScraperController(): Promise<ScraperResult> {
   isRunning = true;
 
   try {
-    console.log("[Controller] Starting scraper...");
-    const result = await runScraper();
+    console.log("[Controller] Starting scraper...", request);
+    const result = await runScraper(request);
     console.log("[Controller] Scraper completed:", result);
     return result;
   } catch (error) {

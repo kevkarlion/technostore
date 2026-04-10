@@ -255,9 +255,9 @@ export class ScraperService {
   /**
    * Wait for a specified delay
    */
-  private async delay(): Promise<void> {
+  private async delay(ms?: number): Promise<void> {
     return new Promise((resolve) => {
-      setTimeout(resolve, this.config.delayMs);
+      setTimeout(resolve, ms ?? this.config.delayMs);
     });
   }
 

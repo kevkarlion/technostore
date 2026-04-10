@@ -26,26 +26,62 @@ export function toPresentationProduct(dbProduct: DbProduct): DomainProduct {
   // Use the first category as the main category, or default to 'components'
   const mainCategory = dbProduct.categories?.[0] || "components";
 
-  // Helper to convert image URLs - handle relative paths from Jotakp
+  // Helper to convert image URLs - handle both local and remote paths
   const baseImageUrl = "https://jotakp.dyndns.org";
   const normalizeImageUrl = (url: string): string => {
     if (!url) return "";
+    
     // If it's already a full URL, return as-is
     if (url.startsWith("http://") || url.startsWith("https://")) {
       return url;
     }
-    // If it's a relative path (starts with 'imagenes'), prepend the base URL
-    if (url.startsWith("imagenes/") || url.startsWith("/imagenes/")) {
-      return `${baseImageUrl}/${url.replace(/^\//, "")}`;
+    
+    // If it's a local path from our server (/images/suppliers/...) use as-is for Next.js
+    if (url.startsWith("/images/") || url.startsWith("images/suppliers/")) {
+      return url.startsWith("/") ? url : `/${url}`;
     }
-    // Otherwise assume it's a relative path
-    return `${baseImageUrl}/${url}`;
+    
+    // Handle relative paths from original site (imagenes/min/... or imagenes/...)
+    // Convert to proper format: imagenes/000012509.PNG
+    let convertedUrl = url;
+    if (url.startsWith("imagenes/") || url.startsWith("/imagenes/")) {
+      // Extract image ID and convert to proper URL format
+      const numbers = url.match(/0+\d+/)?.[0];
+      if (numbers) {
+        convertedUrl = `${baseImageUrl}/imagenes/${numbers}.PNG`;
+      } else {
+        convertedUrl = `${baseImageUrl}/${url.replace(/^\//, "")}`;
+      }
+    } else {
+      convertedUrl = `${baseImageUrl}/${url}`;
+    }
+    
+    return convertedUrl;
   };
+
+  // Helper to check if image URL is valid
+  // Some products don't have images on the supplier site (known invalid IDs)
+  const invalidImageIds = ['000014645', '000014626', '000012509', '000014112', '000015886'];
+  
+  const isValidImageUrl = (url: string): boolean => {
+    // Skip external URLs that are known to be invalid
+    if (url.includes("jotakp.dyndns.org")) {
+      for (const invalidId of invalidImageIds) {
+        if (url.includes(invalidId)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  // Filter valid images from the scraped URLs
+  const validImageUrls = (dbProduct.imageUrls || []).filter(isValidImageUrl);
 
   // Convert imageUrls to the expected format, or use placeholder
   // Try to get image from scraped data, otherwise generate a dynamic placeholder
-  const images = (dbProduct.imageUrls && dbProduct.imageUrls.length > 0)
-    ? dbProduct.imageUrls.map((url, index) => ({
+  const images = validImageUrls.length > 0
+    ? validImageUrls.map((url, index) => ({
         id: `img-${index}`,
         src: normalizeImageUrl(url),
         alt: dbProduct.name,
@@ -53,8 +89,8 @@ export function toPresentationProduct(dbProduct: DbProduct): DomainProduct {
     : [
         {
           id: "placeholder",
-          // Use a dynamic placeholder service that generates image from product name
-          src: `https://placehold.co/600x400/1a1a2e/533483?text=${encodeURIComponent(cleanProductName(dbProduct.name).substring(0, 30))}`,
+          // Use a local placeholder image - create a simple SVG or use external service
+          src: "/images/placeholder-product.svg",
           alt: dbProduct.name,
         },
       ];
@@ -78,6 +114,7 @@ export function toPresentationProduct(dbProduct: DbProduct): DomainProduct {
     category: mainCategory as DomainProduct["category"],
     brand: "General", // Could be extracted from product name in the future
     price: dbProduct.price,
+    priceRaw: dbProduct.priceRaw, // Precio original USD
     originalPrice: undefined, // Not scraped
     inStock,
     stockQuantity: dbProduct.stock,

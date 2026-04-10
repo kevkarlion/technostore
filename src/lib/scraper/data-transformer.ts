@@ -89,7 +89,14 @@ export function extractExternalId(productUrl: string, fallbackName: string): str
  * @returns Validated ScrapedProductDTO
  */
 export function transformProduct(raw: RawProduct, supplier: string): ScrapedProductDTO {
-  const price = parsePrice(raw.priceRaw);
+  console.log(`[Transform] Input raw.priceRaw: ${raw.priceRaw}, type: ${typeof raw.priceRaw}`);
+  
+  // Parsear price - si priceRaw es válido (existe y no es vacío), usar el valor
+  // Si priceRaw es undefined o vacío, price será 0
+  const price = raw.priceRaw !== undefined && raw.priceRaw !== "" 
+    ? parsePrice(raw.priceRaw) 
+    : 0;
+  
   const stock = parseStock(raw.stockRaw);
 
   if (!raw.name || raw.name.trim().length === 0) {
@@ -107,13 +114,18 @@ export function transformProduct(raw: RawProduct, supplier: string): ScrapedProd
     name: raw.name.trim(),
     description: raw.description?.trim(),
     price,
-    currency: "USD", // Default - could be made configurable
+    // Guardar priceRaw tal cual viene (puede ser "14,20", "0", undefined)
+    priceRaw: raw.priceRaw,
+    currency: "USD",
     stock,
     sku: raw.sku,
     imageUrls: raw.imageUrls,
     categories: raw.categories,
+    attributes: [],
     rawData: raw.rawElement ? { rawElement: "Available" } : undefined,
   };
+
+  console.log(`[Transform] Output priceRaw: ${scrapedProduct.priceRaw}`);
 
   // Validate with Zod schema
   const validated = scrapedProductSchema.parse(scrapedProduct);

@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx src/seeds/seed-products.ts",
-    "scraper": "tsx run-scraper.ts"
+    "scraper": "tsx run-scraper.ts",
+    "scraper:incremental": "tsx run-scraper-incremental.ts",
+    "scraper:incremental:force": "tsx run-scraper-incremental.ts -- --force"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -31,9 +33,10 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.27",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
-    "tailwindcss": "^4",
+    "tailwindcss": "^3.4.19",
     "tsx": "^4.21.0",
     "typescript": "^5"
   }

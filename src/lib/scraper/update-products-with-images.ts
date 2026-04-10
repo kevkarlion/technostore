@@ -69,7 +69,10 @@ async function insertProducts() {
 
   for (const product of pendriveProducts) {
     try {
-      const result = await productRepository.upsertByExternalId(product);
+      const result = await productRepository.upsertByExternalId({
+        ...product,
+        attributes: [], // Required field now
+      });
       console.log(`✅ Updated: ${result.name.substring(0, 50)}...`);
       console.log(`   Image: ${product.imageUrls[0]}`);
     } catch (error) {

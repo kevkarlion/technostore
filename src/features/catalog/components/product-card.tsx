@@ -38,13 +38,13 @@ export function ProductCard({ product }: ProductCardProps) {
       className="group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
     >
       <Card className="flex h-full flex-col overflow-hidden border-[var(--border-subtle)] bg-[var(--surface)] transition group-hover:border-[var(--accent)]/50 group-hover:bg-[var(--surface-hover)]">
-        <div className="relative mb-3 aspect-[4/3] w-full overflow-hidden rounded-xl bg-[var(--background)]">
+        <div className="relative mb-3 aspect-square w-full overflow-hidden rounded-xl bg-white flex items-center justify-center p-3">
           <Image
             src={primaryImage.src}
             alt={primaryImage.alt}
-            width={400}
+            width={300}
             height={300}
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+            className="h-full w-full max-h-[180px] w-auto object-contain"
             unoptimized
           />
           <div className="pointer-events-none absolute left-2 top-2 flex flex-wrap gap-1">

@@ -22,18 +22,18 @@ export function ProductGallery({ product }: ProductGalleryProps) {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid max-w-5xl mx-auto grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-12">
         {/* LEFT COLUMN - Image Gallery */}
         <section className="space-y-3">
-          {/* Main Image */}
-          <div className="relative aspect-square w-full max-w-md overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)]">
+          {/* Main Image - estilo ML */}
+          <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-white flex items-center justify-center">
             {heroImage ? (
               <Image
                 src={heroImage.src}
                 alt={heroImage.alt}
-                width={400}
-                height={400}
-                className="h-full w-full object-contain"
+                width={600}
+                height={600}
+                className="max-h-[500px] w-auto object-contain"
                 priority
               />
             ) : (
@@ -79,37 +79,6 @@ export function ProductGallery({ product }: ProductGalleryProps) {
               ))}
             </div>
           )}
-
-          {/* Technical specifications - only show if exists */}
-          {hasSpecs && (
-            <section aria-label="Technical specifications" className="space-y-2">
-              <h2 className="text-sm font-semibold text-[var(--foreground)]">
-                Detalles técnicos
-              </h2>
-              <dl className="grid grid-cols-1 gap-2 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4 text-xs sm:grid-cols-2">
-                {Object.entries(product.specs).map(([key, value]) => (
-                  <div key={key} className="flex flex-col gap-0.5">
-                    <dt className="text-[0.7rem] uppercase tracking-wide text-[var(--foreground-muted)]">
-                      {key}
-                    </dt>
-                    <dd className="text-[var(--foreground)]">{String(value)}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
-          )}
-
-          {/* Product Description - only show if exists */}
-          {hasDescription && (
-            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4">
-              <h2 className="text-sm font-semibold text-[var(--foreground)] mb-2">
-                Descripción
-              </h2>
-              <p className="text-sm text-[var(--foreground-muted)]">
-                {product.shortDescription}
-              </p>
-            </div>
-          )}
         </section>
 
         {/* RIGHT COLUMN - Product Details & Add to Cart */}
@@ -143,6 +112,38 @@ export function ProductGallery({ product }: ProductGalleryProps) {
             <AddToCartButton productId={product.id} />
           </div>
         </section>
+      </div>
+
+      {/* Full-width: Description & Technical specs */}
+      <div className="max-w-5xl mx-auto mt-6">
+        {/* Product Description - estilo ML */}
+        {hasDescription && (
+          <div className="bg-[var(--surface)] rounded-lg p-6 border border-gray-200">
+            <h2 className="text-lg font-bold text-[var(--foreground)] mb-3">
+              Descripción
+            </h2>
+            <p className="text-base text-[var(--foreground-muted)] leading-relaxed">
+              {product.shortDescription}
+            </p>
+          </div>
+        )}
+
+        {/* Technical specifications - solo si existe */}
+        {hasSpecs && (
+          <section aria-label="Technical specifications" className="mt-4 bg-[var(--surface)] rounded-lg p-6 border border-gray-200">
+            <h2 className="text-lg font-bold text-[var(--foreground)] mb-3">
+              Características Técnicas
+            </h2>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3 text-sm">
+              {Object.entries(product.specs).map(([key, value]) => (
+                <div key={key} className="flex justify-between border-b border-gray-100 pb-2">
+                  <dt className="text-[var(--foreground-muted)]">{key}</dt>
+                  <dd className="text-[var(--foreground)] font-medium text-right">{String(value)}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
       </div>
     </div>
   );

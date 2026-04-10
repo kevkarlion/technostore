@@ -24,6 +24,7 @@ export const scrapedProductSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   price: z.number().nonnegative(),
+  priceRaw: z.string().optional(), // Precio original USD del proveedor (ej: "98,75")
   currency: z.string().min(1).default("USD"),
   stock: z.number().int().nonnegative().default(0),
   sku: z.string().optional(),

@@ -135,39 +135,173 @@ export const productRepository = {
     return { deletedCount: result.deletedCount };
   },
 
-  async upsertByExternalId(data: ScrapedProductDTO): Promise<Product> {
+  /**
+   * Atomic upsert - solo actualiza campos que cambiaron
+   * Similar a Git: solo hace commit si hay cambios reales
+   */
+  async atomicUpsertByExternalId(data: ScrapedProductDTO): Promise<{
+    product: Product;
+    created: boolean;
+    updated: boolean;
+    changes: string[];
+  }> {
     const db = await getDb();
     const collection = db.collection(COLLECTION_NAME);
 
     const now = new Date();
+    const changes: string[] = [];
 
-    // Build the update object - map scraped data to product fields
-    const updateFields = {
-      name: data.name,
-      description: data.description,
-      price: data.price,
-      currency: data.currency,
-      stock: data.stock,
-      sku: data.sku,
-      imageUrls: data.imageUrls,
-      categories: data.categories,
-      attributes: data.attributes || [],
+    // 1. Verificar si el producto existe
+    const existing = await collection.findOne({
       externalId: data.externalId,
       supplier: data.supplier,
+    });
+
+    if (!existing) {
+      // Producto nuevo - crear
+      const result = await collection.insertOne({
+        ...data,
+        lastSyncedAt: now,
+        status: "active",
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      const inserted = await collection.findOne({ _id: result.insertedId });
+      return {
+        product: productMapper.toDomain(inserted as any),
+        created: true,
+        updated: false,
+        changes: ["CREATE"],
+      };
+    }
+
+    // 2. Producto existente - comparar campos y solo actualizar los que cambiaron
+    const updateOperations: Record<string, any> = {
       lastSyncedAt: now,
-      // Products from scraper are set to active for display
-      status: "active" as const,
       updatedAt: now,
     };
 
-    // Use findOneAndUpdate with upsert
-    const doc = await collection.findOneAndUpdate(
-      { externalId: data.externalId, supplier: data.supplier },
-      { $set: updateFields, $setOnInsert: { createdAt: now } },
-      { returnDocument: "after", upsert: true }
+    // Comparar cada campo
+    const fieldsToCompare = [
+      { key: "name", newVal: data.name },
+      { key: "description", newVal: data.description },
+      { key: "price", newVal: data.price },
+      { key: "priceRaw", newVal: data.priceRaw },
+      { key: "currency", newVal: data.currency },
+      { key: "stock", newVal: data.stock },
+      { key: "sku", newVal: data.sku },
+      { key: "categories", newVal: data.categories },
+      { key: "attributes", newVal: data.attributes || [] },
+    ];
+
+    for (const field of fieldsToCompare) {
+      const existingVal = (existing as any)[field.key];
+      const newVal = field.newVal;
+
+      // Para priceRaw: siempre actualizar si viene en el nuevo data
+      let hasChanged: boolean;
+      if (field.key === 'priceRaw') {
+        hasChanged = newVal !== undefined;
+        console.log(`[Repo] priceRaw: existing=${existingVal}, new=${newVal}, hasChanged=${hasChanged}, willUpdate=${hasChanged ? newVal : 'skip'}`);
+      } else {
+        hasChanged = JSON.stringify(existingVal) !== JSON.stringify(newVal);
+      }
+
+      if (hasChanged) {
+        updateOperations[field.key] = newVal;
+        changes.push(field.key);
+      }
+    }
+
+    // 3. Imágenes - lógica especial
+    // Solo actualizar si vinieron nuevas Y son válidas
+    const existingImages = existing.imageUrls || [];
+    const newImages = data.imageUrls || [];
+
+    // Si hay nuevas imágenes distintas a las existentes, actualizar
+    const imagesChanged = newImages.length > 0 &&
+      JSON.stringify(existingImages) !== JSON.stringify(newImages);
+
+    if (imagesChanged) {
+      updateOperations.imageUrls = newImages;
+      changes.push("imageUrls");
+    } else if (newImages.length === 0 && existingImages.length > 0) {
+      // No vinieron imágenes pero ya existían - NO sobreescribir (preservar)
+      console.log(`[Repo] Preservando imágenes existentes para ${data.externalId}`);
+    }
+
+    // 4. Si hay cambios, actualizar
+    if (changes.length > 0) {
+      await collection.updateOne(
+        { _id: existing._id },
+        { $set: updateOperations }
+      );
+    }
+
+    // 5. Siempre marcar como "seen" (activo)
+    await collection.updateOne(
+      { _id: existing._id },
+      { $set: { status: "active", lastSeenAt: now } }
     );
 
-    return productMapper.toDomain(doc as any);
+    const updated = await collection.findOne({ _id: existing._id });
+
+    return {
+      product: productMapper.toDomain(updated as any),
+      created: false,
+      updated: changes.length > 0,
+      changes,
+    };
+  },
+
+  /**
+   * Marcar productos como descontinuados
+   * Llama después del scrapeo para marcar los que no aparecen
+   */
+  async markDiscontinued(supplier: string, externalIds: string[]): Promise<number> {
+    const db = await getDb();
+    const collection = db.collection(COLLECTION_NAME);
+
+    const result = await collection.updateMany(
+      {
+        supplier,
+        externalId: { $nin: externalIds },
+        status: "active",
+      },
+      {
+        $set: {
+          status: "discontinued",
+          discontinuedAt: new Date(),
+        },
+      }
+    );
+
+    return result.modifiedCount;
+  },
+
+  /**
+   * Obtener productos no vistos en el último scrapeo
+   */
+  async findUnseen(supplier: string, lastSync: Date): Promise<Product[]> {
+    const db = await getDb();
+    const collection = db.collection(COLLECTION_NAME);
+
+    const docs = await collection
+      .find({
+        supplier,
+        lastSeenAt: { $lt: lastSync },
+        status: "active",
+      })
+      .toArray();
+
+    return docs.map((doc) => productMapper.toDomain(doc as any));
+  },
+
+  // Wrapper legacy para compatibilidad
+  async upsertByExternalId(data: ScrapedProductDTO): Promise<Product> {
+    const result = await this.atomicUpsertByExternalId(data);
+    return result.product;
   },
 
   async findByCategorySlug(

@@ -46,13 +46,17 @@ export async function downloadImage(
     const supplierDir = await ensureImageDirectory(supplier);
     
     // Determine file extension from URL
-    const urlObj = new URL(imageUrl);
-    const pathname = urlObj.pathname;
+    const pathname = new URL(imageUrl).pathname;
     const ext = path.extname(pathname) || ".jpg";
     
-    // Create filename: {supplier}_{productId}_{hash}.{ext}
-    const hash = imageUrl.slice(-20).replace(/[^a-z0-9]/gi, "").substring(0, 10);
-    const filename = `${supplier}_${productId}_${hash}${ext}`;
+    // Extract the image ID from the URL (e.g., imagenes/000028904.PNG -> 000028904)
+    // This ensures consistent naming across different file types
+    const imageIdMatch = pathname.match(/(?:imagen|0+)(\d+)\.[a-zA-Z]+$/i);
+    const imageId = imageIdMatch ? imageIdMatch[1] : pathname.slice(-20).replace(/[^a-z0-9]/gi, "");
+    
+    // Create filename: {supplier}_{productId}_{imageId}.{ext}
+    // Example: jotakp_21884_000028904.PNG
+    const filename = `${supplier}_${productId}_${imageId}${ext}`;
     const localPath = path.join(supplierDir, filename);
     
     // Check if already exists

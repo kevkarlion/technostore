@@ -10,7 +10,7 @@ export interface RawProduct {
   /** Product description */
   description?: string;
   /** Product price as string (may include currency symbols, commas) */
-  priceRaw: string;
+  priceRaw?: string;
   /** Product price with IVA (tax) */
   priceWithIvaRaw?: string;
   /** Product SKU */

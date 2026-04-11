@@ -1,0 +1,13 @@
+{
+  "headers": [
+    {
+      "source": "/api/cron/(.*)",
+      "headers": [
+        {
+          "key": "X-Vercel-Execution",
+          "value": "1"
+        }
+      ]
+    }
+  ]
+}

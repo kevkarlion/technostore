@@ -10,11 +10,13 @@
     "seed": "tsx src/seeds/seed-products.ts",
     "scraper": "tsx run-scraper.ts",
     "scraper:incremental": "tsx run-scraper-incremental.ts",
-    "scraper:incremental:force": "tsx run-scraper-incremental.ts -- --force"
+    "scraper:incremental:force": "tsx run-scraper-incremental.ts -- --force",
+    "migrate:images": "tsx migrate-images.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "cheerio": "^1.2.0",
+    "cloudinary": "^2.9.0",
     "clsx": "^2.1.1",
     "dotenv": "^17.3.1",
     "framer-motion": "^12.34.3",

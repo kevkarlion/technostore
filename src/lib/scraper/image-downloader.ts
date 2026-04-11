@@ -1,22 +1,25 @@
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
+import { getEnv } from "@/config/env";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Base directory for supplier images
+// Base directory for supplier images (local fallback)
 const SUPPLIER_IMAGES_DIR = path.join(process.cwd(), "public", "images", "suppliers");
 
 export interface DownloadedImage {
   localPath: string;
+  cloudinaryUrl?: string;
   url: string;
   success: boolean;
   error?: string;
 }
 
 /**
- * Ensure the supplier images directory exists
+ * Ensure the supplier images directory exists (local fallback)
  */
 export async function ensureImageDirectory(supplier: string): Promise<string> {
   const supplierDir = path.join(SUPPLIER_IMAGES_DIR, supplier);
@@ -30,38 +33,48 @@ export async function ensureImageDirectory(supplier: string): Promise<string> {
 }
 
 /**
- * Download an image from a URL and save it locally
- * @param imageUrl - The URL of the image to download
- * @param supplier - The supplier name (used for folder organization)
- * @param productId - The product ID (used for filename)
- * @returns The local path where the image was saved
+ * Download an image from a URL and upload to Cloudinary
+ * Falls back to local storage if Cloudinary fails
  */
 export async function downloadImage(
   imageUrl: string,
   supplier: string,
-  productId: string
+  productId: string,
+  imageIndex: number = 0
 ): Promise<DownloadedImage> {
   try {
-    // Ensure directory exists
+    const env = getEnv();
+    const isProduction = env.NODE_ENV === "production";
+    
+    // Try to upload to Cloudinary in production
+    if (isProduction && env.CLOUDINARY_CLOUD_NAME) {
+      const cloudResult = await uploadImageToCloudinary(imageUrl, supplier, productId, imageIndex);
+      
+      if (cloudResult.success && cloudResult.url) {
+        console.log(`[ImageDownloader] Uploaded to Cloudinary: ${productId}`);
+        
+        return {
+          localPath: "",
+          cloudinaryUrl: cloudResult.url,
+          url: imageUrl,
+          success: true,
+        };
+      }
+    }
+    
+    // Fallback to local storage
     const supplierDir = await ensureImageDirectory(supplier);
     
-    // Determine file extension from URL
     const pathname = new URL(imageUrl).pathname;
     const ext = path.extname(pathname) || ".jpg";
     
-    // Extract the image ID from the URL (e.g., imagenes/000028904.PNG -> 000028904)
-    // This ensures consistent naming across different file types
     const imageIdMatch = pathname.match(/(?:imagen|0+)(\d+)\.[a-zA-Z]+$/i);
     const imageId = imageIdMatch ? imageIdMatch[1] : pathname.slice(-20).replace(/[^a-z0-9]/gi, "");
     
-    // Create filename: {supplier}_{productId}_{imageId}.{ext}
-    // Example: jotakp_21884_000028904.PNG
     const filename = `${supplier}_${productId}_${imageId}${ext}`;
     const localPath = path.join(supplierDir, filename);
     
-    // Check if already exists
     if (fs.existsSync(localPath)) {
-      console.log(`[ImageDownloader] Image already exists: ${filename}`);
       return {
         localPath: `/images/suppliers/${supplier}/${filename}`,
         url: imageUrl,
@@ -69,7 +82,7 @@ export async function downloadImage(
       };
     }
     
-    // Download the image
+    // Download locally
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
     
@@ -90,10 +103,9 @@ export async function downloadImage(
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     
-    // Write to file
     fs.writeFileSync(localPath, buffer);
     
-    console.log(`[ImageDownloader] Downloaded: ${filename}`);
+    console.log(`[ImageDownloader] Downloaded locally: ${filename}`);
     
     return {
       localPath: `/images/suppliers/${supplier}/${filename}`,

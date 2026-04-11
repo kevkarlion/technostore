@@ -7,6 +7,12 @@ import crypto from "crypto";
 import path from "path";
 import os from "os";
 
+// Set browsers path at module load time (before any playwright operations)
+const BROWSERS_PATH = process.env.PLAYWRIGHT_BROWSERS_PATH || "/tmp/ms-playwright";
+process.env.PLAYWRIGHT_BROWSERS_PATH = BROWSERS_PATH;
+process.env.HOME = "/tmp";  // Needed for playwright to find its cache
+console.log("[Scraper] Initialized PLAYWRIGHT_BROWSERS_PATH:", BROWSERS_PATH);
+
 /**
  * Scraper Incremental - Ejecuta scraping inteligente cada 2 horas
  * 
@@ -22,30 +28,29 @@ const MAX_PARALLEL_PAGES = 2;
 // Find playwright chromium executable in various locations
 async function getChromiumExecutable(): Promise<string | undefined> {
   const fs = require("fs");
-  const path = require("path");
+  const pathModule = require("path");
   const { execSync } = require("child_process");
   
-  // Lista de ubicaciones posibles donde puede estar chromium
   const possiblePaths = [
-    // Vercel standard cache
+    // Vercel cache
     "/vercel/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome",
     "/vercel/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell",
-    // The path from the error message (Vercel sandbox user)
+    // Vercel sandbox user (from error message)
     "/home/sbx_user1051/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome",
     "/home/sbx_user1051/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell",
-    // HOME fallback
-    path.join(process.env.HOME || "/root", ".cache", "ms-playwright", "chromium-1208", "chrome-linux64", "chrome"),
-    path.join(process.env.HOME || "/root", ".cache", "ms-playwright", "chromium_headless_shell-1208", "chrome-headless-shell-linux64", "chrome-headless-shell"),
+    // /tmp paths
+    pathModule.join(BROWSERS_PATH, "chromium-1208", "chrome-linux64", "chrome"),
+    pathModule.join(BROWSERS_PATH, "chromium_headless_shell-1208", "chrome-headless-shell-linux64", "chrome-headless-shell"),
+    pathModule.join("/tmp", "ms-playwright", "chromium-1208", "chrome-linux64", "chrome"),
   ];
   
-  console.log("[Scraper] Looking for chromium...");
+  console.log("[Scraper] Looking for chromium in", possiblePaths.length, "locations...");
   
-  // Buscar primero sin descargar
   for (const p of possiblePaths) {
     try {
       console.log("[Scraper] Checking:", p);
       if (p && fs.existsSync(p)) {
-        console.log("[Scraper] Found chromium at:", p);
+        console.log("[Scraper] FOUND chromium at:", p);
         return p;
       }
     } catch (e) {
@@ -53,45 +58,42 @@ async function getChromiumExecutable(): Promise<string | undefined> {
     }
   }
   
-  // Intentar descargar chromium a un directorio específico
-  console.log("[Scraper] No chromium found in cache, downloading at runtime...");
+  // Try to download
+  console.log("[Scraper] No chromium found, attempting download...");
   try {
-    // Create a temp directory
-    const downloadDir = "/tmp/playwright-browsers";
+    const downloadDir = BROWSERS_PATH;
     try { fs.mkdirSync(downloadDir, { recursive: true }); } catch {}
     
-    console.log("[Scraper] Downloading to:", downloadDir);
-    
-    // Set env var before installing
-    const env = { 
-      ...process.env, 
-      PLAYWRIGHT_BROWSERS_PATH: downloadDir
-    };
-    
-    // Install chromium without deps
+    // Run playwright install
+    console.log("[Scraper] Running: npx playwright install chromium");
     execSync("npx playwright install chromium", { 
       stdio: "inherit",
-      env,
-      cwd: "/tmp"
+      env: { 
+        ...process.env, 
+        PLAYWRIGHT_BROWSERS_PATH: downloadDir,
+        HOME: "/tmp"
+      }
     });
     
-    // After download, check the new location
-    const newPaths = [
-      path.join(downloadDir, "ms-playwright", "chromium-1208", "chrome-linux64", "chrome"),
-      path.join(downloadDir, "chromium-1208", "chrome-linux64", "chrome"),
+    // Check for downloaded browsers
+    const searchPaths = [
+      pathModule.join(downloadDir, "chromium-1208", "chrome-linux64", "chrome"),
+      pathModule.join(downloadDir, "ms-playwright", "chromium-1208", "chrome-linux64", "chrome"),
+      "/tmp/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome",
     ];
     
-    for (const p of newPaths) {
+    for (const p of searchPaths) {
       console.log("[Scraper] Checking downloaded:", p);
       if (p && fs.existsSync(p)) {
-        console.log("[Scraper] Downloaded chromium found at:", p);
+        console.log("[Scraper] Downloaded chromium at:", p);
         return p;
       }
     }
   } catch (e) {
-    console.log("[Scraper] Failed to download chromium:", e);
+    console.log("[Scraper] Download failed:", e);
   }
   
+  console.log("[Scraper] WARNING: Returning undefined - playwright will use default");
   return undefined;
 }
 

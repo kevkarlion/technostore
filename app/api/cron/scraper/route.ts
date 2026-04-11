@@ -88,13 +88,12 @@ async function sendStartNotification() {
 }
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const secret = searchParams.get("secret");
-
-  // Verify cron secret if provided
-  if (CRON_SECRET && secret !== CRON_SECRET) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  // Cron endpoint - allow access (or add secret check if needed)
+  // const CRON_SECRET = process.env.CRON_SECRET;
+  // const secret = new URL(request.url).searchParams.get("secret");
+  // if (CRON_SECRET && secret !== CRON_SECRET) {
+  //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // }
 
   try {
     console.log("[Cron] Starting incremental scraper...");

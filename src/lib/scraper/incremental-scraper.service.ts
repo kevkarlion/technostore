@@ -5,6 +5,7 @@ import { productRepository } from "@/api/repository/product.repository";
 import { runScraper } from "./scraper.service";
 import crypto from "crypto";
 import path from "path";
+import os from "os";
 
 /**
  * Scraper Incremental - Ejecuta scraping inteligente cada 2 horas
@@ -16,40 +17,35 @@ import path from "path";
  * 4. Actualizar estado en DB
  */
 
-// Custom launch options for Vercel
-function getChromiumOptions() {
-  const isVercel = process.env.VERCEL === "1";
+const MAX_PARALLEL_PAGES = 2;
+
+// Find playwright chromium executable in various locations
+function getChromiumExecutable(): string | undefined {
+  const possiblePaths = [
+    // Vercel cache location
+    "/vercel/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome",
+    "/vercel/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell",
+    // Home directory fallback
+    path.join(os.homedir(), ".cache", "ms-playwright", "chromium-1208", "chrome-linux64", "chrome"),
+    // Current working directory  
+    path.join(process.cwd(), "node_modules", "playwright", ".local-browsers", "chromium-1208", "chrome-linux64", "chrome"),
+  ];
   
-  const options: any = {
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"]
-  };
-  
-  if (isVercel) {
-    // Try to find playwright browsers in the project directory
-    const possiblePaths = [
-      path.join(process.cwd(), "playwright-browsers", "chromium-1208", "chrome-linux64", "chrome"),
-      path.join(process.cwd(), ".cache", "ms-playwright", "chromium-1208", "chrome-linux64", "chrome"),
-    ];
-    
-    for (const p of possiblePaths) {
-      try {
-        const fs = require("fs");
-        if (fs.existsSync(p)) {
-          options.executablePath = p;
-          console.log("[Scraper] Using custom chromium at:", p);
-          break;
-        }
-      } catch {
-        // continue
+  const fs = require("fs");
+  for (const p of possiblePaths) {
+    try {
+      if (fs.existsSync(p)) {
+        console.log("[Scraper] Found chromium at:", p);
+        return p;
       }
+    } catch {
+      // Continue to next path
     }
   }
   
-  return options;
+  console.log("[Scraper] No custom chromium found, will use default");
+  return undefined;
 }
-
-const MAX_PARALLEL_PAGES = 2; // misma config que scraper normal (reducido por límite del servidor)
 
 /**
  * Generar hash MD5 del contenido de la página
@@ -135,7 +131,12 @@ export async function preCheckCategories(categories: { id: string; idsubrubro1: 
   const config = getScraperConfig();
   
   // Iniciar browser solo para pre-check
-  const browser = await chromium.launch(getChromiumOptions());
+  const chromiumPath = getChromiumExecutable();
+  const browser = await chromium.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    ...(chromiumPath ? { executablePath: chromiumPath } : {})
+  });
   
   try {
     // Login una sola vez

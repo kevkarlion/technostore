@@ -20,30 +20,72 @@ import os from "os";
 const MAX_PARALLEL_PAGES = 2;
 
 // Find playwright chromium executable in various locations
-function getChromiumExecutable(): string | undefined {
+async function getChromiumExecutable(): Promise<string | undefined> {
+  const fs = require("fs");
+  const path = require("path");
+  const { execSync } = require("child_process");
+  
+  // Lista de ubicaciones posibles donde puede estar chromium
   const possiblePaths = [
-    // Vercel cache location
+    // Vercel standard cache
     "/vercel/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome",
     "/vercel/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell",
-    // Home directory fallback
-    path.join(os.homedir(), ".cache", "ms-playwright", "chromium-1208", "chrome-linux64", "chrome"),
-    // Current working directory  
-    path.join(process.cwd(), "node_modules", "playwright", ".local-browsers", "chromium-1208", "chrome-linux64", "chrome"),
+    // The path from the error message
+    "/home/sbx_user1051/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome",
+    "/home/sbx_user1051/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell",
+    // HOME fallback
+    path.join(process.env.HOME || "/root", ".cache", "ms-playwright", "chromium-1208", "chrome-linux64", "chrome"),
+    path.join(process.env.HOME || "/root", ".cache", "ms-playwright", "chromium_headless_shell-1208", "chrome-headless-shell-linux64", "chrome-headless-shell"),
   ];
   
-  const fs = require("fs");
+  // Buscar primero sin descargar
   for (const p of possiblePaths) {
     try {
-      if (fs.existsSync(p)) {
+      if (p && fs.existsSync(p)) {
         console.log("[Scraper] Found chromium at:", p);
         return p;
       }
     } catch {
-      // Continue to next path
+      // Continue
     }
   }
   
-  console.log("[Scraper] No custom chromium found, will use default");
+  // Intentar descargar chromium a un directorio específico
+  console.log("[Scraper] No chromium found, attempting to download at runtime...");
+  try {
+    // Create a temp directory
+    const downloadDir = "/tmp/playwright-browsers";
+    try { fs.mkdirSync(downloadDir, { recursive: true }); } catch {}
+    
+    // Set env var before installing
+    const env = { 
+      ...process.env, 
+      PLAYWRIGHT_BROWSERS_PATH: downloadDir,
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "0"
+    };
+    
+    // Install without --with-deps (Vercel doesn't have apt-get)
+    execSync("npx playwright install chromium", { 
+      stdio: "inherit",
+      env
+    });
+    
+    // After download, check the new location
+    const newPaths = [
+      path.join(downloadDir, "chromium-1208", "chrome-linux64", "chrome"),
+      path.join(downloadDir, "chromium_headless_shell-1208", "chrome-headless-shell-linux64", "chrome-headless-shell"),
+    ];
+    
+    for (const p of newPaths) {
+      if (p && fs.existsSync(p)) {
+        console.log("[Scraper] Downloaded chromium found at:", p);
+        return p;
+      }
+    }
+  } catch (e) {
+    console.log("[Scraper] Failed to download chromium:", e);
+  }
+  
   return undefined;
 }
 
@@ -131,7 +173,7 @@ export async function preCheckCategories(categories: { id: string; idsubrubro1: 
   const config = getScraperConfig();
   
   // Iniciar browser solo para pre-check
-  const chromiumPath = getChromiumExecutable();
+  const chromiumPath = await getChromiumExecutable();
   const browser = await chromium.launch({
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],

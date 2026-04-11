@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { runIncrementalScraper } from "@/lib/scraper/incremental-scraper.service";
 
-// Protection: only allow internal calls or cron jobs
-const CRON_SECRET = process.env.CRON_SECRET;
+// Cron endpoint - allow access (or add secret check if needed)
+// To enable Discord notifications, set these env vars in Vercel:
+// - DISCORD_WEBHOOK_URL
+// - CRON_SECRET (optional)
+
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
 /**
@@ -95,11 +98,13 @@ export async function GET(request: Request) {
   //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   // }
 
+  const url = new URL(request.url);
+
   try {
     console.log("[Cron] Starting incremental scraper...");
     
     // Notify start (optional)
-    if (searchParams.get("notify") === "true") {
+    if (url.searchParams.get("notify") === "true") {
       await sendStartNotification();
     }
     

@@ -7,6 +7,68 @@ import { productRepository } from "@/api/repository/product.repository";
 import { scraperRunRepository } from "@/api/repository/scraper-run.repository";
 import type { ScraperConfig, ScraperResult, RawProduct, ScraperRunRequest, ScraperRun, CheckpointData } from "./types";
 import { ScraperError } from "./types";
+import path from "path";
+import os from "os";
+
+// Find playwright chromium executable in various locations
+async function getChromiumExecutable(): Promise<string | undefined> {
+  const fs = require("fs");
+  const { execSync } = require("child_process");
+  
+  const possiblePaths = [
+    // Vercel cache
+    "/vercel/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome",
+    "/vercel/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell",
+    // Vercel sandbox user
+    "/home/sbx_user1051/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome",
+    "/home/sbx_user1051/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell",
+    // HOME fallback
+    path.join(os.homedir() || "/root", ".cache", "ms-playwright", "chromium-1208", "chrome-linux64", "chrome"),
+  ];
+  
+  console.log("[Scraper] Looking for chromium...");
+  
+  for (const p of possiblePaths) {
+    try {
+      console.log("[Scraper] Checking:", p);
+      if (p && fs.existsSync(p)) {
+        console.log("[Scraper] Found chromium at:", p);
+        return p;
+      }
+    } catch (e) {
+      console.log("[Scraper] Error checking path:", e);
+    }
+  }
+  
+  // Try download to /tmp
+  console.log("[Scraper] No chromium found in cache, downloading at runtime...");
+  try {
+    const downloadDir = "/tmp/playwright-browsers";
+    try { fs.mkdirSync(downloadDir, { recursive: true }); } catch {}
+    
+    execSync("npx playwright install chromium", { 
+      stdio: "inherit",
+      env: { ...process.env, PLAYWRIGHT_BROWSERS_PATH: downloadDir },
+      cwd: "/tmp"
+    });
+    
+    const newPaths = [
+      path.join(downloadDir, "ms-playwright", "chromium-1208", "chrome-linux64", "chrome"),
+      path.join(downloadDir, "chromium-1208", "chrome-linux64", "chrome"),
+    ];
+    
+    for (const p of newPaths) {
+      if (p && fs.existsSync(p)) {
+        console.log("[Scraper] Downloaded chromium found at:", p);
+        return p;
+      }
+    }
+  } catch (e) {
+    console.log("[Scraper] Failed to download chromium:", e);
+  }
+  
+  return undefined;
+}
 
 /**
  * Retry configuration
@@ -165,6 +227,15 @@ export class ScraperService {
       if (this.browser) {
         try { await this.browser.close(); } catch { /* ignore */ }
       }
+      
+      // Try to find or download chromium
+      let chromiumPath: string | undefined;
+      try {
+        chromiumPath = await getChromiumExecutable();
+      } catch (e) {
+        console.log("[Scraper] Error getting chromium:", e);
+      }
+      
       this.browser = await chromium.launch({
         headless: true,
         args: [
@@ -173,6 +244,7 @@ export class ScraperService {
           "--disable-blink-features=AutomationControlled",
           "--disable-dev-shm-usage",
         ],
+        ...(chromiumPath ? { executablePath: chromiumPath } : {})
       });
     }
     return this.browser;

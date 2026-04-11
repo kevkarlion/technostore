@@ -30,7 +30,7 @@ async function getChromiumExecutable(): Promise<string | undefined> {
     // Vercel standard cache
     "/vercel/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome",
     "/vercel/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell",
-    // The path from the error message
+    // The path from the error message (Vercel sandbox user)
     "/home/sbx_user1051/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome",
     "/home/sbx_user1051/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell",
     // HOME fallback
@@ -38,45 +38,51 @@ async function getChromiumExecutable(): Promise<string | undefined> {
     path.join(process.env.HOME || "/root", ".cache", "ms-playwright", "chromium_headless_shell-1208", "chrome-headless-shell-linux64", "chrome-headless-shell"),
   ];
   
+  console.log("[Scraper] Looking for chromium...");
+  
   // Buscar primero sin descargar
   for (const p of possiblePaths) {
     try {
+      console.log("[Scraper] Checking:", p);
       if (p && fs.existsSync(p)) {
         console.log("[Scraper] Found chromium at:", p);
         return p;
       }
-    } catch {
-      // Continue
+    } catch (e) {
+      console.log("[Scraper] Error checking path:", e);
     }
   }
   
   // Intentar descargar chromium a un directorio específico
-  console.log("[Scraper] No chromium found, attempting to download at runtime...");
+  console.log("[Scraper] No chromium found in cache, downloading at runtime...");
   try {
     // Create a temp directory
     const downloadDir = "/tmp/playwright-browsers";
     try { fs.mkdirSync(downloadDir, { recursive: true }); } catch {}
     
+    console.log("[Scraper] Downloading to:", downloadDir);
+    
     // Set env var before installing
     const env = { 
       ...process.env, 
-      PLAYWRIGHT_BROWSERS_PATH: downloadDir,
-      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "0"
+      PLAYWRIGHT_BROWSERS_PATH: downloadDir
     };
     
-    // Install without --with-deps (Vercel doesn't have apt-get)
+    // Install chromium without deps
     execSync("npx playwright install chromium", { 
       stdio: "inherit",
-      env
+      env,
+      cwd: "/tmp"
     });
     
     // After download, check the new location
     const newPaths = [
+      path.join(downloadDir, "ms-playwright", "chromium-1208", "chrome-linux64", "chrome"),
       path.join(downloadDir, "chromium-1208", "chrome-linux64", "chrome"),
-      path.join(downloadDir, "chromium_headless_shell-1208", "chrome-headless-shell-linux64", "chrome-headless-shell"),
     ];
     
     for (const p of newPaths) {
+      console.log("[Scraper] Checking downloaded:", p);
       if (p && fs.existsSync(p)) {
         console.log("[Scraper] Downloaded chromium found at:", p);
         return p;
@@ -172,8 +178,16 @@ export async function preCheckCategories(categories: { id: string; idsubrubro1: 
   
   const config = getScraperConfig();
   
-  // Iniciar browser solo para pre-check
-  const chromiumPath = await getChromiumExecutable();
+  // Iniciar browser solo para pre-check - with fallback to download
+  let chromiumPath: string | undefined;
+  try {
+    chromiumPath = await getChromiumExecutable();
+  } catch (e) {
+    console.log("[Scraper] Error getting chromium:", e);
+  }
+  
+  console.log("[Scraper] Using chromium path:", chromiumPath || "default");
+  
   const browser = await chromium.launch({
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],

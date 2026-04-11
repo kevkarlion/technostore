@@ -4,6 +4,7 @@ import { scraperStateRepository } from "@/api/repository/scraper-state.repositor
 import { productRepository } from "@/api/repository/product.repository";
 import { runScraper } from "./scraper.service";
 import crypto from "crypto";
+import path from "path";
 
 /**
  * Scraper Incremental - Ejecuta scraping inteligente cada 2 horas
@@ -14,6 +15,39 @@ import crypto from "crypto";
  * 3. Solo scrapear las categorías que cambiaron
  * 4. Actualizar estado en DB
  */
+
+// Custom launch options for Vercel
+function getChromiumOptions() {
+  const isVercel = process.env.VERCEL === "1";
+  
+  const options: any = {
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"]
+  };
+  
+  if (isVercel) {
+    // Try to find playwright browsers in the project directory
+    const possiblePaths = [
+      path.join(process.cwd(), "playwright-browsers", "chromium-1208", "chrome-linux64", "chrome"),
+      path.join(process.cwd(), ".cache", "ms-playwright", "chromium-1208", "chrome-linux64", "chrome"),
+    ];
+    
+    for (const p of possiblePaths) {
+      try {
+        const fs = require("fs");
+        if (fs.existsSync(p)) {
+          options.executablePath = p;
+          console.log("[Scraper] Using custom chromium at:", p);
+          break;
+        }
+      } catch {
+        // continue
+      }
+    }
+  }
+  
+  return options;
+}
 
 const MAX_PARALLEL_PAGES = 2; // misma config que scraper normal (reducido por límite del servidor)
 
@@ -101,10 +135,7 @@ export async function preCheckCategories(categories: { id: string; idsubrubro1: 
   const config = getScraperConfig();
   
   // Iniciar browser solo para pre-check
-  const browser = await chromium.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"]
-  });
+  const browser = await chromium.launch(getChromiumOptions());
   
   try {
     // Login una sola vez

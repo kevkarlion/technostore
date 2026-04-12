@@ -313,22 +313,10 @@ export const productRepository = {
     const categoriesCollection = db.collection("categories");
 
     // Find category by slug to get its name and supplierCategoryId
-    const category = await categoriesCollection.findOne({ slug: categorySlug });
-    
-    // Use both the category name (from DB) and the slug for matching
-    // The scraper stores categories with proper case, so we need to match both
-    const categoryName = category?.name || categorySlug;
-    const supplierCategoryId = category?.supplierCategoryId?.toString();
-    
-    // Search using the category name, slug, AND supplierCategoryId (for products scraped with numeric ID)
-    // Show all active products - use $in for array matching
-    const categoryFilter = [categoryName, categorySlug];
-    if (supplierCategoryId) categoryFilter.push(supplierCategoryId);
-    
+    // Direct search by category slug - ignore categories collection
     const docs = await productsCollection
       .find({ 
-        status: "active",
-        categories: { $in: categoryFilter }
+        categories: categorySlug
       })
       .sort({ createdAt: -1 })
       .limit(limit)
@@ -347,21 +335,12 @@ export const productRepository = {
     const categoriesCollection = db.collection("categories");
 
     // Find category by slug to get its name and supplierCategoryId
-    const category = await categoriesCollection.findOne({ slug: categorySlug });
-    
-    const categoryName = category?.name || categorySlug;
-    const supplierCategoryId = category?.supplierCategoryId?.toString();
+// Direct search by category slug
+    const filter = { 
+      categories: categorySlug
+    };
     
     const skip = (page - 1) * limit;
-    
-    // Use $in for array matching
-    const categoryFilter = [categoryName, categorySlug];
-    if (supplierCategoryId) categoryFilter.push(supplierCategoryId);
-    
-    const filter = { 
-      status: "active",
-      categories: { $in: categoryFilter }
-    };
 
     const [docs, total] = await Promise.all([
       productsCollection
@@ -386,10 +365,18 @@ export const productRepository = {
     const db = await getDb();
     const collection = db.collection(COLLECTION_NAME);
 
-    // Fetch all active products and find the one whose slug matches
-    // This is needed because the slug is generated from the cleaned name
+    // Try to find by externalId (extracted from slug)
+    const numbers = slug.match(/\d+/g);
+    if (numbers) {
+      for (const num of numbers) {
+        const product = await collection.findOne({ externalId: num });
+        if (product) return productMapper.toDomain(product as any);
+      }
+    }
+
+    // Fallback: find by slug generation (original logic)
     const docs = await collection
-      .find({ status: "active" })
+      .find({})
       .toArray();
 
     // Generate slug from product name (same logic as toPresentationProduct)

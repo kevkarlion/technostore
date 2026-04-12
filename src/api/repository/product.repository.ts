@@ -321,15 +321,14 @@ export const productRepository = {
     const supplierCategoryId = category?.supplierCategoryId?.toString();
     
     // Search using the category name, slug, AND supplierCategoryId (for products scraped with numeric ID)
-    // Show all active products (stock will be displayed on the card)
+    // Show all active products - use $in for array matching
+    const categoryFilter = [categoryName, categorySlug];
+    if (supplierCategoryId) categoryFilter.push(supplierCategoryId);
+    
     const docs = await productsCollection
       .find({ 
         status: "active",
-        $or: [
-          { categories: { $regex: new RegExp(`^${categoryName}$`, "i") } },
-          { categories: { $regex: new RegExp(`^${categorySlug}$`, "i") } },
-          ...(supplierCategoryId ? [{ categories: supplierCategoryId }] : []),
-        ]
+        categories: { $in: categoryFilter }
       })
       .sort({ createdAt: -1 })
       .limit(limit)
@@ -355,13 +354,13 @@ export const productRepository = {
     
     const skip = (page - 1) * limit;
     
+    // Use $in for array matching
+    const categoryFilter = [categoryName, categorySlug];
+    if (supplierCategoryId) categoryFilter.push(supplierCategoryId);
+    
     const filter = { 
       status: "active",
-      $or: [
-        { categories: { $regex: new RegExp(`^${categoryName}$`, "i") } },
-        { categories: { $regex: new RegExp(`^${categorySlug}$`, "i") } },
-        ...(supplierCategoryId ? [{ categories: supplierCategoryId }] : []),
-      ]
+      categories: { $in: categoryFilter }
     };
 
     const [docs, total] = await Promise.all([

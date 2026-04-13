@@ -16,28 +16,6 @@ export async function generateStaticParams() {
   }));
 }
 
-export async function generateStaticParams() {
-  const products = await productRepository.findFeatured(20);
-  
-  const generateSlug = (name: string) => {
-    const cleaned = name
-      .replace(/U\$D\s*[\d,]+\+?\s*IVA.*$/i, "")
-      .replace(/\$[\d,]+\.?\d*/g, "")
-      .replace(/\+?\s*IVA.*$/i, "")
-      .replace(/\s+/g, " ")
-      .trim();
-    
-    return cleaned
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-  };
-  
-  return products.map((p) => ({
-    slug: generateSlug(p.name),
-  }));
-}
-
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {

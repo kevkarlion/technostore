@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { productRepository } from "@/api/repository/product.repository";
-import { toPresentationProduct } from "@/domain/mappers/product-to-presentation";
+import { toPresentationProduct, generateProductSlug } from "@/domain/mappers/product-to-presentation";
 import { ProductGallery } from "./product-gallery";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateStaticParams() {
+  const products = await productRepository.findFeatured(20);
+  
+  return products.map((p) => ({
+    slug: generateProductSlug(p.name),
+  }));
 }
 
 export async function generateStaticParams() {

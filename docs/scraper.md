@@ -820,5 +820,153 @@ images: {
 
 ---
 
-*Documento actualizado el 2026-04-08*
-*Versión: Scraping completo con auto-reconexión del browser*
+## ☁️ Sistema de Imágenes con Cloudinary
+
+### Arquitectura
+
+El sistema ahora **SIEMPRE** sube las imágenes a Cloudinary durante el scraping incremental:
+
+```
+Scraper
+  │
+  ├── 1. Extrae URLs de imágenes de la página del proveedor
+  │       └─ imagenes/000012509.JPG (relativa)
+  │
+  ├── 2. Convierte a URL absoluta
+  │       └─ https://jotakp.dyndns.org/imagenes/000012509.JPG
+  │
+  ├── 3. Sube a Cloudinary
+  │       └─ https://res.cloudinary.com/dfli0n64m/image/upload/...
+  │
+  └── 4. Guarda en MongoDB (imageUrls)
+          └─ El frontend lee esta URL directamente
+```
+
+### Flujo de Scraping Incremental
+
+```typescript
+// En scraper.service.ts
+async function scrapeCategory(...)
+  // Step 1-4: Extraer productos, precios, descripciones
+  // Step 5: SUBIR IMÁGENES A CLOUDINARY
+  
+  for (const product of products) {
+    const cloudUrls = await uploadProductImages(
+      product.imageUrls,    // URLs relativas del proveedor
+      product.supplier,  // "jotakp"
+      product.externalId // "21784"
+    );
+    
+    product.imageUrls = cloudUrls;  // URLs de Cloudinary
+  }
+  
+  // Step 6: Guardar en DB (atomic upsert)
+}
+```
+
+### Métodos de Image Upload
+
+**image-downloader.ts** exporta:
+
+| Método | Uso | Retorna |
+|--------|-----|--------|
+| `uploadProductImage()` | Sube UNA imagen | `{ cloudinaryUrl, url, success }` |
+| `uploadProductImages()` | Sube MÚLTIPLES imágenes | `string[]` (Cloudinary URLs) |
+| `downloadImage()` | Legacy (deprecated) | `localPath` |
+
+### Fallback Strategy
+
+Si Cloudinary falla:
+1. **Intenta** subir a Cloudinary
+2. **Si falla**, usa la URL original del proveedor (https://jotakp.dyndns.org/...)
+3. **El mapper** (`product-to-presentation.ts`) convierte a URL absoluta
+
+```typescript
+// En image-downloader.ts
+const result = await uploadImageToCloudinary(fullUrl, supplier, productId, index);
+
+if (cloudResult.success && cloudResult.url) {
+  return { cloudinaryUrl: cloudResult.url, ... };  // ✓ Cloudinary
+}
+
+// Fallback: usar URL original
+return { url: fullUrl, success: true };
+```
+
+### Endpoints de Cloudinary en Railway
+
+| Endpoint | Método | Descripción |
+|----------|--------|-------------|
+| `/run` | POST | Scraper completo (categorías changeadas) - subida imágenes |
+| `/reupload` | POST | Resubir imágenes faltantes a Cloudinary |
+| `/scrape-category` | POST | Probar una categoría - subida imágenes |
+
+### Re-subir imágenes faltantes
+
+Si hay imágenes que no tienen Cloudinary (por ejemplo las locais o de jotakp):
+
+```bash
+# Re-subir las últimas 50 imágenes faltantes
+curl -X POST "https://railwey-scraper.railway.app/reupload?limit=50"
+
+# Respuesta:
+{
+  "uploaded": 50,
+  "failed": 0,
+  "products": [...]
+}
+```
+
+### Variables de Entorno en Railway
+
+```bash
+# Cloudinary (requerido para imágenes)
+CLOUDINARY_CLOUD_NAME=dfli0n64m
+CLOUDINARY_API_KEY=575798576654793
+CLOUDINARY_API_SECRET=65UJ0g1Q7Q9FjqR-w0F54KsZS6o
+CLOUDINARY_FOLDER=technostore
+
+# Proveedor
+SUPPLIER_URL=https://jotakp.dyndns.org
+```
+
+### Contador de Imágenes en DB
+
+```bash
+# Ver estado de imágenes
+# (ejecutar localmente con variables de entorno)
+
+# Cloudinary: ✓      - funcionan
+# Locales: /images/  - NO funcionan en Vercel (404)
+# jotakp: relativa - NO funcionan sin conversión (404)
+```
+
+### Fix para Imágenes Locales
+
+Las imágenes que estaban guardadas como `/images/suppliers/...` no existen en Vercel. Para resubir:
+
+```bash
+# Opción 1: Usar endpoint /reupload
+curl -X POST "https://railwey-scraper.railway.app/reupload?limit=100"
+
+# Opción 2: Correr scraping de nuevo
+curl -X POST "https://railwey-scraper.railway.app/run"
+```
+
+---
+
+## 📊 Estado Actual de Imágenes
+
+| Tipo | Cantidad | Funciona en Vercel |
+|------|---------|-------------------|
+| **Cloudinary** | 56 | ✅ Sí |
+| **Locales** (`/images/...`) | 2496 | ❌ No |
+| **jotakp** (relativas) | 3083 | ⚠️ Convierte a absoluta |
+| **Sin imagen** | 18 | ❌ No |
+
+**Nota**: Las imágenes de Cloudinary funcionan directamente. Las demás necesitan resubirse.
+
+---
+
+*Documento actualizado el 2026-04-13*
+*Versión: Cloudinary integrado en scraping incremental*

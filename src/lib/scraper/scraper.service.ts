@@ -1,7 +1,7 @@
 import { chromium, type Browser, type Page, type BrowserContext } from "playwright";
 import { getScraperConfig, jotakpCategories } from "./config";
 import { transformProducts } from "./data-transformer";
-import { downloadProductImages } from "./image-downloader";
+import { uploadProductImages, downloadProductImages } from "./image-downloader";
 import { getDb } from "@/config/db";
 import { productRepository } from "@/api/repository/product.repository";
 import { scraperRunRepository } from "@/api/repository/scraper-run.repository";
@@ -1075,28 +1075,29 @@ export class ScraperService {
         console.log(`[Scraper] Transformed product ${p.externalId}: priceRaw=${p.priceRaw}, price=${p.price}`);
       }
 
-      // Step 5: Download images for each product
-      console.log("[Scraper] Downloading images...");
+      // Step 5: Upload images to Cloudinary for each product
+      console.log("[Scraper] Uploading images to Cloudinary...");
       for (let i = 0; i < products.length; i++) {
         const product = products[i];
         if (product.imageUrls && product.imageUrls.length > 0) {
           try {
-            const localImageUrls = await downloadProductImages(
+            // Upload to Cloudinary (or fallback to original URL)
+            const cloudUrls = await uploadProductImages(
               product.imageUrls,
               product.supplier,
               product.externalId
             );
-            // Use local paths if any were downloaded, otherwise keep original URLs
-            if (localImageUrls.length > 0) {
-              product.imageUrls = localImageUrls;
+            // Use Cloudinary URLs if uploaded, otherwise keep original URLs
+            if (cloudUrls.length > 0) {
+              product.imageUrls = cloudUrls;
             }
-            console.log(`[Scraper] Downloaded ${localImageUrls.length} images for ${product.name.substring(0, 30)}...`);
+            console.log(`[Scraper] Uploaded ${cloudUrls.length} images for ${product.name.substring(0, 30)}...`);
           } catch (imageError) {
-            console.error(`[Scraper] Error downloading images for ${product.externalId}:`, imageError);
+            console.error(`[Scraper] Error uploading images for ${product.externalId}:`, imageError);
           }
         }
-            // Small delay between products to not saturate the server
-            await this.shortDelay();
+        // Small delay between products to not saturate the server
+        await this.shortDelay();
       }
 
       // Step 6: Save to database con control de cambios atómico (como Git)

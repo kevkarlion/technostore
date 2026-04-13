@@ -1,5 +1,6 @@
 import type { WithId } from "mongodb";
 import type { Product } from "../models/product";
+import type { ProductImage } from "@/types/domain";
 import type { ProductResponseDTO } from "../dto/product.dto";
 
 type ProductDocument = WithId<{
@@ -11,6 +12,15 @@ type ProductDocument = WithId<{
   status: string;
   categories: string[];
   imageUrls: string[];
+  slug?: string;
+  brand?: string;
+  originalPrice?: number;
+  inStock?: boolean;
+  rating?: number;
+  ratingCount?: number;
+  badges?: string[];
+  shortDescription?: string;
+  specs?: Record<string, string | number>;
   attributes?: Array<{ key: string; value: string }>;
   externalId?: string;
   supplier?: string;
@@ -18,6 +28,18 @@ type ProductDocument = WithId<{
   createdAt: Date;
   updatedAt: Date;
 }>;
+
+/**
+ * Convert imageUrls (string[]) to images (ProductImage[])
+ * DB stores: string[], UI expects: ProductImage[]
+ */
+function convertToImages(imageUrls: string[] = []): ProductImage[] {
+  return imageUrls.map((url, index) => ({
+    id: `img-${index}`,
+    src: url,
+    alt: `Product image ${index + 1}`,
+  }));
+}
 
 export const productMapper = {
   toDomain(doc: ProductDocument): Product {
@@ -31,6 +53,16 @@ export const productMapper = {
       status: doc.status as Product["status"],
       categories: doc.categories,
       imageUrls: doc.imageUrls,
+      // Include all fields that UI expects
+      slug: doc.slug || doc.externalId || "",
+      brand: doc.brand || "",
+      originalPrice: doc.originalPrice,
+      inStock: doc.inStock ?? doc.stock > 0,
+      rating: doc.rating || 0,
+      ratingCount: doc.ratingCount || 0,
+      badges: doc.badges,
+      shortDescription: doc.shortDescription || doc.name,
+      specs: doc.specs,
       attributes: doc.attributes,
       externalId: doc.externalId,
       supplier: doc.supplier,

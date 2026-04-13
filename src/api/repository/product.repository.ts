@@ -365,20 +365,6 @@ export const productRepository = {
     const db = await getDb();
     const collection = db.collection(COLLECTION_NAME);
 
-    // Try to find by externalId (extracted from slug)
-    const numbers = slug.match(/\d+/g);
-    if (numbers) {
-      for (const num of numbers) {
-        const product = await collection.findOne({ externalId: num });
-        if (product) return productMapper.toDomain(product as any);
-      }
-    }
-
-    // Fallback: find by slug generation (original logic)
-    const docs = await collection
-      .find({})
-      .toArray();
-
     // Generate slug from product name (same logic as toPresentationProduct)
     const generateSlug = (name: string) =>
       name
@@ -396,6 +382,11 @@ export const productRepository = {
         .trim();
 
     const targetSlug = slug.toLowerCase();
+
+    // Find by matching slug generation (no fallback by externalId to avoid bugs)
+    const docs = await collection
+      .find({})
+      .toArray();
 
     for (const doc of docs) {
       const fullSlug = generateSlug(doc.name);

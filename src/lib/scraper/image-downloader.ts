@@ -33,8 +33,78 @@ export async function ensureImageDirectory(supplier: string): Promise<string> {
 }
 
 /**
+ * Upload an image to Cloudinary or return original URL
+ * This is the PRIMARY method - always tries Cloudinary first
+ */
+export async function uploadProductImage(
+  imageUrl: string,
+  supplier: string,
+  productId: string,
+  imageIndex: number = 0
+): Promise<DownloadedImage> {
+  try {
+    const env = getEnv();
+    
+    // Skip if already Cloudinary
+    if (imageUrl.includes("cloudinary.com")) {
+      return {
+        localPath: "",
+        cloudinaryUrl: imageUrl,
+        url: imageUrl,
+        success: true,
+      };
+    }
+    
+    // Convert relative URLs to absolute
+    let fullUrl = imageUrl;
+    if (imageUrl.startsWith("imagenes/") || imageUrl.startsWith("/imagenes/")) {
+      fullUrl = `https://jotakp.dyndns.org/${imageUrl.replace(/^\//, "")}`;
+    } else if (!imageUrl.startsWith("http")) {
+      fullUrl = `https://jotakp.dyndns.org/${imageUrl}`;
+    }
+    
+    // Try to upload to Cloudinary
+    if (env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY) {
+      const cloudResult = await uploadImageToCloudinary(fullUrl, supplier, productId, imageIndex);
+      
+      if (cloudResult.success && cloudResult.url) {
+        console.log(`[ImageUpload] Cloudinary: ${productId}/${imageIndex}`);
+        
+        return {
+          localPath: "",
+          cloudinaryUrl: cloudResult.url,
+          url: fullUrl,
+          success: true,
+        };
+      }
+      
+      console.log(`[ImageUpload] Cloudinary failed, using original: ${fullUrl.substring(0, 50)}...`);
+    }
+    
+    // If no Cloudinary, use the original URL (jotakp)
+    return {
+      localPath: "",
+      cloudinaryUrl: "",
+      url: fullUrl,
+      success: true,
+    };
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    console.error(`[ImageUpload] Failed: ${imageUrl.substring(0, 50)}... - ${errorMsg}`);
+    
+    return {
+      localPath: "",
+      url: imageUrl,
+      success: false,
+      error: errorMsg,
+    };
+  }
+}
+
+/**
  * Download an image from a URL and upload to Cloudinary
  * Falls back to local storage if Cloudinary fails
+ * @deprecated Use uploadProductImage instead
  */
 export async function downloadImage(
   imageUrl: string,
@@ -44,10 +114,9 @@ export async function downloadImage(
 ): Promise<DownloadedImage> {
   try {
     const env = getEnv();
-    const isProduction = env.NODE_ENV === "production";
     
-    // Try to upload to Cloudinary in production
-    if (isProduction && env.CLOUDINARY_CLOUD_NAME) {
+    // Try to upload to Cloudinary (always in production, optional in dev)
+    if (env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY) {
       const cloudResult = await uploadImageToCloudinary(imageUrl, supplier, productId, imageIndex);
       
       if (cloudResult.success && cloudResult.url) {
@@ -126,28 +195,71 @@ export async function downloadImage(
 }
 
 /**
+ * Upload multiple images for products to Cloudinary
+ * This is the PRIMARY method for image handling
+ * @param images - Array of image URLs
+ * @param supplier - Supplier name
+ * @param productId - Product ID
+ * @returns Array of Cloudinary URLs or original URLs
+ */
+export async function uploadProductImages(
+  images: string[],
+  supplier: string,
+  productId: string
+): Promise<string[]> {
+  const cloudUrls: string[] = [];
+  
+  for (let i = 0; i < images.length; i++) {
+    const imageUrl = images[i];
+    const result = await uploadProductImage(imageUrl, supplier, productId, i);
+    
+    if (result.success) {
+      // Use Cloudinary URL if available, otherwise fallback to original
+      const url = result.cloudinaryUrl || result.url;
+      if (url) {
+        cloudUrls.push(url);
+      }
+    }
+  }
+  
+  return cloudUrls;
+}
+
+/**
  * Download multiple images for products
  * @param images - Array of image URLs
  * @param supplier - Supplier name
  * @param productId - Product ID
  * @returns Array of local image paths
+ * @deprecated Use uploadProductImages instead
  */
 export async function downloadProductImages(
   images: string[],
   supplier: string,
   productId: string
 ): Promise<string[]> {
-  const localPaths: string[] = [];
+  const cloudUrls: string[] = [];
   
-  for (const imageUrl of images) {
-    const result = await downloadImage(imageUrl, supplier, productId);
+  for (let i = 0; i < images.length; i++) {
+    const imageUrl = images[i];
     
-    if (result.success && result.localPath) {
-      localPaths.push(result.localPath);
+    // Try new upload method first
+    const result = await uploadProductImage(imageUrl, supplier, productId, i);
+    
+    if (result.success && (result.cloudinaryUrl || result.url)) {
+      cloudUrls.push(result.cloudinaryUrl || result.url);
+      continue;
+    }
+    
+    // Fallback to old download method
+    const oldResult = await downloadImage(imageUrl, supplier, productId, i);
+    
+    if (oldResult.success && oldResult.localPath) {
+      cloudUrls.push(oldResult.localPath);
     }
   }
   
-  return localPaths;
+  return cloudUrls;
 }
 
 /**

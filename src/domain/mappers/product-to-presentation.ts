@@ -31,8 +31,13 @@ export function toPresentationProduct(dbProduct: DbProduct): DomainProduct {
   const normalizeImageUrl = (url: string): string => {
     if (!url) return "";
     
-    // If it's already a full URL, return as-is
+    // If it's already a full URL (including Cloudinary), return as-is
     if (url.startsWith("http://") || url.startsWith("https://")) {
+      // Don't convert Cloudinary URLs!
+      if (url.includes("cloudinary.com")) {
+        return url;
+      }
+      // For other external URLs, also keep as-is
       return url;
     }
     

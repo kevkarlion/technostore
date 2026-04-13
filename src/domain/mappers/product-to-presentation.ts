@@ -66,7 +66,7 @@ export function toPresentationProduct(dbProduct: DbProduct): DomainProduct {
 
   // Helper to check if image URL is valid
   // Some products don't have images on the supplier site (known invalid IDs)
-  const invalidImageIds = ['000014645', '000014626', '000012509', '000014112', '000015886'];
+  const invalidImageIds = ['000014645', '000014626', '000014112'];
   
   const isValidImageUrl = (url: string): boolean => {
     // Skip external URLs that are known to be invalid

@@ -33,12 +33,12 @@ export const productRepository = {
 
     const [docs, total] = await Promise.all([
       collection
-        .find()
+        .find({ status: "active" })
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 })
         .toArray(),
-      collection.countDocuments(),
+      collection.countDocuments({ status: "active" }),
     ]);
 
     return {

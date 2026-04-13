@@ -71,7 +71,7 @@ export function toPresentationProduct(dbProduct: DbProduct | DbProductWithCloudi
 
   // Helper to check if image URL is valid
   // Some products don't have images on the supplier site (known invalid IDs)
-  const invalidImageIds = ['000014645', '000014626', '000014112'];
+  const invalidImageIds = ['000014645', '000014626'];
   
   const isValidImageUrl = (url: string): boolean => {
     // Skip external URLs that are known to be invalid

@@ -6,7 +6,7 @@ import type { Product as DbProduct } from "../models/product";
  * Cleans the name first (removes price text) before generating the slug.
  */
 export function generateProductSlug(name: string): string {
-  // First clean the name (remove price text)
+  // First clean the name (remove price text) using the exported function
   const cleaned = cleanProductName(name);
   
   return cleaned
@@ -136,9 +136,10 @@ export function toPresentationProduct(dbProduct: DbProduct): DomainProduct {
  * Cleans product name by removing price text that gets scraped along with the name.
  * Examples: "Kingston Fury 16GB U$D 50+ IVA 21%" -> "Kingston Fury 16GB"
  */
-function cleanProductName(name: string): string {
+export function cleanProductName(name: string): string {
   // Remove patterns like "U$D XXX+ IVA..." or "U$D XXX+IVA..."
   return name
+    .replace(/\([^)]*\)/g, "") // Remove parentheses content first
     .replace(/U\$D\s*[\d,]+\+?\s*IVA.*$/i, "")
     .replace(/\$[\d,]+\.?\d*/g, "") // Remove dollar amounts
     .replace(/\+?\s*IVA.*$/i, "")

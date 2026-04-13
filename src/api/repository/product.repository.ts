@@ -3,6 +3,7 @@ import { getDb } from "@/config/db";
 import type { CreateProductDTO, UpdateProductDTO, ScrapedProductDTO } from "@/domain/dto/product.dto";
 import { productMapper } from "@/domain/mappers/product.mapper";
 import type { Product } from "@/domain/models/product";
+import { generateProductSlug, cleanProductName } from "@/domain/mappers/product-to-presentation";
 
 const COLLECTION_NAME = "products";
 
@@ -367,19 +368,6 @@ export const productRepository = {
     const db = await getDb();
     const collection = db.collection(COLLECTION_NAME);
 
-    // Generate slug from product name (same logic as toPresentationProduct)
-    const generateSlug = (name: string) =>
-      name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "");
-    
-    const cleanProductName = (name: string) =>
-      name
-        .replace(/\([^)]*\)/g, "") // Remove parentheses content
-        .replace(/\s+/g, " ")       // Normalize spaces
-        .trim();
-
     const targetSlug = slug.toLowerCase();
 
     // Find by matching slug generation (no fallback by externalId to avoid bugs)
@@ -388,8 +376,10 @@ export const productRepository = {
       .toArray();
 
     for (const doc of docs) {
-      const fullSlug = generateSlug(doc.name);
-      const cleanedSlug = generateSlug(cleanProductName(doc.name));
+      // Using generateProductSlug (which includes cleanProductName) 
+      // plus cleanProductName only version
+      const fullSlug = generateProductSlug(doc.name);
+      const cleanedSlug = generateProductSlug(cleanProductName(doc.name));
 
       if (fullSlug === targetSlug || cleanedSlug === targetSlug) {
         return productMapper.toDomain(doc as any);

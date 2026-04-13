@@ -1,6 +1,11 @@
 import type { Product as DomainProduct } from "@/types/domain";
 import type { Product as DbProduct } from "../models/product";
 
+// Extend DbProduct to include cloudinaryUrls which comes from scraper
+interface DbProductWithCloudinary extends DbProduct {
+  cloudinaryUrls?: string[];
+}
+
 /**
  * Generates a URL-friendly slug from a product name.
  * Cleans the name first (removes price text) before generating the slug.
@@ -19,7 +24,7 @@ export function generateProductSlug(name: string): string {
  * Maps a database Product to the domain Product type expected by UI components.
  * This handles the transformation from the scraped product model to the presentation layer.
  */
-export function toPresentationProduct(dbProduct: DbProduct): DomainProduct {
+export function toPresentationProduct(dbProduct: DbProduct | DbProductWithCloudinary): DomainProduct {
   // Generate slug from cleaned name (consistent with generateStaticParams)
   const slug = generateProductSlug(dbProduct.name);
 
@@ -82,23 +87,35 @@ export function toPresentationProduct(dbProduct: DbProduct): DomainProduct {
 
   // Filter valid images from the scraped URLs
   const validImageUrls = (dbProduct.imageUrls || []).filter(isValidImageUrl);
-
+  
+  // Try to use cloudinaryUrls first (uploaded images), then fallback to scraped imageUrls
+  const dbCloudinaryUrls = (dbProduct as DbProductWithCloudinary).cloudinaryUrls || [];
+  
   // Convert imageUrls to the expected format, or use placeholder
-  // Try to get image from scraped data, otherwise generate a dynamic placeholder
-  const images = validImageUrls.length > 0
-    ? validImageUrls.map((url, index) => ({
+  // Priority: cloudinaryUrls > imageUrls > placeholder
+  let images;
+  if (dbCloudinaryUrls.length > 0) {
+    images = dbCloudinaryUrls.map((url, index) => ({
+      id: `img-${index}`,
+      src: url,
+      alt: dbProduct.name,
+    }));
+  } else if (validImageUrls.length > 0) {
+    images = validImageUrls.map((url, index) => ({
         id: `img-${index}`,
         src: normalizeImageUrl(url),
         alt: dbProduct.name,
-      }))
-    : [
-        {
-          id: "placeholder",
-          // Use a local placeholder image - create a simple SVG or use external service
-          src: "/images/placeholder-product.svg",
-          alt: dbProduct.name,
-        },
-      ];
+      }));
+  } else {
+    images = [
+      {
+        id: "placeholder",
+        // Use a local placeholder image - create a simple SVG or use external service
+        src: "/images/placeholder-product.svg",
+        alt: dbProduct.name,
+      },
+    ];
+  }
 
   // Determine stock status
   const inStock = dbProduct.stock > 0;

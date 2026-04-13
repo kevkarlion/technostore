@@ -316,7 +316,8 @@ export const productRepository = {
     // Direct search by category slug - ignore categories collection
     const docs = await productsCollection
       .find({ 
-        categories: categorySlug
+        categories: categorySlug,
+        status: "active"
       })
       .sort({ createdAt: -1 })
       .limit(limit)
@@ -337,7 +338,8 @@ export const productRepository = {
     // Find category by slug to get its name and supplierCategoryId
 // Direct search by category slug
     const filter = { 
-      categories: categorySlug
+      categories: categorySlug,
+      status: "active"
     };
     
     const skip = (page - 1) * limit;
@@ -371,21 +373,18 @@ export const productRepository = {
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, "");
-
-    // Also check with cleaned name (without price text)
+    
     const cleanProductName = (name: string) =>
       name
-        .replace(/U\$D\s*[\d,]+\+?\s*IVA.*$/i, "")
-        .replace(/\$[\d,]+\.?\d*/g, "")
-        .replace(/\+?\s*IVA.*$/i, "")
-        .replace(/\s+/g, " ")
+        .replace(/\([^)]*\)/g, "") // Remove parentheses content
+        .replace(/\s+/g, " ")       // Normalize spaces
         .trim();
 
     const targetSlug = slug.toLowerCase();
 
     // Find by matching slug generation (no fallback by externalId to avoid bugs)
     const docs = await collection
-      .find({})
+      .find({ status: "active" })
       .toArray();
 
     for (const doc of docs) {

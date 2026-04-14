@@ -12,6 +12,7 @@ type ProductDocument = WithId<{
   status: string;
   categories: string[];
   imageUrls: string[];
+  cloudinaryUrls?: string[];
   slug?: string;
   brand?: string;
   originalPrice?: number;
@@ -53,6 +54,7 @@ export const productMapper = {
       status: doc.status as Product["status"],
       categories: doc.categories,
       imageUrls: doc.imageUrls,
+      cloudinaryUrls: doc.cloudinaryUrls,
       // Include all fields that UI expects
       slug: doc.slug || doc.externalId || "",
       brand: doc.brand || "",

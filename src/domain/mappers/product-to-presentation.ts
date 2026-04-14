@@ -1,11 +1,6 @@
 import type { Product as DomainProduct } from "@/types/domain";
 import type { Product as DbProduct } from "../models/product";
 
-// Extend DbProduct to include cloudinaryUrls which comes from scraper
-interface DbProductWithCloudinary extends DbProduct {
-  cloudinaryUrls?: string[];
-}
-
 /**
  * Generates a URL-friendly slug from a product name.
  * Cleans the name first (removes price text) before generating the slug.
@@ -24,50 +19,12 @@ export function generateProductSlug(name: string): string {
  * Maps a database Product to the domain Product type expected by UI components.
  * This handles the transformation from the scraped product model to the presentation layer.
  */
-export function toPresentationProduct(dbProduct: DbProduct | DbProductWithCloudinary): DomainProduct {
+export function toPresentationProduct(dbProduct: DbProduct): DomainProduct {
   // Generate slug from cleaned name (consistent with generateStaticParams)
   const slug = generateProductSlug(dbProduct.name);
 
   // Use the first category as the main category, or default to 'components'
   const mainCategory = dbProduct.categories?.[0] || "components";
-
-  // Helper to convert image URLs - handle both local and remote paths
-  const baseImageUrl = "https://jotakp.dyndns.org";
-  const normalizeImageUrl = (url: string): string => {
-    if (!url) return "";
-    
-    // If it's already a full URL (including Cloudinary), return as-is
-    if (url.startsWith("http://") || url.startsWith("https://")) {
-      // Don't convert Cloudinary URLs!
-      if (url.includes("cloudinary.com")) {
-        return url;
-      }
-      // For other external URLs, also keep as-is
-      return url;
-    }
-    
-    // If it's a local path from our server (/images/suppliers/...) use as-is for Next.js
-    if (url.startsWith("/images/") || url.startsWith("images/suppliers/")) {
-      return url.startsWith("/") ? url : `/${url}`;
-    }
-    
-    // Handle relative paths from original site (imagenes/min/... or imagenes/...)
-    // Convert to proper format: imagenes/000012509.PNG
-    let convertedUrl = url;
-    if (url.startsWith("imagenes/") || url.startsWith("/imagenes/")) {
-      // Extract image ID and convert to proper URL format
-      const numbers = url.match(/0+\d+/)?.[0];
-      if (numbers) {
-        convertedUrl = `${baseImageUrl}/imagenes/${numbers}.PNG`;
-      } else {
-        convertedUrl = `${baseImageUrl}/${url.replace(/^\//, "")}`;
-      }
-    } else {
-      convertedUrl = `${baseImageUrl}/${url}`;
-    }
-    
-    return convertedUrl;
-  };
 
   // Helper to check if image URL is valid
   // Some products don't have images on the supplier site (known invalid IDs)
@@ -88,29 +45,41 @@ export function toPresentationProduct(dbProduct: DbProduct | DbProductWithCloudi
   // Filter valid images from the scraped URLs
   const validImageUrls = (dbProduct.imageUrls || []).filter(isValidImageUrl);
   
-  // Try to use cloudinaryUrls first (uploaded images), then fallback to scraped imageUrls
-  const dbCloudinaryUrls = (dbProduct as DbProductWithCloudinary).cloudinaryUrls || [];
+  // Use cloudinaryUrls first (uploaded images), then fallback to scraped imageUrls
+  const dbCloudinaryUrls = dbProduct.cloudinaryUrls || [];
   
-  // Convert imageUrls to the expected format, or use placeholder
-  // Priority: cloudinaryUrls > imageUrls > placeholder
+  // Check if cloudinaryUrls are actual Cloudinary URLs (not local paths)
+  const hasValidCloudinaryUrls = dbCloudinaryUrls.length > 0 && 
+    dbCloudinaryUrls.some(url => url.startsWith("http"));
+  
+  // Priority: valid cloudinaryUrls > imageUrls > placeholder
   let images;
-  if (dbCloudinaryUrls.length > 0) {
+  if (hasValidCloudinaryUrls) {
+    // Use Cloudinary URLs
     images = dbCloudinaryUrls.map((url, index) => ({
       id: `img-${index}`,
       src: url,
       alt: dbProduct.name,
     }));
   } else if (validImageUrls.length > 0) {
-    images = validImageUrls.map((url, index) => ({
+    // Fallback to original imageUrls (will fail if jotakp is down)
+    const baseImageUrl = "https://jotakp.dyndns.org";
+    images = validImageUrls.map((url, index) => {
+      // Normalize URL - add base if relative
+      let src = url;
+      if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        src = `${baseImageUrl}/${url}`;
+      }
+      return {
         id: `img-${index}`,
-        src: normalizeImageUrl(url),
+        src,
         alt: dbProduct.name,
-      }));
+      };
+    });
   } else {
     images = [
       {
         id: "placeholder",
-        // Use a local placeholder image - create a simple SVG or use external service
         src: "/images/placeholder-product.svg",
         alt: dbProduct.name,
       },

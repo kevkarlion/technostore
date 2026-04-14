@@ -17,6 +17,8 @@ export interface Product {
   status: ProductStatus;
   categories: string[];
   imageUrls: string[];
+  /** URLs de imágenes subidas a Cloudinary */
+  cloudinaryUrls?: string[];
   /** Product specifications/characteristics */
   attributes?: ProductAttribute[];
   // Scraper fields

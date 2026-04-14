@@ -4,36 +4,49 @@ import { getDb } from "@/config/db";
 async function check() {
   const db = await getDb();
   
-  // Check a product with multiple images
-  const product = await db.collection("products").findOne({
-    supplier: "jotakp",
-    "imageUrls.1": { $exists: true }  // Products with 2+ images
-  });
-  
-  if (product) {
-    console.log("Product with multiple images:");
-    console.log(`External ID: ${product.externalId}`);
-    console.log(`Name: ${product.name}`);
-    console.log(`Images: ${product.imageUrls.length}`);
-    product.imageUrls.forEach((img: string, i: number) => {
-      console.log(`  ${i + 1}. ${img}`);
-    });
-  } else {
-    console.log("No product with multiple images found");
+  // Get first 30 active products
+  const products = await db
+    .collection("products")
+    .find({ status: "active" })
+    .limit(30)
+    .toArray();
+
+  console.log("=== Product Image Status ===\n");
+
+  let withCloudinary = 0;
+  let withImageUrls = 0;
+  let withoutImages = 0;
+
+  for (const p of products) {
+    const name = (p.name || "").substring(0, 35);
+    const hasCloudinary = !!(p.cloudinaryUrls && p.cloudinaryUrls.length > 0);
+    const hasImageUrls = !!(p.imageUrls && p.imageUrls.length > 0);
+    const imageCount = p.imageUrls?.length || 0;
+    const cloudinaryCount = p.cloudinaryUrls?.length || 0;
+
+    if (hasCloudinary) withCloudinary++;
+    else if (hasImageUrls) withImageUrls++;
+    else withoutImages++;
+
+    const status = hasCloudinary ? "☁️ CLOUDINARY" : hasImageUrls ? "🌐 IMAGEURLS" : "❌ NONE";
     
-    // Check how many have array of images
-    const multiImageCount = await db.collection("products").countDocuments({
-      supplier: "jotakp",
-      "imageUrls.1": { $exists: true }
-    });
-    console.log(`Products with 2+ images: ${multiImageCount}`);
-    
-    const singleImageCount = await db.collection("products").countDocuments({
-      supplier: "jotakp",
-      $expr: { $eq: [{ $size: "$imageUrls" }, 1] }
-    });
-    console.log(`Products with exactly 1 image: ${singleImageCount}`);
+    console.log(`${status} | ${name.padEnd(35)} | img: ${imageCount} | cloud: ${cloudinaryCount}`);
+
+    if (hasImageUrls && !hasCloudinary) {
+      const firstUrl = p.imageUrls[0] || "";
+      console.log(`        ↳ ${firstUrl.substring(0, 50)}`);
+    }
+    if (hasCloudinary) {
+      const firstUrl = p.cloudinaryUrls[0] || "";
+      console.log(`        ↳ ${firstUrl.substring(0, 50)}`);
+    }
   }
+
+  console.log("\n=== Summary ===");
+  console.log(`Total checked: ${products.length}`);
+  console.log(`With Cloudinary: ${withCloudinary}`);
+  console.log(`With imageUrls only: ${withImageUrls}`);
+  console.log(`No images: ${withoutImages}`);
 }
 
-check();
+check().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); });

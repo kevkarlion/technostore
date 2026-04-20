@@ -36,18 +36,25 @@ export async function getDb(): Promise<Db> {
   }
 }
 
+// Cursor mock that properly chains methods
+function createMockCursor() {
+  let cursor: any = {
+    toArray: async () => [],
+    sort: () => cursor,
+    limit: () => cursor,
+    skip: () => cursor,
+    project: () => cursor,
+  };
+  return cursor;
+}
+
 // Mock DB for development without MongoDB
 function getMockDb(): Db {
   console.log("[DB] Using in-memory mock database");
   
   return {
     collection: (_name: string) => ({
-      find: (query?: any) => ({
-        toArray: async () => [],
-        sort: () => ({ toArray: async () => [] }),
-        limit: () => ({ toArray: async () => [] }),
-        skip: () => ({ toArray: async () => [] }),
-      }),
+      find: (query?: any) => createMockCursor(),
       findOne: async (query: any) => null,
       insertOne: async (doc: any) => ({ insertedId: "mock-id-" + Date.now() }),
       insertMany: async (docs: any[]) => ({ insertedIds: docs.map((_, i) => `mock-id-${i}`) }),
@@ -59,8 +66,9 @@ function getMockDb(): Db {
       deleteOne: async (query: any) => ({ deletedCount: 1 }),
       deleteMany: async () => ({ deletedCount: 0 }),
       countDocuments: async () => 0,
-      aggregate: (pipeline: any[]) => ({ toArray: async () => [] }),
+      aggregate: (pipeline: any[]) => createMockCursor(),
+      createIndex: async () => "mock-index",
+      dropIndex: async () => ({}),
     }),
   } as unknown as Db;
 }
-

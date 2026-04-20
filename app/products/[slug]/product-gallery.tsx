@@ -109,7 +109,7 @@ export function ProductGallery({ product }: ProductGalleryProps) {
                 </p>
               </div>
             </div>
-            <AddToCartButton productId={product.id} />
+            <AddToCartButton productId={product.id} stockQuantity={product.stockQuantity} />
           </div>
         </section>
       </div>

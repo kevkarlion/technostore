@@ -10,11 +10,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ProductResponseDTO } from "@/domain/dto/product.dto";
 
+const SHIPPING_COST = 500;
+const TAX_RATE = 0.21;
+
 export function CartSummary() {
   const { items, updateQuantity, removeItem, clear } = useCartStore();
-  
+
   // Fetch products from API
   const [products, setProducts] = React.useState<Record<string, ProductResponseDTO>>({});
+  const [stockWarning, setStockWarning] = React.useState<string | null>(null);
   
   React.useEffect(() => {
     if (items.length === 0) return;
@@ -122,13 +126,19 @@ export function CartSummary() {
                   type="number"
                   inputMode="numeric"
                   min={1}
+                  max={item.product?.stock || 999}
                   value={item.quantity}
-                  onChange={(e) =>
-                    updateQuantity(
-                      item.productId,
-                      Number(e.target.value) || 1
-                    )
-                  }
+                  onChange={(e) => {
+                    const newQty = Number(e.target.value) || 1;
+                    const maxStock = item.product?.stock;
+                    const success = updateQuantity(item.productId, newQty, maxStock);
+                    if (!success && maxStock) {
+                      setStockWarning(
+                        `Stock máximo: ${maxStock} unidades para ${item.product?.name}`
+                      );
+                      setTimeout(() => setStockWarning(null), 3000);
+                    }
+                  }}
                   className="h-8 w-16 rounded-full text-center text-xs"
                 />
               </div>
@@ -148,6 +158,11 @@ export function CartSummary() {
         <h2 className="text-sm font-semibold text-[var(--foreground)]">
           Resumen del pedido
         </h2>
+        {stockWarning && (
+          <div className="rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-400">
+            {stockWarning}
+          </div>
+        )}
         <div className="space-y-1 text-xs text-[var(--foreground)]">
           <div className="flex justify-between">
             <span>Subtotal</span>
@@ -155,16 +170,19 @@ export function CartSummary() {
           </div>
           <div className="flex justify-between text-[var(--foreground-muted)]">
             <span>Envío</span>
-            <span>Se calcula en checkout</span>
+            <Price amount={SHIPPING_COST} />
           </div>
           <div className="flex justify-between text-[var(--foreground-muted)]">
-            <span>Impuestos</span>
-            <span>Se calcula en checkout</span>
+            <span>Impuestos (21%)</span>
+            <Price amount={Math.round(subtotal * TAX_RATE)} />
           </div>
         </div>
         <div className="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3 text-xs">
           <span className="text-[var(--foreground)]">Total</span>
-          <Price amount={subtotal} className="text-base" />
+          <Price
+            amount={subtotal + SHIPPING_COST + Math.round(subtotal * TAX_RATE)}
+            className="text-base"
+          />
         </div>
         <Link href="/checkout">
           <Button className="w-full" size="lg">

@@ -14,6 +14,8 @@ export interface Product {
   priceRaw?: string; // Precio original USD del proveedor (ej: "98,75")
   currency: string;
   stock: number;
+  /** Indica si el producto está disponible para compra */
+  inStock: boolean;
   status: ProductStatus;
   categories: string[];
   imageUrls: string[];

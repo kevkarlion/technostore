@@ -9,6 +9,7 @@ type ProductDocument = WithId<{
   price: number;
   currency: string;
   stock: number;
+  inStock: boolean; // Required field from database
   status: string;
   categories: string[];
   imageUrls: string[];
@@ -16,7 +17,6 @@ type ProductDocument = WithId<{
   slug?: string;
   brand?: string;
   originalPrice?: number;
-  inStock?: boolean;
   rating?: number;
   ratingCount?: number;
   badges?: string[];
@@ -51,6 +51,7 @@ export const productMapper = {
       price: doc.price,
       currency: doc.currency,
       stock: doc.stock,
+      inStock: doc.inStock ?? false, // Use inStock field directly, default to false
       status: doc.status as Product["status"],
       categories: doc.categories,
       imageUrls: doc.imageUrls,
@@ -59,7 +60,6 @@ export const productMapper = {
       slug: doc.slug || doc.externalId || "",
       brand: doc.brand || "",
       originalPrice: doc.originalPrice,
-      inStock: doc.inStock ?? doc.stock > 0,
       rating: doc.rating || 0,
       ratingCount: doc.ratingCount || 0,
       badges: doc.badges,
@@ -82,6 +82,7 @@ export const productMapper = {
       price: product.price,
       currency: product.currency,
       stock: product.stock,
+      inStock: product.inStock,
       status: product.status,
       categories: product.categories,
       imageUrls: product.imageUrls,

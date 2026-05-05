@@ -7,6 +7,7 @@ export const createProductSchema = z.object({
   price: z.number().nonnegative(),
   currency: z.string().min(1).default("USD"),
   stock: z.number().int().nonnegative().default(0),
+  inStock: z.boolean().default(false), // New field for stock availability
   status: z.custom<ProductStatus>().default("draft"),
   categories: z.array(z.string()).default([]),
   imageUrls: z.array(z.string()).default([]),
@@ -46,6 +47,7 @@ export interface ProductResponseDTO {
   price: number;
   currency: string;
   stock: number;
+  inStock: boolean;
   status: ProductStatus;
   categories: string[];
   imageUrls: string[];

@@ -66,6 +66,43 @@ export const productRepository = {
     return docs.map((doc) => productMapper.toDomain(doc as any));
   },
 
+  /**
+   * Search products by name (case-insensitive and accent-insensitive).
+   * Returns ALL products matching the query, regardless of status or stock.
+   */
+  async searchByName(query: string, limit = 500): Promise<Product[]> {
+    if (!query || !query.trim()) {
+      return [];
+    }
+
+    const db = await getDb();
+    const collection = db.collection(COLLECTION_NAME);
+
+    // Normalize the query: remove accents and convert to lowercase
+    const normalizedQuery = query
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+
+    // Fetch ALL products (no status filter) and filter in memory
+    const docs = await collection
+      .find({})
+      .limit(limit)
+      .toArray();
+
+    const products = docs.map((doc) => productMapper.toDomain(doc as any));
+
+    // Filter by normalized name (accent and case insensitive)
+    return products.filter((p) => {
+      const normalizedName = p.name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+      return normalizedName.includes(normalizedQuery);
+    });
+  },
+
   async create(data: CreateProductDTO): Promise<Product> {
     const db = await getDb();
     const collection = db.collection(COLLECTION_NAME);

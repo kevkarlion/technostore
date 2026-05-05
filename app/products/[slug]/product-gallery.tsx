@@ -109,7 +109,14 @@ export function ProductGallery({ product }: ProductGalleryProps) {
                 </p>
               </div>
             </div>
-            <AddToCartButton productId={product.id} stockQuantity={product.stockQuantity} />
+            <AddToCartButton 
+              productId={product.id}
+              productName={product.name}
+              productPrice={product.price}
+              productImageUrl={product.images[0]?.src}
+              inStock={product.inStock}
+              stockQuantity={product.stockQuantity}
+            />
           </div>
         </section>
       </div>

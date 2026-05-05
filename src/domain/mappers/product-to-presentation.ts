@@ -86,8 +86,8 @@ export function toPresentationProduct(dbProduct: DbProduct): DomainProduct {
     ];
   }
 
-  // Determine stock status
-  const inStock = dbProduct.stock > 0;
+  // Use inStock field directly from database
+  const inStock = dbProduct.inStock ?? false;
 
   // Convert attributes to specs object
   const specs: Record<string, string> = {};

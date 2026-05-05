@@ -43,5 +43,13 @@ export const productController = {
     const created = await productService.createProduct(parsed.data);
     return productMapper.toResponse(created);
   },
+
+  async getById(req: NextRequest, id: string) {
+    const product = await productService.getProductById(id);
+    if (!product) {
+      throw notFound("Product not found");
+    }
+    return productMapper.toResponse(product);
+  },
 };
 

@@ -1,69 +1,125 @@
+/**
+ * AddToCartButton - Botón para agregar productos al carrito
+ * 
+ * VERSIÓN 2.0 - Compatible con el nuevo store de cart.
+ * Usa datos embebidos del producto para evitar N+1 requests.
+ */
+
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { useCartStore } from "@/store/cart-store";
+import { useCartStore } from "@/features/cart/store/cart-store";
 import { Toaster, toast } from "sonner";
+import type { CartProduct } from "@/features/cart/types/cart";
 
+interface AddToCartButtonProps {
+  productId: string;
+  productName: string;
+  productPrice: number;
+  productImageUrl?: string;
+  inStock: boolean;
+  stockQuantity?: number;
+}
+
+/**
+ * Botón para agregar productos al carrito
+ * 
+ * @example
+ * ```tsx
+ * <AddToCartButton 
+ *   productId={product.id}
+ *   productName={product.name}
+ *   productPrice={product.price}
+ *   productImageUrl={product.imageUrls?.[0]}
+ *   inStock={product.inStock}
+ *   stockQuantity={product.stock}
+ * />
+ * ```
+ */
 export function AddToCartButton({
   productId,
+  productName,
+  productPrice,
+  productImageUrl,
+  inStock,
   stockQuantity,
-}: {
-  productId: string;
-  stockQuantity?: number;
-}) {
+}: AddToCartButtonProps) {
+  // Usar el nuevo store
   const addItem = useCartStore((state) => state.addItem);
   const items = useCartStore((state) => state.items);
 
-  // Local state - don't touch cart until user clicks "Agregar al carrito"
+  // Local state para la UI
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
 
-  // Check current quantity in cart
+  // Obtener cantidad actual en el carrito
   const currentItem = items.find((item) => item.productId === productId);
   const currentQuantity = currentItem?.quantity || 0;
 
-  // Calculate max allowed quantity based on stock
-  const maxAllowed = stockQuantity !== undefined
+  // Calcular cantidad máxima permitida
+  const maxAllowed = inStock && stockQuantity !== undefined
     ? Math.max(0, stockQuantity - currentQuantity)
-    : 999;
+    : inStock ? 999 : 0;
 
-  const handleAdd = () => {
-    const success = addItem(productId, quantity, stockQuantity);
+  // Crear el CartProduct para embebber
+  const cartProduct: CartProduct = useMemo(() => ({
+    id: productId,
+    name: productName,
+    price: productPrice,
+    imageUrl: productImageUrl,
+    stock: stockQuantity,
+    inStock,
+  }), [productId, productName, productPrice, productImageUrl, stockQuantity, inStock]);
 
-    if (success) {
+  const handleAdd = useCallback(() => {
+    // Validar stock
+    if (!inStock) {
+      toast.error("Producto sin stock disponible");
+      return;
+    }
+
+    // Intentar agregar al carrito
+    const result = addItem(productId, quantity, cartProduct);
+
+    if (result.success) {
       toast.success("Producto agregado al carrito");
       setQuantity(1);
       setAdded(true);
       setTimeout(() => setAdded(false), 1500);
     } else {
-      toast.error(
-        stockQuantity
-          ? `Stock máximo: solo ${stockQuantity} unidades disponibles`
-          : "No hay stock disponible"
-      );
+      // Mostrar error según el tipo
+      if (result.error === 'MAX_STOCK_REACHED' && stockQuantity && stockQuantity > 0) {
+        toast.error(`Stock máximo: solo ${stockQuantity} unidades disponibles`);
+      } else {
+        toast.error(result.message || "No hay stock disponible");
+      }
     }
-  };
+  }, [addItem, cartProduct, inStock, productId, quantity, stockQuantity]);
 
-  const handleIncrease = () => {
+  const handleIncrease = useCallback(() => {
+    if (!inStock) {
+      toast.error("Producto sin stock disponible");
+      return;
+    }
     if (quantity < maxAllowed) {
       setQuantity((q) => q + 1);
-    } else if (stockQuantity) {
+    } else if (stockQuantity && stockQuantity > 0) {
       toast.error(`Stock máximo: ${stockQuantity} unidades`);
     }
-  };
+  }, [inStock, quantity, maxAllowed, stockQuantity]);
 
-  const handleDecrease = () => {
+  const handleDecrease = useCallback(() => {
     setQuantity((q) => Math.max(1, q - 1));
-  };
+  }, []);
 
-  const isMaxReached = stockQuantity !== undefined && quantity >= maxAllowed;
+  const isMaxReached = inStock && stockQuantity !== undefined && quantity >= maxAllowed;
 
   return (
     <div className="space-y-3">
-      <Toaster position="top-right" />
+      <Toaster position="bottom-right" />
 
-      {/* Quantity selector - local state only */}
+      {/* Selector de cantidad */}
       <div className="flex items-center gap-3">
         <span className="text-sm text-[var(--foreground-muted)]">Cantidad:</span>
         <div className="flex items-center rounded-lg border border-[var(--border-subtle)]">
@@ -94,25 +150,27 @@ export function AddToCartButton({
         )}
       </div>
 
-      {/* Stock warning */}
+      {/* Warning de stock */}
       {stockQuantity && currentQuantity >= stockQuantity && (
         <p className="text-xs text-amber-400">
           Ya alcanzaste el stock máximo disponible.
         </p>
       )}
 
-      {/* Add to cart button */}
+      {/* Botón agregar */}
       <Button
         size="lg"
         className="w-full"
         onClick={handleAdd}
         aria-label="Add to cart"
-        disabled={currentQuantity >= (stockQuantity || 999)}
+        disabled={!inStock || currentQuantity >= (stockQuantity || 999)}
       >
         {added
           ? "✓ Agregado"
-          : currentQuantity >= (stockQuantity || 999)
+          : !inStock
           ? "Sin stock"
+          : currentQuantity >= (stockQuantity || 999)
+          ? "Stock máximo alcanzado"
           : "Agregar al carrito"}
       </Button>
     </div>

@@ -9,6 +9,20 @@ export const metadata: Metadata = {
   description: "Search across all TechnoStore products by name, brand or specs.",
 };
 
+/**
+ * Normalizes a string by removing accents and converting to lowercase.
+ * This enables search to be accent-insensitive and case-insensitive.
+ * Example: "Teclado" matches "teclado" or "TECLADO"
+ */
+function normalizeSearchText(text: string | undefined | null): string {
+  if (!text) return "";
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 interface SearchPageProps {
   searchParams: Promise<{ q?: string }>;
 }
@@ -17,16 +31,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const { q: query } = await searchParams;
   
   // Fetch products from database
-  // For now, show featured products if no query, or search by name if query provided
+  // If query provided, search by name; otherwise show featured products
   let products;
-  if (query) {
-    // Simple search by name - in production would use MongoDB text search
-    const allProducts = await productRepository.findFeatured(50);
-    products = allProducts.filter(
-      (p) =>
-        p.name.toLowerCase().includes(query.toLowerCase()) ||
-        (p.description?.toLowerCase().includes(query.toLowerCase()) ?? false)
-    );
+  if (query && query.trim()) {
+    // Use dedicated search method (accent and case insensitive)
+    products = await productRepository.searchByName(query, 200);
   } else {
     products = await productRepository.findFeatured(20);
   }

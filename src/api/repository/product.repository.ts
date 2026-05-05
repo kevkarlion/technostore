@@ -85,22 +85,25 @@ export const productRepository = {
       .toLowerCase()
       .trim();
 
-    // Fetch ALL products (no status filter) and filter in memory
+    // Fetch ALL products (no filter) - no limit before filter!
     const docs = await collection
       .find({})
-      .limit(limit)
       .toArray();
 
     const products = docs.map((doc) => productMapper.toDomain(doc as any));
 
     // Filter by normalized name (accent and case insensitive)
-    return products.filter((p) => {
+    const filtered = products.filter((p) => {
+      if (!p.name) return false;
       const normalizedName = p.name
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase();
       return normalizedName.includes(normalizedQuery);
     });
+
+    // Apply limit AFTER filtering
+    return filtered.slice(0, limit);
   },
 
   async create(data: CreateProductDTO): Promise<Product> {

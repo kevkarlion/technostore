@@ -1,34 +1,100 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useCheckoutStore } from "@/store/checkout-store";
 import { useCartStore } from "@/store/cart-store";
-import { Price } from "@/components/ui/price";
 import { Button } from "@/components/ui/button";
 
-export default function CheckoutSuccessPage() {
-  const { orderResult, reset } = useCheckoutStore();
+function generateOrderId(): string {
+  const timestamp = Date.now();
+  const randomChars = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `ORD-${timestamp}-${randomChars}`;
+}
+
+function generateFallbackOrder(): OrderResult {
+  const timestamp = Date.now();
+  return {
+    orderId: generateOrderId(),
+    items: [],
+    subtotal: 0,
+    shipping: 0,
+    taxes: 0,
+    total: 0,
+    customer: {
+      name: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      address: "",
+      city: "",
+      postalCode: "",
+    },
+    createdAt: new Date(timestamp).toISOString(),
+  };
+}
+
+interface OrderResult {
+  orderId: string;
+  items: Array<{
+    productId: string;
+    productName: string;
+    quantity: number;
+    price: number;
+  }>;
+  subtotal: number;
+  shipping: number;
+  taxes: number;
+  total: number;
+  customer: {
+    name: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    address: string;
+    city: string;
+    postalCode: string;
+  };
+  createdAt: string;
+  paymentId?: string;
+}
+
+function SuccessContent() {
+  const searchParams = useSearchParams();
+  const { setOrderResult, reset } = useCheckoutStore();
   const { clear: clearCart } = useCartStore();
 
-  // Clear cart and reset checkout state on mount
+  const paymentId = searchParams.get("payment_id");
+  const merchantOrderId = searchParams.get("merchant_order_id");
+  const preferenceId = searchParams.get("preference_id");
+
   useEffect(() => {
+    // Build order result from MP return data
+    const order: OrderResult = {
+      orderId: generateOrderId(),
+      items: [],
+      subtotal: 0,
+      shipping: 0,
+      taxes: 0,
+      total: 0,
+      customer: {
+        name: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        address: "",
+        city: "",
+        postalCode: "",
+      },
+      createdAt: new Date().toISOString(),
+      paymentId: paymentId ?? undefined,
+    };
+
+    setOrderResult(order);
     clearCart();
     reset();
-  }, [clearCart, reset]);
-
-  if (!orderResult) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-        <div className="text-lg font-semibold text-slate-50">
-          No tenés ningún pedido.
-        </div>
-        <Link href="/">
-          <Button>Volver a la tienda</Button>
-        </Link>
-      </div>
-    );
-  }
+  }, [paymentId, merchantOrderId, preferenceId, setOrderResult, clearCart, reset]);
 
   return (
     <div className="space-y-6">
@@ -46,79 +112,12 @@ export default function CheckoutSuccessPage() {
         </p>
       </header>
 
-      <div className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4">
-        <div className="mb-4 flex items-center justify-between border-b border-slate-700 pb-4">
-          <div>
-            <p className="text-xs text-slate-400">Número de pedido</p>
-            <p className="text-lg font-semibold text-slate-50">
-              {orderResult.orderId}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs text-slate-400">Fecha</p>
-            <p className="text-sm text-slate-50">
-              {new Date(orderResult.createdAt).toLocaleDateString("es-AR", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
-          </div>
+      {paymentId && (
+        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-center">
+          <p className="text-xs text-slate-400">ID de pago</p>
+          <p className="font-mono text-sm text-emerald-400">{paymentId}</p>
         </div>
-
-        {/* Customer Details */}
-        <div className="mb-4 space-y-2 border-b border-slate-700 pb-4 text-xs">
-          <p className="font-medium text-slate-50">Datos del cliente</p>
-          <p className="text-slate-300">
-            {orderResult.customer.name} {orderResult.customer.lastName}
-          </p>
-          <p className="text-slate-300">{orderResult.customer.email}</p>
-          <p className="text-slate-300">{orderResult.customer.phone}</p>
-          <p className="text-slate-300">
-            {orderResult.customer.address}, {orderResult.customer.city},{" "}
-            {orderResult.customer.postalCode}
-          </p>
-        </div>
-
-        {/* Order Items */}
-        <div className="mb-4 space-y-2 border-b border-slate-700 pb-4">
-          <p className="text-xs font-medium text-slate-50">Productos</p>
-          <div className="space-y-1 text-xs">
-            {orderResult.items.map((item) => (
-              <div
-                key={item.productId}
-                className="flex justify-between text-slate-300"
-              >
-                <span>
-                  {item.productName} x{item.quantity}
-                </span>
-                <Price amount={item.price * item.quantity} />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Totals */}
-        <div className="space-y-1 text-xs text-slate-300">
-          <div className="flex justify-between">
-            <span>Subtotal</span>
-            <Price amount={orderResult.subtotal} />
-          </div>
-          <div className="flex justify-between">
-            <span>Envío</span>
-            <Price amount={orderResult.shipping} />
-          </div>
-          <div className="flex justify-between">
-            <span>Impuestos</span>
-            <Price amount={orderResult.taxes} />
-          </div>
-        </div>
-
-        <div className="mt-4 flex items-center justify-between border-t border-slate-700 pt-4">
-          <span className="text-sm font-semibold text-slate-50">Total</span>
-          <Price amount={orderResult.total} className="text-base" />
-        </div>
-      </div>
+      )}
 
       <div className="flex justify-center">
         <Link href="/">
@@ -126,5 +125,13 @@ export default function CheckoutSuccessPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense fallback={null}>
+      <SuccessContent />
+    </Suspense>
   );
 }

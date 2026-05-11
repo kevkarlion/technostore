@@ -1,20 +1,35 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import Link from "next/link";
-import { useCartStore } from "@/store/cart-store";
+import { useCartStore } from "@/features/cart/store/cart-store";
 import { useCheckoutStore, type CustomerData } from "@/store/checkout-store";
+import { useOrderStore } from "@/store/order-store";
+import { useShallow } from "zustand/react/shallow";
 import { Toaster, toast } from "sonner";
 import { Price } from "@/components/ui/price";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ProductResponseDTO } from "@/domain/dto/product.dto";
+import { MercadoPagoForm } from "@/components/checkout/mercado-pago-form";
+import { CheckoutForm, type CustomerFormData } from "@/components/checkout/checkout-form";
 
-const SHIPPING_COST = 500;
+// Subscribe to cart store hydration
+function useStoreHydration() {
+  return useSyncExternalStore(
+    (callback) => {
+      const unsub = useCartStore.persist?.onFinishHydration?.(() => callback());
+      return () => unsub?.();
+    },
+    () => useCartStore.persist?.hasHydrated?.() ?? false,
+    () => false
+  );
+}
+
+const SHIPPING_COST = 0; // Free shipping for testing
 const TAX_RATE = 0.21;
 
 const customerSchema = z.object({
@@ -32,14 +47,44 @@ type CustomerFormData = z.infer<typeof customerSchema>;
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, clear } = useCartStore();
-  const { paymentStatus, orderResult, error, setCustomerData, processPayment, reset } =
-    useCheckoutStore();
+  const isHydrated = useStoreHydration();
+  const { paymentStatus, setCustomerData, setPaymentStatus, setError, reset } =
+    useCheckoutStore(
+      useShallow((state) => ({
+        paymentStatus: state.paymentStatus,
+        setCustomerData: state.setCustomerData,
+        setPaymentStatus: state.setPaymentStatus,
+        setError: state.setError,
+        reset: state.reset,
+      }))
+    );
+  const { addOrder } = useOrderStore();
 
   const [products, setProducts] = useState<Record<string, ProductResponseDTO>>({});
+  const [customerData, setCustomerDataLocal] = useState<CustomerData | null>(null);
+  const [showCardForm, setShowCardForm] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Fetch products from API
   useEffect(() => {
+    console.log("[Checkout] useEffect:", { isHydrated, itemsLength: items.length, items: items });
+    
+    // Wait for cart to hydrate before checking items
+    if (!isHydrated) {
+      console.log("[Checkout] Not hydrated yet, returning");
+      return;
+    }
+    
+    // Don't redirect if we just processed a payment (paymentStatus is processing or success)
+    if (paymentStatus === "processing" || paymentStatus === "success") {
+      console.log("[Checkout] Payment in progress, not redirecting");
+      return;
+    }
+    
+    console.log("[Checkout] Hydrated, items:", items);
+    
     if (items.length === 0) {
+      console.log("[Checkout] Items empty, redirecting to /cart");
       router.push("/cart");
       return;
     }
@@ -63,7 +108,7 @@ export default function CheckoutPage() {
     };
 
     fetchProducts();
-  }, [items.length, router]);
+  }, [items.length, router, isHydrated]);
 
   const {
     register,
@@ -92,34 +137,176 @@ export default function CheckoutPage() {
   const taxes = Math.round(subtotal * TAX_RATE);
   const total = subtotal + shipping + taxes;
 
-  const onSubmit = async (data: CustomerFormData) => {
+  const onSubmit = (data: CustomerFormData) => {
+    const custData: CustomerData = {
+      name: data.name,
+      lastName: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      city: data.city,
+      postalCode: data.postalCode,
+    };
+    setCustomerDataLocal(custData);
+    setShowCardForm(true);
+  };
+
+  const handlePaymentSubmit = async (data: {
+      type: "card" | "rapipago" | "pagofacil";
+      token?: string;
+      paymentMethodId?: string;
+      installments?: number;
+      payer: {
+        email: string;
+        identification: { type: string; number: string };
+      };
+    }) => {
+    if (!customerData) return;
+    
+    setIsProcessing(true);
+    setPaymentStatus("processing");
+
     try {
-      const customerData: CustomerData = {
-        name: data.name,
-        lastName: data.lastName,
-        email: data.email,
-        phone: data.phone,
-        address: data.address,
-        city: data.city,
-        postalCode: data.postalCode,
+      // Build items for payment
+      const paymentItems = items.map((item) => {
+        const product = products[item.productId];
+        return {
+          id: item.productId,
+          title: product?.name || "Producto",
+          quantity: item.quantity,
+          unit_price: product?.price || 0,
+          currency_id: "ARS",
+        };
+      });
+
+      // Always use order API for all payment types
+      const endpoint = "/api/mercadopago/order";
+
+      // Calculate total from items
+      const totalAmount = Math.round(paymentItems.reduce((acc, item) => acc + item.unit_price * item.quantity, 0));
+      
+      // Determine if it's a card payment
+      const isCard = data.type === "card";
+      
+      // For cards, we need payment method ID - try to get it from the form data
+      const paymentMethodId = isCard ? (data.paymentMethodId || "visa") : data.type;
+      
+      // Validate token format
+      if (!data.token || data.token.length < 32) {
+        console.error("[Checkout] Invalid token:", data.token);
+        throw new Error("Token de tarjeta inválido");
+      }
+      
+      console.log("[Checkout] Token:", data.token, "length:", data.token.length);
+      console.log("[Checkout] PaymentMethodId:", paymentMethodId);
+      console.log("[Checkout] Installments:", data.installments);
+      console.log("[Checkout] Sending totalAmount:", totalAmount);
+
+      // For sandbox, always use test@testuser.com
+      const payerEmail = data.payer.email.includes('@testuser.com') 
+        ? data.payer.email 
+        : 'test@testuser.com';
+      
+      const payload = {
+        externalReference: `ORD-${Date.now()}`,
+        total_amount: totalAmount, // Send as number, not string
+        payer: {
+          email: payerEmail,
+          first_name: customerData.name,
+          last_name: customerData.lastName,
+          identification: data.payer.identification,
+        },
+        transactions: {
+          payments: [
+            {
+              amount: totalAmount,
+              payment_method: {
+                id: paymentMethodId,
+                type: isCard ? "credit_card" : "ticket",
+                token: data.token,
+                installments: data.installments || 1,
+              },
+            },
+          ],
+        },
       };
 
-      setCustomerData(customerData);
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-      const result = await processPayment(items, products);
+      const result = await response.json();
+      console.log("[Checkout] Response status:", response.status);
+      console.log("[Checkout] Error response:", JSON.stringify(result, null, 2));
 
-      clear();
-      router.push("/checkout/success");
+      if (!response.ok) {
+        console.log("[Checkout] Full error details:", JSON.stringify(result, null, 2));
+        throw new Error((result as any).message || (result as any).details || "Error al procesar el pago");
+      }
+
+      // Payment successful
+      console.log("[Checkout] Payment data sent:", {
+        token: data.token,
+        paymentMethodId: data.paymentMethodId,
+        installments: data.installments,
+        amount: totalAmount
+      });
+      console.log("[Checkout] Payment result:", result);
+      
+      // Save order to store for later management (capture/cancel)
+      addOrder({
+        id: result.id,
+        externalReference: result.external_reference || `ORD-${Date.now()}`,
+        totalAmount: totalAmount,
+        status: "reserved", // Funds reserved, waiting for capture
+        statusDetail: result.transactions?.payments?.[0]?.status_detail,
+        paymentMethodId: data.paymentMethodId,
+        createdAt: Date.now(),
+        customerEmail: payerEmail,
+        customerName: customerData ? `${customerData.name} ${customerData.lastName}` : undefined,
+      });
+      
+      clear(); // Clear cart on success
+      setPaymentStatus("success");
+      
+      // For tickets, show the ticket_url
+      if (result.ticket_url) {
+        router.push("/checkout/success?ticket_url=" + encodeURIComponent(result.ticket_url));
+      } else {
+        router.push("/checkout/success?payment_id=" + result.id);
+      }
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Error en el procesamiento del pago"
-      );
+      console.error("[Checkout] Payment error:", err);
+      setPaymentStatus("error");
+      setError(err instanceof Error ? err.message : "Error en el procesamiento del pago");
+      toast.error(err instanceof Error ? err.message : "Error en el procesamiento del pago");
+      setIsProcessing(false);
     }
   };
 
-  // Redirect if cart is empty
+  const handleCardError = (error: string) => {
+    setError(error);
+    toast.error(error);
+  };
+
+  // Show loading while cart hydrates
+  if (!isHydrated) {
+    console.log("[Checkout] Rendering: Not hydrated, showing spinner");
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-400"></div>
+      </div>
+    );
+  }
+
+  // Don't auto-redirect - let user see checkout
+  // The onSubmit will handle empty cart case
   if (items.length === 0) {
-    return null;
+    console.log("[Checkout] Rendering: items empty, but showing form anyway");
+  } else {
+    console.log("[Checkout] Rendering: Has items, showing checkout form");
   }
 
   return (
@@ -136,211 +323,44 @@ export default function CheckoutPage() {
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr),minmax(0,2fr)]">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Customer Details */}
-          <section
-            aria-label="Datos del cliente"
-            className="space-y-4 rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4"
-          >
-            <h2 className="text-sm font-semibold text-slate-50">
-              Datos personales
-            </h2>
-            <div className="grid gap-3 text-xs sm:grid-cols-2">
-              <div className="space-y-1">
-                <label
-                  htmlFor="name"
-                  className="block text-[0.7rem] font-medium text-slate-300"
-                >
-                  Nombre *
-                </label>
-                <Input
-                  id="name"
-                  autoComplete="given-name"
-                  {...register("name")}
-                />
-                {errors.name && (
-                  <p className="text-[0.7rem] text-rose-400">
-                    {errors.name.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-1">
-                <label
-                  htmlFor="lastName"
-                  className="block text-[0.7rem] font-medium text-slate-300"
-                >
-                  Apellido *
-                </label>
-                <Input
-                  id="lastName"
-                  autoComplete="family-name"
-                  {...register("lastName")}
-                />
-                {errors.lastName && (
-                  <p className="text-[0.7rem] text-rose-400">
-                    {errors.lastName.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-1">
-                <label
-                  htmlFor="email"
-                  className="block text-[0.7rem] font-medium text-slate-300"
-                >
-                  Email *
-                </label>
-                <Input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  {...register("email")}
-                />
-                {errors.email && (
-                  <p className="text-[0.7rem] text-rose-400">
-                    {errors.email.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-1">
-                <label
-                  htmlFor="phone"
-                  className="block text-[0.7rem] font-medium text-slate-300"
-                >
-                  Teléfono *
-                </label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  autoComplete="tel"
-                  {...register("phone")}
-                />
-                {errors.phone && (
-                  <p className="text-[0.7rem] text-rose-400">
-                    {errors.phone.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-1 sm:col-span-2">
-                <label
-                  htmlFor="address"
-                  className="block text-[0.7rem] font-medium text-slate-300"
-                >
-                  Dirección *
-                </label>
-                <Input
-                  id="address"
-                  autoComplete="street-address"
-                  {...register("address")}
-                />
-                {errors.address && (
-                  <p className="text-[0.7rem] text-rose-400">
-                    {errors.address.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-1">
-                <label
-                  htmlFor="city"
-                  className="block text-[0.7rem] font-medium text-slate-300"
-                >
-                  Ciudad *
-                </label>
-                <Input
-                  id="city"
-                  autoComplete="address-level2"
-                  {...register("city")}
-                />
-                {errors.city && (
-                  <p className="text-[0.7rem] text-rose-400">
-                    {errors.city.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-1">
-                <label
-                  htmlFor="postalCode"
-                  className="block text-[0.7rem] font-medium text-slate-300"
-                >
-                  Código Postal *
-                </label>
-                <Input
-                  id="postalCode"
-                  autoComplete="postal-code"
-                  {...register("postalCode")}
-                />
-                {errors.postalCode && (
-                  <p className="text-[0.7rem] text-rose-400">
-                    {errors.postalCode.message}
-                  </p>
-                )}
-              </div>
-            </div>
-          </section>
-
-          {/* Order Summary Sidebar */}
-          <section
-            aria-label="Resumen del pedido"
-            className="space-y-4 rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4"
-          >
-            <h2 className="text-sm font-semibold text-slate-50">
-              Resumen del pedido
-            </h2>
-
-            {/* Items list */}
-            <div className="space-y-2 text-xs">
-              {enriched.map((item) => (
-                <div
-                  key={item.productId}
-                  className="flex justify-between gap-2"
-                >
-                  <span className="truncate text-slate-300">
-                    {item.product?.name} x{item.quantity}
-                  </span>
-                  <Price
-                    amount={(item.product?.price || 0) * item.quantity}
-                    className="text-right"
-                  />
+        {showCardForm ? (
+          <div className="space-y-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowCardForm(false)}
+            >
+              ← Volver
+            </Button>
+            
+            <div className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4">
+              <h2 className="text-sm font-semibold text-slate-50 mb-4">
+                Datos de tu tarjeta
+              </h2>
+              {isProcessing ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+                  <span className="ml-3 text-slate-300">Procesando pago...</span>
                 </div>
-              ))}
+              ) : (
+                <MercadoPagoForm
+                  onPaymentSubmit={handlePaymentSubmit}
+                  customerEmail={customerData?.email || "test@testuser.com"}
+                  totalAmount={total}
+                  onError={handleCardError}
+                />
+              )}
             </div>
-
-            <div className="space-y-1 text-xs text-slate-300">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <Price amount={subtotal} />
-              </div>
-              <div className="flex justify-between">
-                <span>Envío</span>
-                <Price amount={shipping} />
-              </div>
-              <div className="flex justify-between">
-                <span>Impuestos (21%)</span>
-                <Price amount={taxes} />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between border-t border-slate-700 pt-3 text-xs">
-              <span className="text-slate-50">Total</span>
-              <Price amount={total} className="text-base" />
-            </div>
-          </section>
-
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            size="lg"
-            className="w-full"
-            disabled={paymentStatus === "processing"}
-          >
-            {paymentStatus === "processing"
-              ? "Procesando pago..."
-              : `Pagar $${total.toLocaleString("es-AR")}`}
-          </Button>
-
-          {error && (
-            <p className="text-center text-xs text-rose-400">{error}</p>
-          )}
-        </form>
+          </div>
+        ) : (
+          <CheckoutForm
+            items={items}
+            products={products}
+            total={total}
+            onSubmit={(data) => onSubmit(data as any)}
+            isLoading={isProcessing}
+          />
+        )}
 
         {/* Right sidebar - Order Summary (desktop) */}
         <aside className="hidden lg:block space-y-4">

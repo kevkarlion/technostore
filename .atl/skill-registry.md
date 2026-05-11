@@ -4,6 +4,8 @@
 
 See `_shared/skill-resolver.md` for the full resolution protocol.
 
+**Updated**: 2026-05-11
+
 ## User Skills
 
 | Trigger | Skill | Path |
@@ -60,23 +62,72 @@ Pre-digested rules per skill. Delegators copy matching blocks into sub-agent pro
 - Use Skill Resolver Protocol before launching judges
 - After 2 iterations without both passing, escalate
 
-### sdd-init (skipped - SDD workflow skill)
+### sdd-init
+- Detect stack, test runner, linter, type checker from project files
+- Mode `engram`: save to Engram only (no openspec/)
+- Mode `openspec`: create openspec/bootstrap files
+- Mode `hybrid`: both Engram and openspec
+- Strict TDD: enabled if test runner exists, disabled if no runner
+- Always build `.atl/skill-registry.md`; persist to Engram when available
 
-### sdd-apply (skipped - SDD workflow skill)
+### sdd-explore
+- Do NOT create files or branches
+- Call mem_save with discovered context only
+- Use mem_search for prior knowledge on the topic
+- Summarize findings; do not prescribe solutions
+- Return a compact memo, not a spec
 
-### sdd-archive (skipped - SDD workflow skill)
+### sdd-propose
+- Check mem_search for existing proposal on same change
+- If no change name provided, derive from intent
+- Propose scope, approach, and success criteria
+- Propose a change name that fits `^[a-z0-9-]+$`
+- Return: proposal artifact saved to Engram, next `sdd-spec` step
 
-### sdd-design (skipped - SDD workflow skill)
+### sdd-spec
+- Check mem_search for prior work
+- Include: summary, requirements, acceptance criteria, scenarios
+- Cover happy path, edge cases, and error cases
+- Reference design constraints from sdd-design if available
+- Return: spec artifact saved to Engram, next `sdd-tasks` step
 
-### sdd-explore (skipped - SDD workflow skill)
+### sdd-design
+- Check mem_search for prior design work
+- Include: architecture diagram, API contracts, data model, component map
+- Cover cross-cutting concerns: error handling, observability, perf
+- Reference specs, not invent new requirements
+- Return: design artifact saved to Engel, next `sdd-tasks` step
 
-### sdd-propose (skipped - SDD workflow skill)
+### sdd-tasks
+- Check mem_search for prior task plans
+- Generate implementation tasks as a flat list or grouped list
+- Label each task with: type (code, test, docs, config, chore), estimated complexity
+- Include rollback tasks for risky changes
+- Reference specs and design, do not invent requirements
+- Return: tasks artifact saved to Engram, next `sdd-apply` step
 
-### sdd-spec (skipped - SDD workflow skill)
+### sdd-apply
+- Read tasks from Engram via mem_search + mem_get_observation
+- Run one task or a batch of independent tasks
+- Save apply-progress to Engram after each batch
+- Stop after 1-2 hours or 3-5 tasks, whichever comes first
+- Never build (npm run build) unless user explicitly asks
+- Return: progress artifact saved, pending tasks, optional stop reason
 
-### sdd-tasks (skipped - SDD workflow skill)
+### sdd-verify
+- Read tasks from Engram via mem_search + mem_get_observation
+- Execute test commands from openspec/config.yaml testing section
+- Run linter (npm run lint) and type checker (npx tsc --noEmit)
+- For E2E: confirm Playwright tests exist and can be run
+- For manual verification: list specific pages to test, expected outcomes
+- Return: verify-report artifact saved, pass/fail per task
 
-### sdd-verify (skipped - SDD workflow skill)
+### sdd-archive
+- Check openspec/config.yaml for previous phases
+- Generate delta specs by comparing current code with spec artifacts
+- Write each change's delta to `openspec/specs/DELTA-{change}.md`
+- Sync openspec/config.yaml with any new phases
+- Return: archive-report artifact saved, lineage of observation IDs
 
 ### skill-creator
 - Follow Agent Skills specification format
@@ -84,7 +135,13 @@ Pre-digested rules per skill. Delegators copy matching blocks into sub-agent pro
 - Document Critical Patterns and Rules sections
 - Write SKILL.md with clear instructions
 
-### skill-registry (skipped - this skill)
+### skill-registry
+- Scan user skills in known skill directories
+- Scan project skills in known project skill directories
+- Skip sdd-*, _shared, skill-registry skills
+- Read SKILL.md for each skill; focus on frontmatter + rules if >200 lines
+- Extract name, trigger, path, compact rules (5-15 actionable lines)
+- Build `.atl/skill-registry.md` from collected data
 
 ### cognitive-doc-design
 - Write docs that reduce cognitive load — clarity over completeness
@@ -104,7 +161,11 @@ Pre-digested rules per skill. Delegators copy matching blocks into sub-agent pro
 - Use clear "depends on" relationships in PR description
 - Final PR in chain merges last
 
-### sdd-onboard (skipped - onboarding skill)
+### sdd-onboard
+- Walk user through the full SDD cycle
+- Use sdd-propose, sdd-spec, sdd-design, sdd-tasks, sdd-apply, sdd-verify in order
+- Verify each phase before moving to the next
+- End with sdd-archive after full completion
 
 ### work-unit-commits
 - One concern per commit — no mixing features with refactors
@@ -116,7 +177,32 @@ Pre-digested rules per skill. Delegators copy matching blocks into sub-agent pro
 
 | File | Path | Notes |
 |------|------|-------|
-| Architecture doc | /home/kriq/mis-proyectos/TechnoStore/app/src/README_ARCHITECTURE.md | Folder structure and responsibilities |
-| README | /home/kriq/mis-proyectos/TechnoStore/app/README.md | Project readme |
+| Architecture doc | src/README_ARCHITECTURE.md | Folder structure and responsibilities |
+| README | README.md | Project readme |
 
 No convention index files (AGENTS.md, .cursorrules, CLAUDE.md) found in project root.
+
+## Project Stack
+
+- **Framework**: Next.js 16.1.6 + React 19.2.3 (App Router)
+- **State**: Zustand 5.0.11
+- **Data**: MongoDB (native driver, no Mongoose)
+- **Forms**: react-hook-form + zod + @hookform/resolvers
+- **Images**: Cloudinary
+- **Styling**: Tailwind CSS
+- **Scraping**: Cheerio + Playwright (scrape-cat-*.ts scripts)
+- **TypeScript**: strict mode enabled
+
+## Testing Capabilities
+
+**Strict TDD Mode**: `false`
+**Reason**: No test runner in package.json scripts.
+
+| Layer | Available | Tool |
+|-------|-----------|------|
+| Unit | ❌ | — |
+| Integration | ❌ | — |
+| E2E | ✅ | Playwright |
+| Coverage | ❌ | — |
+
+Quality tools: ESLint ✅, TypeScript ✅, Formatter ❌

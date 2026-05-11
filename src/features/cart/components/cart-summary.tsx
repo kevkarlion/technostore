@@ -8,6 +8,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Price } from "@/components/ui/price";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_CART_CONFIG } from "../types/cart";
@@ -20,6 +21,24 @@ interface CartSummaryProps {
   itemCount: number;
   onClear?: () => void;
   showCheckoutButton?: boolean;
+}
+
+function CheckoutButtonDebug() {
+  const router = useRouter();
+  
+  const handleClick = (e: React.MouseEvent) => {
+    console.log("[Checkout] Clicked, navigating to /checkout");
+    router.push("/checkout");
+  };
+  
+  return (
+    <button
+      onClick={handleClick}
+      className="w-full rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+    >
+      Proceder al checkout
+    </button>
+  );
 }
 
 /**
@@ -107,13 +126,7 @@ export function CartSummary({
       </div>
 
       {/* Botón checkout */}
-      {showCheckoutButton && !isEmpty && (
-        <Link href="/checkout" className="block">
-          <Button className="w-full" size="lg">
-            Proceder al checkout
-          </Button>
-        </Link>
-      )}
+      {showCheckoutButton && !isEmpty && <CheckoutButtonDebug />}
 
       {/* Carrito vacío */}
       {isEmpty && (

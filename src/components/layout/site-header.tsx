@@ -3,7 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
 import { clsx } from "clsx";
 import { SearchBar } from "@/components/ui/search-bar";
 import { CartLink } from "@/components/ui/cart-link";
@@ -96,6 +97,39 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [scrollY, setScrollY] = useState(0);
+
+  // Scroll handler for blur/shadow effects
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const isBlurred = scrollY >= 50;
+  const hasShadow = scrollY >= 100;
+
+  // Dynamic styles based on scroll position
+  const headerStyles: React.CSSProperties = isBlurred
+    ? {
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        backgroundColor: "rgba(12, 12, 16, 0.95)",
+        transition: "all 0.3s ease",
+      }
+    : {
+        backdropFilter: "none",
+        backgroundColor: "rgba(12, 12, 16, 0)",
+        transition: "all 0.3s ease",
+      };
+
+  const headerWithShadowStyles: React.CSSProperties = hasShadow
+    ? {
+        ...headerStyles,
+        boxShadow: "0 4px 24px rgba(0, 0, 0, 0.15)",
+      }
+    : headerStyles;
 
   const mainNav = [
     { href: "/", label: "Home" },
@@ -107,7 +141,7 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-[60] w-full border-b border-[var(--border-subtle)] bg-[var(--background)]/95 backdrop-blur">
+    <header className="sticky top-0 z-[60] w-full border-b border-[var(--border-subtle)]" style={headerWithShadowStyles}>
       <div className="w-full px-4 sm:px-6 lg:px-8">
         {/* Row 1: Logo + Search bar (desktop) / Logo + menu buttons (mobile) */}
         <div className="flex h-auto min-h-[4rem] flex-wrap content-start items-center gap-x-4 gap-y-2 py-3">
@@ -175,13 +209,21 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
               className="rounded-full bg-[var(--surface)] p-2 text-xs font-medium ring-1 ring-[var(--border-subtle)] transition hover:bg-[var(--surface-hover)]"
               aria-label="Toggle menu"
             >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {isMobileMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
+              <motion.svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <motion.path
+                  initial={false}
+                  animate={isMobileMenuOpen ? "open" : "closed"}
+                  variants={{
+                    open: { d: "M6 18L18 6M6 6l12 12", strokeLinecap: "round" as const, strokeLinejoin: "round" as const, strokeWidth: 2 },
+                    closed: { d: "M4 6h16M4 12h16M4 18h16", strokeLinecap: "round" as const, strokeLinejoin: "round" as const, strokeWidth: 2 }
+                  }}
+                />
+              </motion.svg>
             </button>
           </div>
         </div>

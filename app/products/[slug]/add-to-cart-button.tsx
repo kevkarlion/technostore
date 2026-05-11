@@ -159,6 +159,7 @@ export function AddToCartButton({
 
       {/* Botón agregar */}
       <Button
+        id="add-to-cart"
         size="lg"
         className="w-full"
         onClick={handleAdd}

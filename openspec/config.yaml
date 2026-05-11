@@ -1,0 +1,47 @@
+# OpenSpec SDD Configuration
+
+project: TechnoStore/app
+persistence: openspec
+strict_tdd: false
+
+context: |
+  Next.js 16.1.6 + React 19 e-commerce app. MongoDB for data,
+  Zustand for state, Cheerio for scraping, Playwright for E2E.
+  No unit test framework detected in package.json.
+
+testing:
+  runner: none
+  framework: —
+  strict_tdd: false
+  reason: No test runner in package.json scripts (vitest/jest not configured)
+
+  layers:
+    unit: false
+    integration: false
+    e2e: true  # Playwright available
+
+  coverage: false
+  coverage_command: —
+
+  quality:
+    linter: eslint
+    linter_command: npm run lint
+    type_checker: tsc
+    type_checker_command: npx tsc --noEmit
+    formatter: —
+
+phases:
+  proposal:
+    output: openspec/specs/PROPOSAL-{change}.md
+  spec:
+    output: openspec/specs/SPEC-{change}.md
+  design:
+    output: openspec/specs/DESIGN-{change}.md
+  tasks:
+    output: openspec/changes/{change}/tasks.md
+  apply:
+    output: openspec/changes/{change}/apply/
+  verify:
+    output: openspec/changes/{change}/verification.md
+  archive:
+    output: openspec/changes/archive/

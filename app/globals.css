@@ -14,6 +14,20 @@
   --accent-purple: #46488f;
   --gradient-start: #00dfba;
   --gradient-end: #46488f;
+
+  /* Glassmorphism */
+  --glass-blur: 12px;
+  --glass-opacity: 0.08;
+  --glass-opacity-hover: 0.12;
+
+  /* Transitions */
+  --transition-fast: 150ms;
+  --transition-medium: 300ms;
+  --transition-slow: 500ms;
+
+  /* Shadows */
+  --shadow-elevation: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 24px rgba(0, 225, 186, 0.3);
 }
 
 @layer base {
@@ -69,5 +83,47 @@ html {
   
   .btn-secondary {
     @apply bg-[var(--surface)] text-[var(--foreground)] px-4 py-2 rounded-lg font-medium hover:bg-[var(--surface-hover)] transition;
+  }
+
+  /* Shimmer animation for skeleton loaders */
+  .shimmer {
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+}
+
+/* Keyframes */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Keyframes */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Focus ring enhancement for accessibility */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

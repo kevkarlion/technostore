@@ -13,6 +13,8 @@ See `_shared/skill-resolver.md` for the full resolution protocol.
 | When creating a GitHub issue, reporting a bug, or requesting a feature | issue-creation | /home/kriq/.config/opencode/skills/issue-creation/SKILL.md |
 | When user says "judgment day", "judgment-day", "review adversarial", "dual review", "doble review", "juzgar", "que lo juzguen" | judgment-day | /home/kriq/.config/opencode/skills/judgment-day/SKILL.md |
 | When user wants to initialize SDD in a project, or says "sdd init", "iniciar sdd", "openspec init" | sdd-init | /home/kriq/.config/opencode/skills/sdd-init/SKILL.md |
+| When writing documentation, guides, READMEs, RFCs, or architecture docs | cognitive-doc-design | /home/kriq/.config/opencode/skills/cognitive-doc-design/SKILL.md |
+| When writing collaboration comments, PR feedback, or issue replies | comment-writer | /home/kriq/.config/opencode/skills/comment-writer/SKILL.md |
 | When orchestrator launches you to implement one or more tasks from a change | sdd-apply | /home/kriq/.config/opencode/skills/sdd-apply/SKILL.md |
 | When orchestrator launches you to archive a change after implementation and verification | sdd-archive | /home/kriq/.config/opencode/skills/sdd-archive/SKILL.md |
 | When orchestrator launches you to write or update the technical design for a change | sdd-design | /home/kriq/.config/opencode/skills/sdd-design/SKILL.md |
@@ -23,6 +25,9 @@ See `_shared/skill-resolver.md` for the full resolution protocol.
 | When orchestrator launches you to verify a completed (or partially completed) change | sdd-verify | /home/kriq/.config/opencode/skills/sdd-verify/SKILL.md |
 | When user asks to create a new skill, add agent instructions, or document patterns for AI | skill-creator | /home/kriq/.config/opencode/skills/skill-creator/SKILL.md |
 | When user says "update skills", "skill registry", "actualizar skills", "update registry", or after installing/removing skills | skill-registry | /home/kriq/.config/opencode/skills/skill-registry/SKILL.md |
+| When PR exceeds 400 lines, is a stacked PR, or needs review slicing | chained-pr | /home/kriq/.config/opencode/skills/chained-pr/SKILL.md |
+| When orchestrator walks user through full SDD workflow on real codebase | sdd-onboard | /home/kriq/.config/opencode/skills/sdd-onboard/SKILL.md |
+| When planning commits, splitting changes, or organizing work units | work-unit-commits | /home/kriq/.config/opencode/skills/work-unit-commits/SKILL.md |
 
 ## Compact Rules
 
@@ -80,6 +85,32 @@ Pre-digested rules per skill. Delegators copy matching blocks into sub-agent pro
 - Write SKILL.md with clear instructions
 
 ### skill-registry (skipped - this skill)
+
+### cognitive-doc-design
+- Write docs that reduce cognitive load — clarity over completeness
+- Use progressive disclosure: summary first, details second
+- Include actionable steps, not just explanations
+- Design for the reader's goal, not the writer's convenience
+
+### comment-writer
+- Be warm but direct — acknowledge what's good, flag what's wrong
+- Explain the WHY behind suggestions, not just the what
+- Offer alternatives with tradeoffs when relevant
+- Match the reader's language (Spanish/English)
+
+### chained-pr
+- Split changes >400 lines into reviewable units
+- Each PR in the chain should be independently valid
+- Use clear "depends on" relationships in PR description
+- Final PR in chain merges last
+
+### sdd-onboard (skipped - onboarding skill)
+
+### work-unit-commits
+- One concern per commit — no mixing features with refactors
+- Keep commits atomic and reviewable in isolation
+- Include tests with code, not separately
+- Write imperative commit messages: "Add X" not "Added X"
 
 ## Project Conventions
 

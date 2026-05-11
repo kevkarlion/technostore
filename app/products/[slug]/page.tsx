@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { productRepository } from "@/api/repository/product.repository";
 import { toPresentationProduct, generateProductSlug } from "@/domain/mappers/product-to-presentation";
-import { ProductGallery } from "./product-gallery";
+import { PremiumGallery } from "@/components/ui/premium/premium-gallery";
+import { PageTransition } from "@/components/ui/premium/page-transition";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -41,5 +42,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const presentationProduct = toPresentationProduct(product);
 
-  return <ProductGallery product={presentationProduct} />;
+  return (
+    <PageTransition>
+      <PremiumGallery product={presentationProduct} />
+    </PageTransition>
+  );
 }

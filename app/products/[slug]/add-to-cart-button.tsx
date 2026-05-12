@@ -58,7 +58,8 @@ export function AddToCartButton({
   const currentQuantity = currentItem?.quantity || 0;
 
   // Calcular cantidad máxima permitida
-  const maxAllowed = inStock && stockQuantity !== undefined
+  const hasStockInfo = stockQuantity !== undefined && stockQuantity > 0;
+  const maxAllowed = hasStockInfo
     ? Math.max(0, stockQuantity - currentQuantity)
     : inStock ? 999 : 0;
 
@@ -113,7 +114,7 @@ export function AddToCartButton({
     setQuantity((q) => Math.max(1, q - 1));
   }, []);
 
-  const isMaxReached = inStock && stockQuantity !== undefined && quantity >= maxAllowed;
+  const isMaxReached = hasStockInfo && quantity >= maxAllowed;
 
   return (
     <div className="space-y-3">

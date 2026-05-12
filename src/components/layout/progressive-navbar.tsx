@@ -282,7 +282,7 @@ function CompactNavbar() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -100 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      className="fixed left-0 right-0 top-0 z-[70] h-16 border-b border-[var(--border-subtle)] bg-[var(--background)]/95 backdrop-blur-xl"
+      className="fixed left-0 right-0 top-0 z-[70] h-16 border-b border-[var(--border-subtle)] bg-[var(--background)]"
     >
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4">
         {/* Logo Compacto */}
@@ -366,14 +366,6 @@ function ExpandedNavbar() {
               className="group relative overflow-hidden rounded-full bg-gradient-to-r from-[var(--accent)] to-[var(--accent-purple)] px-4 py-2 text-xs font-semibold text-[var(--background)] transition-all hover:shadow-lg hover:shadow-[var(--accent)]/25"
             >
               <span className="relative z-10">🔥 Hot Sale</span>
-            </Link>
-
-            {/* Armá tu PC */}
-            <Link
-              href="/products/armatuPC"
-              className="rounded-full px-4 py-2 text-sm font-medium text-[var(--accent)] transition-all hover:bg-[var(--accent)]/10"
-            >
-              Armá tu PC
             </Link>
 
             {/* Cart */}

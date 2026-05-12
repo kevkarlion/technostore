@@ -10,7 +10,7 @@ import { SearchBar } from "@/components/ui/search-bar";
 import { CartLink } from "@/components/ui/cart-link";
 import { JOTAKP_CATEGORIES } from "@/components/ui/category-dropdown";
 import type { Category } from "@/domain/models/category";
-import { Menu } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 
 interface SiteHeaderProps {
   categories?: Category[];
@@ -211,10 +211,10 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
           >
             <span className="relative h-12 w-auto sm:h-14">
               <Image
-                src="/logo2.png"
+                src="/logo-texto.png"
                 alt="TechnoStore"
-                width={140}
-                height={56}
+                width={160}
+                height={48}
                 className="block h-12 w-auto object-contain object-left sm:hidden"
                 priority
               />
@@ -229,8 +229,8 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
             </span>
           </Link>
 
-          {/* Search bar - única barra */}
-          <div className="flex-1 max-w-xl mx-4">
+          {/* Search bar - única barra - desktop only */}
+          <div className="hidden lg:block flex-1 max-w-xl mx-4">
             <SearchBar className="w-full" />
           </div>
 
@@ -243,6 +243,13 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
 
           {/* Mobile: cart + menu */}
           <div className="ml-auto flex items-center gap-2 lg:hidden">
+            <button
+              onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+              className="rounded-full bg-[var(--surface)] p-2.5 ring-1 ring-[var(--border-subtle)]"
+              aria-label="Buscar"
+            >
+              <Search className="h-5 w-5" />
+            </button>
             <CartLink
               variant="icon"
               className="relative rounded-full bg-[var(--accent)] p-2.5 text-sm font-bold text-[var(--background)] shadow-lg transition-all hover:scale-110"

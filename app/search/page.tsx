@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { productRepository } from "@/api/repository/product.repository";
 import { toPresentationProduct } from "@/domain/mappers/product-to-presentation";
-import { ProductCard } from "@/features/catalog/components/product-card";
+import { PremiumProductCardV2 } from "@/components/product-card/premium-product-card-v2";
 import { Input } from "@/components/ui/input";
 
 export const metadata: Metadata = {
@@ -89,8 +89,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {presentationProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {presentationProducts.map((product, index) => (
+              <PremiumProductCardV2 key={product.id} product={product} index={index} />
             ))}
           </div>
         )}

@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useMotionPreferences, TRANSITION, EASE, staggerContainer } from "@/lib/motion-config";
 import { clsx } from "clsx";
+import { Truck, ShieldCheck, CreditCard, Headphones } from "lucide-react";
 
 /**
  * Trust badge data interface
@@ -57,72 +58,13 @@ const defaultBadges: TrustBadge[] = [
 ];
 
 /**
- * Icon components as inline SVG for each badge type
+ * Icon components from Lucide
  */
 const icons = {
-  shipping: (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-6 w-6 text-[var(--accent)]"
-    >
-      <path d="M15 8h.01" />
-      <rect width="16" height="13" x="4" y="3" rx="3" />
-      <path d="M4 14h12" />
-      <path d="M7 18h.01" />
-      <path d="M17 18h1" />
-      <path d="m4 3-2 3h12l-2-3" />
-    </svg>
-  ),
-  warranty: (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-6 w-6 text-[var(--accent)]"
-    >
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
-  ),
-  installments: (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-6 w-6 text-[var(--accent)]"
-    >
-      <rect width="20" height="14" x="2" y="5" rx="2" />
-      <line x1="2" x2="22" y1="10" y2="10" />
-    </svg>
-  ),
-  support: (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-6 w-6 text-[var(--accent)]"
-    >
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    </svg>
-  ),
+  shipping: <Truck className="h-6 w-6 text-[var(--accent)]" />,
+  warranty: <ShieldCheck className="h-6 w-6 text-[var(--accent)]" />,
+  installments: <CreditCard className="h-6 w-6 text-[var(--accent)]" />,
+  support: <Headphones className="h-6 w-6 text-[var(--accent)]" />,
 };
 
 /**
@@ -170,8 +112,6 @@ export function TrustBadges({
             className={clsx(
               "flex flex-col items-center text-center",
               "rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4",
-              "transition-all duration-200",
-              "hover:border-[var(--accent)]/50 hover:shadow-md hover:shadow-[var(--accent)]/10",
               isCompact ? "p-3" : "p-5"
             )}
           >

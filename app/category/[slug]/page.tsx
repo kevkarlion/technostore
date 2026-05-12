@@ -5,7 +5,7 @@ import { categoryRepository } from "@/api/repository/category.repository";
 import { productRepository } from "@/api/repository/product.repository";
 import { toPresentationProduct } from "@/domain/mappers/product-to-presentation";
 import type { CategorySlug } from "@/types/domain";
-import { ProductCard } from "@/features/catalog/components/product-card";
+import { PremiumProductCardV2 } from "@/components/product-card/premium-product-card-v2";
 
 interface CategoryPageProps {
   params: Promise<{ slug: CategorySlug }>;
@@ -193,8 +193,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         ) : (
           <>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+              {products.map((product, index) => (
+                <PremiumProductCardV2 key={product.id} product={product} index={index} />
               ))}
             </div>
             

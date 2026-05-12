@@ -102,17 +102,15 @@ export function PCBuilderCTA({ onCtaClick, className }: PCBuilderCTAProps) {
               viewport={{ once: true }}
               transition={{ delay: index * 0.1, duration: TRANSITION.medium }}
               className={clsx(
-                "group flex flex-col items-center gap-2 rounded-xl",
+                "flex flex-col items-center gap-2 rounded-xl",
                 "bg-[var(--surface)]/50 p-4",
-                "border border-transparent",
-                "transition-all duration-300",
-                "hover:border-[var(--accent)]/30 hover:bg-[var(--surface)] hover:shadow-lg hover:shadow-[var(--accent)]/10"
+                "border border-transparent"
               )}
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent)]/10 text-[var(--accent)] transition-all duration-300 group-hover:scale-110 group-hover:bg-[var(--accent)]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent)]/10 text-[var(--accent)]">
                 <benefit.icon className="h-5 w-5" strokeWidth={1.5} />
               </div>
-              <span className="text-center text-sm font-medium text-[var(--foreground-muted)] group-hover:text-[var(--foreground)]">
+              <span className="text-center text-sm font-medium text-[var(--foreground-muted)]">
                 {benefit.text}
               </span>
             </motion.div>

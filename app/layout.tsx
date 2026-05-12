@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SiteHeaderServer } from "@/components/layout/site-header-server";
+import { ScrollNavbar } from "@/components/layout/scroll-navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,6 +51,7 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <SiteHeaderServer />
+          <ScrollNavbar />
           <main className="pb-16 pt-10">{children}</main>
           <footer className="border-t border-[var(--border-subtle)] bg-[var(--background)] mt-auto">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

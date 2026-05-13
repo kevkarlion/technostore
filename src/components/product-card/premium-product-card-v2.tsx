@@ -7,9 +7,11 @@ import { useState } from "react";
 import { clsx } from "clsx";
 import { 
   ShoppingCart, Heart, Star, Truck, 
-  AlertTriangle, ArrowRight, Package, Check
+  AlertTriangle, ArrowRight, Package, Check, Plus, Minus
 } from "lucide-react";
 import type { Product } from "@/types/domain";
+import { useCartStore } from "@/features/cart/store/cart-store";
+import { toast } from "sonner";
 
 // ============================================================================
 // CONFIGURATION
@@ -71,7 +73,7 @@ export interface ProductCardV2Props {
   loading?: boolean;
   index?: number;
   className?: string;
-  onAddToCart?: (productId: string) => void;
+  onAddToCart?: (productId: string, quantity: number) => void;
   onToggleWishlist?: (productId: string) => void;
 }
 
@@ -123,8 +125,8 @@ function ProductCardImage({ product, isImageLoaded, onLoad }: ProductCardImagePr
       className="relative aspect-square overflow-hidden rounded-t-2xl bg-white/[0.03]"
     >
       <Image
-        src={primaryImage.src}
-        alt={primaryImage.alt || product.name}
+        src={String(primaryImage?.src || "")}
+        alt={String(primaryImage?.alt || product.name)}
         fill
         className={clsx(
           "object-contain p-4 transition-opacity duration-300",
@@ -275,9 +277,9 @@ function ProductCardBenefits({
 }: ProductCardBenefitsProps) {
   // Auto-detect benefits from badges
   const showFreeShipping = badges?.includes("sale");
-  const showLowStock = !inStock || (stockQuantity !== undefined && stockQuantity <= 3);
+  const showOutOfStock = !inStock;
   
-  if (!showFreeShipping && !showLowStock) return null;
+  if (!showFreeShipping && !showOutOfStock) return null;
 
   return (
     <div className="mt-3 flex flex-wrap gap-1.5">
@@ -287,24 +289,10 @@ function ProductCardBenefits({
           Envío gratis
         </span>
       )}
-      {showLowStock && (
-        <span className={clsx(
-          "flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium",
-          inStock 
-            ? "bg-amber-500/10 text-amber-400" 
-            : "bg-red-500/10 text-red-400"
-        )}>
-          {inStock ? (
-            <>
-              <AlertTriangle className="h-3 w-3" />
-              Últimas unidades
-            </>
-          ) : (
-            <>
-              <Package className="h-3 w-3" />
-              Sin stock
-            </>
-          )}
+      {showOutOfStock && (
+        <span className="flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-medium text-red-400">
+          <Package className="h-3 w-3" />
+          Sin stock
         </span>
       )}
     </div>
@@ -362,6 +350,7 @@ export function PremiumProductCardV2({
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [quantity, setQuantity] = useState(1);
   
   const primaryImage = product.images?.[0];
   const hasDiscount = product.originalPrice && product.originalPrice > product.price;
@@ -374,12 +363,37 @@ export function PremiumProductCardV2({
     return <ProductCardSkeleton className={className} />;
   }
 
+  const addItem = useCartStore((state) => state.addItem);
+  
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsAdding(true);
-    onAddToCart?.(product.id);
+    
+const cartProduct = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      imageUrl: product.images?.[0]?.src || "",
+      inStock: product.inStock ?? true,
+    };
+    
+    const result = addItem(product.id, quantity, cartProduct);
+    
+    if (result.success) {
+      toast.success(`${quantity} ${quantity === 1 ? 'unidad' : 'unidades'} agregada${quantity > 1 ? 's' : ''} al carrito`);
+    } else {
+      toast.error(result.message || "Error al agregar al carrito");
+    }
+    
     // Reset animation state after a delay
     setTimeout(() => setIsAdding(false), 1000);
+  };
+
+  const handleQuantityChange = (newQuantity: number) => {
+    const maxQty = product.stockQuantity || 99;
+    if (newQuantity >= 1 && newQuantity <= maxQty) {
+      setQuantity(newQuantity);
+    }
   };
 
   const handleToggleWishlist = () => {
@@ -469,33 +483,67 @@ export function PremiumProductCardV2({
             inStock={product.inStock}
             stockQuantity={product.stockQuantity}
           />
-          
-          {/* CTA */}
-          <motion.div
-            whileTap={{ scale: 0.98 }}
-            whileHover={{ scale: 1.02 }}
-            onClick={handleAddToCart}
-            className={clsx(
-              "mt-4 flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl text-sm font-semibold uppercase tracking-wide transition-all",
-              isAdding 
-                ? "bg-emerald-500 text-white" 
-                : "bg-[var(--accent)] text-[var(--background)] hover:bg-[#00c9a7] hover:shadow-[0_0_20px_rgba(0,225,186,0.3)]"
-            )}
-          >
-            {isAdding ? (
-              <>
-                <Check className="h-4 w-4" />
-                <span>Agregado</span>
-              </>
-            ) : (
-              <>
-                <ShoppingCart className="h-4 w-4" />
-                <span>Agregar</span>
-              </>
-            )}
-          </motion.div>
         </div>
       </Link>
+        
+        {/* Quantity Controls + CTA - fuera del Link */}
+        <div className="px-4 pb-4">
+          <div className="mt-3 flex items-center gap-2">
+            {/* Quantity Controls */}
+            <div className="flex items-center rounded-xl border border-[var(--border-subtle)] bg-[var(--background)]">
+              <button
+                onClick={() => handleQuantityChange(quantity - 1)}
+                disabled={quantity <= 1}
+                className="flex h-10 w-10 items-center justify-center text-[var(--foreground-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)] disabled:opacity-50"
+              >
+                <Minus className="h-4 w-4" />
+              </button>
+              <span className="w-10 text-center text-sm font-semibold text-[var(--foreground)]">
+                {quantity}
+              </span>
+              <button
+                onClick={() => handleQuantityChange(quantity + 1)}
+                disabled={quantity >= (product.stockQuantity || 99)}
+                className="flex h-10 w-10 items-center justify-center text-[var(--foreground-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)] disabled:opacity-50"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Add to Cart Button */}
+            <motion.div
+              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.02 }}
+              onClick={handleAddToCart}
+              className={clsx(
+                "flex flex-1 h-11 cursor-pointer items-center justify-center gap-2 rounded-xl text-sm font-semibold uppercase tracking-wide transition-all",
+                isAdding 
+                  ? "bg-emerald-500 text-white" 
+                  : "bg-[var(--accent)] text-[var(--background)] hover:bg-[#00c9a7] hover:shadow-[0_0_20px_rgba(0,225,186,0.3)]"
+              )}
+            >
+              {isAdding ? (
+                <>
+                  <Check className="h-4 w-4" />
+                  <span>Agregado</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="h-4 w-4" />
+                  <span>Agregar</span>
+                </>
+              )}
+            </motion.div>
+          </div>
+
+          {/* Ver detalles */}
+          <Link
+            href={`/products/${product.slug}`}
+            className="mt-2 flex h-9 w-full items-center justify-center rounded-xl border border-[var(--border-subtle)] text-xs font-medium text-[var(--foreground-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+          >
+            Ver detalles
+          </Link>
+        </div>
     </motion.div>
   );
 }

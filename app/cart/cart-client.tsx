@@ -52,7 +52,7 @@ async function migrateLegacyItem(item: LegacyCartItem): Promise<CartItem | null>
       id: productData.id,
       name: productData.name,
       price: productData.price,
-      imageUrl: productData.imageUrls?.[0] || productData.cloudinaryUrls?.[0],
+      imageUrl: String(productData.imageUrls?.[0] || productData.cloudinaryUrls?.[0] || ""),
       stock: productData.stock,
       inStock: productData.inStock,
     };

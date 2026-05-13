@@ -40,8 +40,8 @@ export function ProductCard({ product }: ProductCardProps) {
       <Card className="flex h-full flex-col overflow-hidden border-[var(--border-subtle)] bg-[var(--surface)] transition group-hover:border-[var(--accent)]/50 group-hover:bg-[var(--surface-hover)]">
         <div className="relative mb-3 aspect-square w-full overflow-hidden rounded-xl bg-white flex items-center justify-center p-3">
           <Image
-            src={primaryImage.src}
-            alt={primaryImage.alt}
+            src={String(primaryImage?.src || "")}
+            alt={String(primaryImage?.alt || "")}
             width={300}
             height={300}
             className="h-full w-full max-h-[180px] w-auto object-contain"

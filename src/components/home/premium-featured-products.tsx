@@ -134,8 +134,8 @@ export function PremiumFeaturedProducts({
                   {/* Product Image */}
                   {primaryImage ? (
                     <Image
-                      src={primaryImage.src}
-                      alt={primaryImage.alt}
+                      src={String(primaryImage?.src || "")}
+                      alt={String(primaryImage?.alt || "")}
                       width={200}
                       height={200}
                       className="h-full w-full object-contain p-2"

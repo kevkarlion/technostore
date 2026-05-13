@@ -6,10 +6,16 @@ import { productRepository } from "@/api/repository/product.repository";
 import { toPresentationProduct } from "@/domain/mappers/product-to-presentation";
 import type { CategorySlug } from "@/types/domain";
 import { PremiumProductCardV2 } from "@/components/product-card/premium-product-card-v2";
+import { CategoryProductsClient } from "./category-products-client";
 
 interface CategoryPageProps {
   params: Promise<{ slug: CategorySlug }>;
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ 
+    page?: string;
+    priceMin?: string;
+    priceMax?: string;
+    brands?: string;
+  }>;
 }
 
 const PRODUCTS_PER_PAGE = 20;
@@ -38,81 +44,17 @@ export async function generateMetadata({
   };
 }
 
-function PaginationControls({ 
-  currentPage, 
-  totalPages, 
-  baseUrl 
-}: { 
-  currentPage: number; 
-  totalPages: number; 
-  baseUrl: string;
-}) {
-  if (totalPages <= 1) return null;
-  
-  const pages: (number | "...")[] = [];
-  
-  // Always show first page
-  pages.push(1);
-  
-  // Add pages around current
-  for (let i = Math.max(2, currentPage - 2); i <= Math.min(totalPages - 1, currentPage + 2); i++) {
-    pages.push(i);
-  }
-  
-  // Add ellipsis if needed
-  if (currentPage > 3) pages.splice(1, 0, "...");
-  
-  // Add last page if needed
-  if (totalPages > 1) pages.push(totalPages);
-  
-  return (
-    <div className="flex items-center justify-center gap-1 py-8">
-      {/* Previous button */}
-      {currentPage > 1 && (
-        <Link
-          href={`${baseUrl}?page=${currentPage - 1}`}
-          className="rounded-md border border-[var(--border-subtle)] px-3 py-1.5 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
-        >
-          ← Anterior
-        </Link>
-      )}
-      
-      {/* Page numbers */}
-      {pages.map((page, idx) => (
-        page === "..." ? (
-          <span key={`ellipsis-${idx}`} className="px-2 text-[var(--foreground-muted)]">...</span>
-        ) : (
-          <Link
-            key={page}
-            href={`${baseUrl}?page=${page}`}
-            className={`rounded-md px-3 py-1.5 text-sm ${
-              page === currentPage
-                ? "bg-[var(--accent)] text-white"
-                : "border border-[var(--border-subtle)] text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
-            }`}
-          >
-            {page}
-          </Link>
-        )
-      ))}
-      
-      {/* Next button */}
-      {currentPage < totalPages && (
-        <Link
-          href={`${baseUrl}?page=${currentPage + 1}`}
-          className="rounded-md border border-[var(--border-subtle)] px-3 py-1.5 text-sm text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
-        >
-          Siguiente →
-        </Link>
-      )}
-    </div>
-  );
-}
-
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const { slug } = await params;
-  const { page } = await searchParams;
+  const { page, priceMin, priceMax, brands } = await searchParams;
   const currentPage = Math.max(1, parseInt(page || "1", 10));
+  
+  // Parse filters
+  const filters = {
+    priceMin: priceMin ? parseInt(priceMin, 10) : undefined,
+    priceMax: priceMax ? parseInt(priceMax, 10) : undefined,
+    brands: brands ? brands.split(",").filter(Boolean) : undefined,
+  };
   
   const category = await categoryRepository.findBySlug(slug);
   if (!category) return notFound();
@@ -158,54 +100,47 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     );
   }
 
-  // Otherwise, show products (subcategory page) with pagination
-  const result = await productRepository.findByCategorySlugPaginated(
-    category.slug,
-    currentPage,
-    PRODUCTS_PER_PAGE
-  );
+  // Get filter metadata (price range and brands)
+  const [priceRange, availableBrands] = await Promise.all([
+    productRepository.getPriceRangeByCategory(category.slug),
+    productRepository.getBrandsByCategory(category.slug),
+  ]);
+
+  // If no filters, use regular pagination, otherwise use filtered query
+  let result;
+  if (filters.priceMin || filters.priceMax || (filters.brands && filters.brands.length > 0)) {
+    result = await productRepository.findByCategorySlugFiltered(
+      category.slug,
+      currentPage,
+      PRODUCTS_PER_PAGE,
+      { priceMin: filters.priceMin, priceMax: filters.priceMax, brands: filters.brands }
+    );
+  } else {
+    result = await productRepository.findByCategorySlugPaginated(
+      category.slug,
+      currentPage,
+      PRODUCTS_PER_PAGE
+    );
+  }
   
   // Convert database products to presentation format for UI components
   const products = result.items.map(toPresentationProduct);
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
-      <header className="space-y-2">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          {category.name}
-        </h1>
-        {category.description && (
-          <p className="max-w-xl text-xs text-[var(--foreground-muted)]">
-            {category.description}
-          </p>
-        )}
-      </header>
-      
-      <section className="space-y-4">
-        <div className="flex items-center justify-between text-xs text-[var(--foreground-muted)]">
-          <span>Mostrando {products.length} de {result.total} productos</span>
-        </div>
-        
-        {products.length === 0 ? (
-          <div className="py-12 text-center text-sm text-[var(--foreground-muted)]">
-            No products found in this category.
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {products.map((product, index) => (
-                <PremiumProductCardV2 key={product.id} product={product} index={index} />
-              ))}
-            </div>
-            
-            <PaginationControls 
-              currentPage={result.page} 
-              totalPages={result.totalPages} 
-              baseUrl={`/category/${slug}`}
-            />
-          </>
-        )}
-      </section>
-    </div>
+    <CategoryProductsClient
+      category={category}
+      products={products}
+      result={result}
+      currentPage={currentPage}
+      baseUrl={`/category/${slug}`}
+      categorySlug={slug}
+      priceRange={priceRange}
+      brands={availableBrands}
+      filters={{
+        priceMin: filters.priceMin || priceRange.min,
+        priceMax: filters.priceMax || priceRange.max,
+        brands: filters.brands || [],
+      }}
+    />
   );
 }

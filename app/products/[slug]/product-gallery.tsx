@@ -29,8 +29,8 @@ export function ProductGallery({ product }: ProductGalleryProps) {
           <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-white flex items-center justify-center">
             {heroImage ? (
               <Image
-                src={heroImage.src}
-                alt={heroImage.alt}
+                src={String(heroImage?.src || "")}
+                alt={String(heroImage?.alt || "")}
                 width={600}
                 height={600}
                 className="max-h-[500px] w-auto object-contain"
@@ -69,8 +69,8 @@ export function ProductGallery({ product }: ProductGalleryProps) {
                   aria-label={`View image ${index + 1}`}
                 >
                   <Image
-                    src={img.src}
-                    alt={`${img.alt} thumbnail ${index + 1}`}
+                    src={String(img?.src || "")}
+                    alt={String(img?.alt || `thumbnail ${index + 1}`)}
                     fill
                     sizes="64px"
                     className="object-cover"

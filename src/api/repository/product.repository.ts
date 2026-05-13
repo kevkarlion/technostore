@@ -447,4 +447,163 @@ export const productRepository = {
 
     return docs.map((doc) => productMapper.toDomain(doc as any));
   },
+
+  /**
+   * Filtra productos por categoría con filtros adicionales (precio, marca)
+   */
+  async findByCategorySlugFiltered(
+    categorySlug: string,
+    page: number,
+    limit: number,
+    filters: {
+      priceMin?: number;
+      priceMax?: number;
+      brands?: string[];
+    }
+  ): Promise<PaginatedResult<Product>> {
+    const db = await getDb();
+    const collection = db.collection(COLLECTION_NAME);
+
+    // Build filter
+    const filter: Record<string, any> = {
+      categories: categorySlug,
+      status: "active",
+    };
+
+    // Price range filter
+    if (filters.priceMin !== undefined || filters.priceMax !== undefined) {
+      filter.price = {};
+      if (filters.priceMin !== undefined) {
+        filter.price.$gte = filters.priceMin;
+      }
+      if (filters.priceMax !== undefined) {
+        filter.price.$lte = filters.priceMax;
+      }
+    }
+
+    // Brand filter (extract from name)
+    if (filters.brands && filters.brands.length > 0) {
+      // Create regex patterns for each brand
+      const brandPatterns = filters.brands.map(brand => 
+        new RegExp(brand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
+      );
+      filter.$or = brandPatterns.map(pattern => ({ name: pattern }));
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [docs, total] = await Promise.all([
+      collection
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .toArray(),
+      collection.countDocuments(filter),
+    ]);
+
+    return {
+      items: docs.map((doc) => productMapper.toDomain(doc as any)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  },
+
+  /**
+   * Obtiene precios mínimo y máximo de una categoría
+   */
+  async getPriceRangeByCategory(categorySlug: string): Promise<{ min: number; max: number }> {
+    const db = await getDb();
+    const collection = db.collection(COLLECTION_NAME);
+
+    const result = await collection.aggregate([
+      { $match: { categories: categorySlug, status: "active" } },
+      {
+        $group: {
+          _id: null,
+          minPrice: { $min: "$price" },
+          maxPrice: { $max: "$price" },
+        },
+      },
+    ]).toArray();
+
+    if (result.length === 0) {
+      return { min: 0, max: 100000 };
+    }
+
+    return {
+      min: Math.floor(result[0].minPrice || 0),
+      max: Math.ceil(result[0].maxPrice || 100000),
+    };
+  },
+
+  /**
+   * Obtiene marcas disponibles en una categoría con conteo de productos
+   * Detecta marcas dinámicamente desde los nombres de productos
+   */
+  async getBrandsByCategory(categorySlug: string): Promise<{ brand: string; count: number }[]> {
+    const db = await getDb();
+    const collection = db.collection(COLLECTION_NAME);
+
+    // Palabras a excluir (no son marcas)
+    const excludedWords = new Set([
+      "para", "con", "sin", "de", "el", "la", "los", "las", "un", "una",
+      "usb", "hdmi", "vga", "aux", "bluetooth", "wifi", "led", "rgb",
+      "pro", "plus", "max", "mini", "nano", "micro", "smart", "wireless",
+      "inalambrico", "inalámbrico", "recargable", "gamer", "gaming",
+      "premium", "ultimate", "edition", "series", "gen", "version",
+      "new", "original", "genuino", "compatible", "refurbished"
+    ]);
+
+    // Palabras que parecen marcas (capitalizadas o acrónimos)
+    const likelyBrands = new Set([
+      "Kolke", "Ugreen", "Netmak", "Nisuta", "Perfect", "Oculus",
+      "Logitech", "JBL", "Sony", "Redragon", "HyperX", "Razer", "Corsair",
+      "Samsung", "LG", "Philips", "Xiaomi", "Huawei", "Apple", "Microsoft",
+      "Lenovo", "HP", "Dell", "Asus", "Acer", "MSI", "Gigabyte", "Nvidia",
+      "Kingston", "Western", "Seagate", "Crucial", "Sandisk", "Toshiba",
+      "Soundcore", "Anker", "Edifier", "Bose", "Sennheiser", "Audio",
+      "Genius", "Trust", "Thermaltake", "Coolermaster", "Mars", "Targus",
+      "Belkin", "Fellowes", "Verbatim", "Klip", "Qin", "Fantech",
+      "Red", "Black", "White", "Silver", "Gold", "Premium", "Super"
+    ]);
+
+    const products = await collection
+      .find({ categories: categorySlug, status: "active" })
+      .project({ name: 1 })
+      .toArray();
+
+    const brandCounts: Record<string, number> = {};
+
+    // Extract brand from product name - detect first word(s)
+    for (const product of products) {
+      const name = product.name || "";
+      
+      // Get first word (before first space/parenthesis/number)
+      const firstWord = name.replace(/^([A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+).*$/, '$1').trim();
+      
+      if (firstWord && firstWord.length >= 3 && firstWord.length <= 20) {
+        // Check if it's not in excluded words
+        if (!excludedWords.has(firstWord.toLowerCase())) {
+          brandCounts[firstWord] = (brandCounts[firstWord] || 0) + 1;
+        }
+      }
+
+      // Also check for likely brands anywhere in name
+      for (const brand of likelyBrands) {
+        if (name.toLowerCase().includes(brand.toLowerCase())) {
+          brandCounts[brand] = (brandCounts[brand] || 0) + 1;
+        }
+      }
+    }
+
+    // Sort by count descending and filter brands with at least 2 products
+    return Object.entries(brandCounts)
+      .filter(([_, count]) => count >= 1)
+      .map(([brand, count]) => ({ brand, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 20); // Top 20 brands
+  },
 };

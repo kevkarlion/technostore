@@ -133,8 +133,8 @@ export function PremiumGallery({ product }: PremiumGalleryProps) {
               >
                 {heroImage ? (
                   <Image
-                    src={heroImage.src}
-                    alt={heroImage.alt}
+                    src={String(heroImage?.src || "")}
+                    alt={String(heroImage?.alt || "")}
                     width={600}
                     height={600}
                     className="max-h-[500px] w-auto object-contain"
@@ -187,8 +187,8 @@ export function PremiumGallery({ product }: PremiumGalleryProps) {
                   whileTap={reducedMotion ? {} : { scale: 0.95 }}
                 >
                   <Image
-                    src={img.src}
-                    alt={`${img.alt} thumbnail ${index + 1}`}
+                    src={String(img?.src || "")}
+                    alt={String(img?.alt || `thumbnail ${index + 1}`)}
                     fill
                     sizes="64px"
                     className="object-cover"
@@ -333,8 +333,8 @@ export function PremiumGallery({ product }: PremiumGalleryProps) {
               onClick={(e) => e.stopPropagation()}
             >
               <Image
-                src={lightboxImage.src}
-                alt={lightboxImage.alt}
+                src={String(lightboxImage?.src || "")}
+                alt={String(lightboxImage?.alt || "")}
                 width={1200}
                 height={1200}
                 className="max-h-[90vh] w-auto object-contain"

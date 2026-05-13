@@ -91,8 +91,8 @@ export function PremiumProductCard({
               style={{ overflow: "hidden" }}
             >
               <Image
-                src={primaryImage.src}
-                alt={primaryImage.alt}
+                src={String(primaryImage?.src || "")}
+                alt={String(primaryImage?.alt || "")}
                 width={300}
                 height={300}
                 className={clsx(

@@ -13,6 +13,7 @@ import { Toaster, toast } from "sonner";
 import { Price } from "@/components/ui/price";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Image from "next/image";
 import type { ProductResponseDTO } from "@/domain/dto/product.dto";
 import { MercadoPagoForm } from "@/components/checkout/mercado-pago-form";
 import { CheckoutForm, type CustomerFormData } from "@/components/checkout/checkout-form";
@@ -310,7 +311,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
       <Toaster position="top-right" />
 
       <header className="space-y-2">
@@ -368,14 +369,37 @@ export default function CheckoutPage() {
             <h2 className="mb-3 text-sm font-semibold text-slate-50">
               Tu pedido
             </h2>
-            <div className="space-y-2 text-xs text-slate-300">
+            <div className="space-y-3 text-xs text-slate-300">
               {enriched.map((item) => (
-                <div key={item.productId} className="flex justify-between gap-2">
-                  <span className="truncate">
-                    {item.product?.name} x{item.quantity}
-                  </span>
+                <div key={item.productId} className="flex items-center gap-3">
+                  {/* Thumbnail */}
+                  <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-slate-800">
+                    {item.product?.imageUrls?.[0] ? (
+                      <Image
+                        src={String(item.product.imageUrls[0])}
+                        alt={item.product.name || ""}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-slate-500">
+                        📦
+                      </div>
+                    )}
+                  </div>
+                  {/* Name & Price */}
+                  <div className="flex-1 min-w-0">
+                    <span className="block truncate text-slate-200">
+                      {item.product?.name}
+                    </span>
+                    <span className="text-slate-500">
+                      Cant: {item.quantity}
+                    </span>
+                  </div>
                   <Price
                     amount={(item.product?.price || 0) * item.quantity}
+                    className="text-slate-200"
                   />
                 </div>
               ))}

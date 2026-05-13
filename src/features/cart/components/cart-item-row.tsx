@@ -43,7 +43,7 @@ function useProductData(productId: string, embeddedProduct?: CartProduct) {
             id: data.id,
             name: data.name,
             price: data.price,
-            imageUrl: data.imageUrls?.[0] || data.cloudinaryUrls?.[0],
+            imageUrl: String(data.imageUrls?.[0] || data.cloudinaryUrls?.[0] || ""),
             stock: data.stock,
             inStock: data.inStock,
           });
@@ -149,7 +149,7 @@ export function CartItemRow({ item, onUpdateQuantity, onRemove }: CartItemRowPro
       {/* Imagen */}
       <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-[var(--background)]">
         {product.imageUrl ? (
-          <Image src={product.imageUrl} alt={product.name} fill className="object-cover" sizes="80px" />
+          <Image src={String(product.imageUrl || "")} alt={String(product.name || "")} fill className="object-cover" sizes="80px" />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-[var(--foreground-muted)]">
             <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,7 +222,7 @@ export function CartItemRowMobile({ item, onUpdateQuantity, onRemove }: CartItem
       {/* Imagen más grande para mobile */}
       <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-[var(--background)]">
         {product.imageUrl ? (
-          <Image src={product.imageUrl} alt={product.name} fill className="object-cover" sizes="96px" />
+          <Image src={String(product.imageUrl || "")} alt={String(product.name || "")} fill className="object-cover" sizes="96px" />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
             <svg className="h-10 w-10 text-[var(--foreground-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

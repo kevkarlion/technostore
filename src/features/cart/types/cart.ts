@@ -71,7 +71,7 @@ export interface CartPricingConfig {
  * Configuración por defecto
  */
 export const DEFAULT_CART_CONFIG: CartPricingConfig = {
-  shippingCost: 500, // $500 envío
+  shippingCost: 0,
   taxRate: 0.21,     // 21% IVA
 };
 

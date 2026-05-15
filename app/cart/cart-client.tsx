@@ -140,7 +140,7 @@ export function CartClient() {
     0
   );
   const tax = Math.round(subtotal * 0.21);
-  const shipping = items.length > 0 ? 500 : 0;
+  const shipping = 0;
   const total = subtotal + tax + shipping;
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   

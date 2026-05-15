@@ -14,7 +14,7 @@ export interface PaymentResult {
   error?: string;
 }
 
-const SHIPPING_COST = 500;
+const SHIPPING_COST = 0;
 const TAX_RATE = 0.21;
 
 function generateOrderId(): string {

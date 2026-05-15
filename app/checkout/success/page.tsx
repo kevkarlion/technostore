@@ -4,7 +4,7 @@ import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useCheckoutStore } from "@/store/checkout-store";
-import { useCartStore } from "@/store/cart-store";
+import { useCartStore } from "@/features/cart/store/cart-store";
 import { Button } from "@/components/ui/button";
 
 function generateOrderId(): string {

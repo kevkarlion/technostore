@@ -68,7 +68,7 @@ export function PremiumProductCard({
       className="group"
     >
       <Link
-        href={`/products/${product.slug}`}
+        href={`/productos/${product.slug}`}
         aria-label={`View details for ${product.name}`}
         className="block focus-visible:outline-none"
       >

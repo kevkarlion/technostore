@@ -60,7 +60,7 @@ export function CartBadge({ variant = "full", className }: CartBadgeProps) {
     // Server-side or loading state - mostrar sin badge
     return (
       <Link 
-        href="/cart" 
+        href="/carrito" 
         aria-label="Carrito de compras" 
         className={className}
       >
@@ -78,7 +78,7 @@ export function CartBadge({ variant = "full", className }: CartBadgeProps) {
 
   return (
     <Link 
-      href="/cart" 
+      href="/carrito" 
       aria-label={`Carrito con ${actualCount} productos`} 
       className={className}
     >
@@ -115,7 +115,7 @@ export function CartBadgeSimple({ className }: { className?: string }) {
   );
 
   return (
-    <Link href="/cart" className={clsx("relative", className)}>
+    <Link href="/carrito" className={clsx("relative", className)}>
       <CartIcon className="h-5 w-5" />
       {actualCount > 0 && (
         <span className="absolute -right-1.5 -top-1.5 flex min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">

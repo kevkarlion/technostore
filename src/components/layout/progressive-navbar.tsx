@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { clsx } from "clsx";
 import { Search, ShoppingCart, Menu, X, ChevronDown, User } from "lucide-react";
-import { CartLink } from "@/components/ui/cart-link";
+import { CartLink } from "@/components/ui/carrito-link";
 import { SearchBar } from "@/components/ui/search-bar";
 import { JOTAKP_CATEGORIES } from "@/components/ui/category-dropdown";
 import { useCartStore } from "@/store/cart-store";
@@ -181,7 +181,7 @@ function MobileDrawer({
                 Buscar productos
               </Link>
               <Link
-                href="/cart"
+                href="/carrito"
                 onClick={handleNavigate}
                 className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]"
               >

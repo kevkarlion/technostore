@@ -85,8 +85,8 @@ export default function CheckoutPage() {
     console.log("[Checkout] Hydrated, items:", items);
     
     if (items.length === 0) {
-      console.log("[Checkout] Items empty, redirecting to /cart");
-      router.push("/cart");
+      console.log("[Checkout] Items empty, redirecting to /carrito");
+      router.push("/carrito");
       return;
     }
 

@@ -280,8 +280,8 @@ function CategoryItem({
             />
           </svg>
         </button>
-        {/* Submenu - appears on hover. pointer-events-none until hover to prevent accidental trigger */}
-        <ul className="pointer-events-none absolute left-0 top-full z-50 mt-0 min-w-[160px] rounded-lg border border-[var(--border-subtle)] bg-[var(--background)] p-1 opacity-0 shadow-lg transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+        {/* Submenu - appears on hover */}
+        <ul className="absolute left-0 top-full z-50 mt-0 min-w-[180px] rounded-lg border border-[var(--border-subtle)] bg-[var(--background)] p-1 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
           {node.children.map((child) => (
             <CategoryItem key={child.id} node={child} depth={depth + 1} />
           ))}
@@ -318,7 +318,7 @@ function CategoryItem({
           </svg>
         </Link>
         {/* Nested submenu - appears on hover */}
-        <ul className="absolute left-full top-0 z-50 ml-1 min-w-[160px] rounded-lg border border-[var(--border-subtle)] bg-[var(--background)] p-1 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+        <ul className="absolute left-full top-0 z-50 ml-1 min-w-[180px] rounded-lg border border-[var(--border-subtle)] bg-[var(--background)] p-1 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
           {node.children.map((child) => (
             <CategoryItem key={child.id} node={child} depth={depth + 1} />
           ))}

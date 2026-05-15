@@ -119,7 +119,7 @@ export function PremiumFeaturedProducts({
               )}
             >
               <Link
-                href={`/products/${product.slug}`}
+                href={`/productos/${product.slug}`}
                 className="group block"
                 aria-label={`Ver ${product.name}`}
               >

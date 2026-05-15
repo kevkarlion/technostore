@@ -36,7 +36,7 @@ function useProductData(productId: string, embeddedProduct?: CartProduct) {
 
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`/api/products/${productId}`);
+        const res = await fetch(`/api/productos/${productId}`);
         if (res.ok) {
           const data = await res.json();
           setProduct({
@@ -162,7 +162,7 @@ export function CartItemRow({ item, onUpdateQuantity, onRemove }: CartItemRowPro
       {/* Info */}
       <div className="flex flex-1 flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
-          <Link href={`/products/${product.id}`} className="text-sm font-semibold text-[var(--foreground)] hover:text-[var(--accent)] line-clamp-2">
+          <Link href={`/productos/${product.id}`} className="text-sm font-semibold text-[var(--foreground)] hover:text-[var(--accent)] line-clamp-2">
             {product.name}
           </Link>
           <button type="button" onClick={() => onRemove(productId)} className="text-xs font-medium text-rose-400 hover:text-rose-300">

@@ -60,7 +60,7 @@ function MobileCategoryItem({
           </button>
         ) : (
           <Link
-            href={`/category/${category.slug}`}
+            href={`/categorias/${category.slug}`}
             onClick={onNavigate}
             className={clsx(
               "flex flex-1 px-4 py-3 text-sm font-medium",
@@ -77,7 +77,7 @@ function MobileCategoryItem({
           {category.subcategories.map((sub) => (
             <Link
               key={sub.slug}
-              href={`/category/${sub.slug}`}
+              href={`/categorias/${sub.slug}`}
               onClick={onNavigate}
               className={clsx(
                 "block py-2 text-sm",
@@ -194,7 +194,7 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
 
           {/* Armá tu PC */}
           <Link
-            href="/products/armatuPC"
+            href="/productos/armatuPC"
             className="rounded-full px-4 py-1.5 text-sm font-medium text-[var(--accent)] transition-all hover:bg-[var(--accent)]/10"
           >
             Armá tu PC
@@ -303,11 +303,11 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
                   </svg>
                 </button>
                 {/* Submenu dropdown */}
-                <ul className="pointer-events-none absolute left-0 top-full z-50 mt-0 min-w-[180px] rounded-lg border border-[var(--border-subtle)] bg-[var(--background)] p-1 opacity-0 shadow-lg transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                <ul className="pointer-events-none absolute left-0 top-full z-50 mt-0 min-w-[200px] max-h-[60vh] overflow-y-auto rounded-lg border border-[var(--border-subtle)] bg-[var(--background)] p-1 opacity-0 shadow-lg transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                   {cat.subcategories.map((sub) => (
                     <li key={sub.slug}>
                       <Link
-                        href={`/category/${sub.slug}`}
+                        href={`/categorias/${sub.slug}`}
                         className={clsx(
                           "flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm",
                           "text-[var(--foreground-muted)] transition-all",
@@ -380,10 +380,10 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
               <Link href="/search" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
                 Buscar productos
               </Link>
-              <Link href="/cart" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
+              <Link href="/carrito" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
                 Mi carrito
               </Link>
-              <Link href="/products/armatuPC" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--surface)]">
+              <Link href="/productos/armatuPC" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--surface)]">
                 Armá tu PC
               </Link>
             </div>
@@ -414,7 +414,7 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
                       </motion.svg>
                     </button>
                   ) : (
-                    <Link href={`/category/${category.slug}`} onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
+                    <Link href={`/categorias/${category.slug}`} onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
                       {category.name}
                     </Link>
                   )}
@@ -432,7 +432,7 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
                           {category.subcategories.map((sub) => (
                             <Link 
                               key={sub.slug} 
-                              href={`/category/${sub.slug}`}
+                              href={`/categorias/${sub.slug}`}
                               onClick={handleNavigate}
                               className="flex items-center gap-2 py-2.5 text-sm text-[var(--foreground-muted)] transition-colors hover:text-[var(--accent)]"
                             >

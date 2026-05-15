@@ -413,7 +413,7 @@ const cartProduct = {
         className
       )}
     >
-      <Link href={`/products/${product.slug}`} className="block">
+      <Link href={`/productos/${product.slug}`} className="block">
         {/* Image Section */}
         <div className="relative">
           <ProductCardImage
@@ -538,7 +538,7 @@ const cartProduct = {
 
           {/* Ver detalles */}
           <Link
-            href={`/products/${product.slug}`}
+            href={`/productos/${product.slug}`}
             className="mt-2 flex h-9 w-full items-center justify-center rounded-xl border border-[var(--border-subtle)] text-xs font-medium text-[var(--foreground-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
           >
             Ver detalles

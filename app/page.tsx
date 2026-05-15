@@ -3,12 +3,11 @@ import { productService } from "@/api/services/product.service";
 import { toPresentationProduct } from "@/domain/mappers/product-to-presentation";
 import { ScrollRevealSection } from "@/components/home/scroll-reveal-section";
 import { HeroCarousel } from "@/components/home/hero-carousel";
-import { PromotionalBanner } from "@/components/home/promotional-banner";
 import { CategoryShowcase } from "@/components/home/category-showcase";
 import { PremiumFeaturedProducts } from "@/components/home/premium-featured-products";
 import type { FeaturedProduct, FeaturedBadge } from "@/components/home/premium-featured-products";
 import { TrustBadges } from "@/components/home/trust-badges";
-import { PCBuilderCTA } from "@/components/home/pc-builder-cta";
+import { ServiceDifferentials } from "@/components/home/service-differentials";
 
 // Assign badges dynamically based on position
 const badgeSequence: FeaturedBadge[] = ["featured", "new", "sale", "hot", "featured", "new", "sale", "hot"];
@@ -62,14 +61,9 @@ export default async function Home() {
         <HeroCarousel />
       </ScrollRevealSection>
 
-      {/* 2. ScrollRevealSection + PromotionalBanner */}
+      {/* 2. ScrollRevealSection + ServiceDifferentials */}
       <ScrollRevealSection animation="fade-up" delay={0.1}>
-        <PromotionalBanner
-          badge="HOT SALE"
-          title="¡Hasta 30% OFF en Periféricos Gamer!"
-          description="Solo por tiempo limitado"
-          cta={{ label: "Ver ofertas", href: "/search?filter=sale" }}
-        />
+        <ServiceDifferentials />
       </ScrollRevealSection>
 
       {/* 3. ScrollRevealSection + CategoryShowcase */}
@@ -86,13 +80,8 @@ export default async function Home() {
       </ScrollRevealSection>
 
       {/* 5. ScrollRevealSection + TrustBadges */}
-      <ScrollRevealSection animation="fade-up" delay={0.1}>
-        <TrustBadges />
-      </ScrollRevealSection>
-
-      {/* 6. ScrollRevealSection + PCBuilderCTA */}
       <ScrollRevealSection animation="fade-up" delay={0.15}>
-        <PCBuilderCTA />
+        <TrustBadges />
       </ScrollRevealSection>
     </div>
   );

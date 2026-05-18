@@ -82,29 +82,28 @@ export function ServiceDifferentials({
         {differentials.map((item, index) => (
           <motion.div
             key={item.id}
-            initial={reducedMotion ? {} : { opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            initial={reducedMotion ? {} : { opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{
               delay: reducedMotion ? 0 : index * 0.1,
               duration: TRANSITION.slow,
               ease: EASE.emphasis,
             }}
-            whileHover={reducedMotion ? {} : { scale: 1.02, y: -2 }}
-            style={{ willChange: "transform" }}
             className={clsx(
               "group relative overflow-hidden rounded-2xl",
               "border backdrop-blur-sm transition-all duration-300",
               "bg-gradient-to-br shadow-lg shadow-black/20",
               cardGradient,
               borderColor,
-              // Fix Safari flicker: force GPU compositing layer
-              "backface-hidden"
+              // Fix iOS flicker: force GPU layer and remove transform animations
+              "translate-z-0"
             )}
+            style={{ transform: "translateZ(0)" }}
           >
-            {/* Gradient overlay on hover */}
+            {/* Gradient overlay on hover - solo opacity, sin animaciones complejas */}
             <div className={clsx(
-              "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 will-change-opacity",
+              "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
               "bg-gradient-to-br",
               cardGradient
             )} />

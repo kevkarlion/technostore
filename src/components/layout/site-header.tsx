@@ -344,6 +344,7 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed right-0 top-0 h-screen w-[85%] max-w-[320px] bg-[var(--background)] z-[100] overflow-y-auto border-l border-[var(--border-subtle)]"
+            style={{ overscrollBehavior: "contain", touchAction: "pan-y" }}
           >
             {/* Header - Premium */}
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--background)] px-5 py-4">

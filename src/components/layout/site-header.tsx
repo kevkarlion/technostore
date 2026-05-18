@@ -343,11 +343,10 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed right-0 top-0 h-screen w-[85%] max-w-[320px] bg-[var(--background)] z-[100] overflow-y-auto border-l border-[var(--border-subtle)]"
-            style={{ overscrollBehavior: "contain", touchAction: "pan-y" }}
+            className="fixed right-0 top-0 h-screen w-[85%] max-w-[320px] bg-[var(--background)] z-[100] flex flex-col border-l border-[var(--border-subtle)]"
           >
-            {/* Header - Premium */}
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--background)] px-5 py-4">
+            {/* Header - Fijo en la parte superior */}
+            <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-5 py-4 shrink-0">
               <span className="text-lg font-bold text-[var(--foreground)]">Menú</span>
               <button 
                 onClick={handleNavigate}
@@ -359,90 +358,91 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
               </button>
             </div>
             
-            {/* Main Links - Premium styled */}
-            <div className="border-b border-[var(--border-subtle)]">
-              {mainNav.map((navItem) => (
-                <Link
-                  key={navItem.href}
-                  href={navItem.href}
-                  onClick={handleNavigate}
-                  className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]"
-                >
-                  {navItem.label}
+            {/* Contenido scrolleable */}
+            <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: "touch" }}>
+              {/* Main Links - Premium styled */}
+              <div className="border-b border-[var(--border-subtle)]">
+                {mainNav.map((navItem) => (
+                  <Link
+                    key={navItem.href}
+                    href={navItem.href}
+                    onClick={handleNavigate}
+                    className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]"
+                  >
+                    {navItem.label}
+                  </Link>
+                ))}
+                <Link href="/buscar" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
+                  Buscar productos
                 </Link>
-              ))}
-              <Link href="/buscar" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
-                Buscar productos
-              </Link>
-              <Link href="/favoritos" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
-                Mis favoritos
-              </Link>
-              <Link href="/carrito" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
-                Mi carrito
-              </Link>
-            </div>
-
-            {/* Categories - Premium with icons */}
-            <div className="py-2">
-              <div className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-[var(--foreground-muted)]">
-                Categorías
+                <Link href="/favoritos" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
+                  Mis favoritos
+                </Link>
+                <Link href="/carrito" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
+                  Mi carrito
+                </Link>
               </div>
-              {JOTAKP_CATEGORIES.map((category, index) => (
-                <div key={category.slug} className="border-b border-[var(--border-subtle)]/50">
-                  {category.subcategories.length > 0 ? (
-                    <button
-                      onClick={() => setExpandedCategory(expandedCategory === category.slug ? null : category.slug)}
-                      className="flex w-full items-center justify-between px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]"
-                    >
-                      <span className="flex items-center gap-3">
-                        {category.name}
-                      </span>
-                      <motion.svg
-                        className="h-4 w-4 text-[var(--foreground-muted)]"
-                        animate={{ rotate: expandedCategory === category.slug ? 180 : 0 }}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </motion.svg>
-                    </button>
-                  ) : (
-                    <Link href={`/categorias/${category.slug}`} onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
-                      {category.name}
-                    </Link>
-                  )}
-                  {/* Subcategories - Animated expand */}
-                  <AnimatePresence>
-                    {expandedCategory === category.slug && category.subcategories.length > 0 && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden bg-[var(--surface)]"
-                      >
-                        <div className="px-5 pb-3">
-                          {category.subcategories.map((sub) => (
-                            <Link 
-                              key={sub.slug} 
-                              href={`/categorias/${sub.slug}`}
-                              onClick={handleNavigate}
-                              className="flex items-center gap-2 py-2.5 text-sm text-[var(--foreground-muted)] transition-colors hover:text-[var(--accent)]"
-                            >
-                              <span className="h-1 w-1 rounded-full bg-[var(--accent)]"></span>
-                              {sub.name}
-                            </Link>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+
+              {/* Categories - Premium with icons */}
+              <div className="py-2">
+                <div className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-[var(--foreground-muted)]">
+                  Categorías
                 </div>
-              ))}
+                {JOTAKP_CATEGORIES.map((category, index) => (
+                  <div key={category.slug} className="border-b border-[var(--border-subtle)]/50">
+                    {category.subcategories.length > 0 ? (
+                      <button
+                        onClick={() => setExpandedCategory(expandedCategory === category.slug ? null : category.slug)}
+                        className="flex w-full items-center justify-between px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]"
+                      >
+                        <span className="flex items-center gap-3">
+                          {category.name}
+                        </span>
+                        <motion.svg
+                          className="h-4 w-4 text-[var(--foreground-muted)]"
+                          animate={{ rotate: expandedCategory === category.slug ? 180 : 0 }}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </motion.svg>
+                      </button>
+                    ) : (
+                      <Link href={`/categorias/${category.slug}`} onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
+                        {category.name}
+                      </Link>
+                    )}
+                    {/* Subcategories - Animated expand */}
+                    <AnimatePresence>
+                      {expandedCategory === category.slug && category.subcategories.length > 0 && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden bg-[var(--surface)]"
+                        >
+                          <div className="px-5 pb-3">
+                            {category.subcategories.map((sub) => (
+                              <Link 
+                                key={sub.slug} 
+                                href={`/categorias/${sub.slug}`}
+                                onClick={handleNavigate}
+                                className="flex items-center gap-2 py-2.5 text-sm text-[var(--foreground-muted)] transition-colors hover:text-[var(--accent)]"
+                              >
+                                <span className="h-1 w-1 rounded-full bg-[var(--accent)]"></span>
+                                {sub.name}
+                              </Link>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
+              </div>
             </div>
-            
-            
           </motion.div>
         </div>
       )}

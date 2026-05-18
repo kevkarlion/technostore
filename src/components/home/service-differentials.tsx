@@ -1,7 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useMotionPreferences, TRANSITION, EASE } from "@/lib/motion-config";
+import { useRef } from "react";
+import { useInView } from "framer-motion";
 import { clsx } from "clsx";
 import { Cpu, Wallet, Wrench, CheckCircle2 } from "lucide-react";
 
@@ -51,86 +51,98 @@ const icons = {
   office: <CheckCircle2 className="h-7 w-7" />,
 };
 
-// Gradiente premium monocromático (todas las cards iguales)
-const cardGradient = "from-zinc-900/80 via-zinc-800/50 to-zinc-900/80";
-const borderColor = "border-zinc-700/50";
+/**
+ * CardContent - Contenido animado internamente (solo opacity)
+ * SIN animaciones de transform en el contenedor principal
+ */
+function CardContent({ 
+  item, 
+  delay 
+}: { 
+  item: ServiceDifferential; 
+  delay: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
 
+  return (
+    <div
+      ref={ref}
+      className="relative p-5 flex flex-col items-center text-center space-y-3"
+      style={{
+        opacity: isInView ? 1 : 0,
+        transform: isInView ? "translateY(0)" : "translateY(8px)",
+        transition: `opacity 0.4s ease ${delay}ms, transform 0.4s ease ${delay}ms`,
+        willChange: "opacity, transform",
+      }}
+    >
+      {/* Icono con glow verde de marca */}
+      <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/30">
+        <div className="text-zinc-900">
+          {icons[item.icon]}
+        </div>
+      </div>
+
+      {/* Título premium */}
+      <h3 className="font-bold text-[var(--foreground)] text-sm sm:text-base leading-tight">
+        {item.title}
+      </h3>
+
+      {/* Descripción */}
+      <p className="text-xs sm:text-sm text-[var(--foreground-muted)] leading-relaxed">
+        {item.description}
+      </p>
+    </div>
+  );
+}
+
+/**
+ * ServiceDifferentials - Cards estáticas con contenido animado internamente
+ * 
+ * Optimizado para iOS Safari:
+ * - Card completa es estática (sin animaciones de mount)
+ * - Solo el contenido interno tiene animación de opacity
+ * - Sin scale, sin hover transform, sin backdrop-filter animado
+ * - Estructura estable para el compositor GPU
+ */
 export function ServiceDifferentials({
   differentials = defaultDifferentials,
   className,
 }: ServiceDifferentialsProps) {
-  const { reducedMotion } = useMotionPreferences();
-
   return (
     <div className={clsx("space-y-6", className)}>
-      <motion.div
-        className="text-center"
-        initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : -10 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: TRANSITION.medium }}
-      >
+      {/* Título estático */}
+      <div className="text-center">
         <h2 className="text-3xl md:text-4xl font-extrabold text-[var(--foreground)] tracking-tight">
           ¿Por Qué Elegirnos?
         </h2>
         <p className="mt-2 text-[var(--foreground-muted)] text-sm md:text-base max-w-xl mx-auto">
           Beneficios exclusivos que hacen la diferencia en tu experiencia de compra
         </p>
-      </motion.div>
+      </div>
 
+      {/* Grid de cards - ESTÁTICAS, sin motion */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {differentials.map((item, index) => (
-          <motion.div
+          <div
             key={item.id}
-            initial={reducedMotion ? {} : { opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{
-              delay: reducedMotion ? 0 : index * 0.1,
-              duration: TRANSITION.slow,
-              ease: EASE.emphasis,
-            }}
             className={clsx(
               "group relative overflow-hidden rounded-2xl",
-              "border backdrop-blur-sm transition-all duration-300",
+              "border backdrop-blur-sm transition-colors duration-300",
               "bg-gradient-to-br shadow-lg shadow-black/20",
-              cardGradient,
-              borderColor,
-              // Fix iOS flicker: force GPU layer and remove transform animations
-              "translate-z-0"
+              "from-zinc-900/80 via-zinc-800/50 to-zinc-900/80",
+              "border-zinc-700/50",
+              // Hover simple - solo color de borde
+              "hover:border-[var(--accent)]/50"
             )}
-            style={{ transform: "translateZ(0)" }}
+            style={{ contain: "layout paint" }}
           >
-            {/* Gradient overlay on hover - solo opacity, sin animaciones complejas */}
-            <div className={clsx(
-              "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-              "bg-gradient-to-br",
-              cardGradient
-            )} />
-
-            {/* Contenido */}
-            <div className="relative p-5 flex flex-col items-center text-center space-y-3">
-              {/* Icono con glow verde de marca */}
-              <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/30">
-                <div className="text-zinc-900">
-                  {icons[item.icon]}
-                </div>
-              </div>
-
-              {/* Título premium */}
-              <h3 className="font-bold text-[var(--foreground)] text-sm sm:text-base leading-tight">
-                {item.title}
-              </h3>
-
-              {/* Descripción */}
-              <p className="text-xs sm:text-sm text-[var(--foreground-muted)] leading-relaxed">
-                {item.description}
-              </p>
-            </div>
+            {/* Contenido animado internamente */}
+            <CardContent item={item} delay={index * 80} />
 
             {/* Borde decorativo inferior con verde marca */}
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent opacity-60" />
-          </motion.div>
+          </div>
         ))}
       </div>
     </div>

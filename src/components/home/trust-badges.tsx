@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { useInView } from "framer-motion";
 import { clsx } from "clsx";
-import { Truck, ShieldCheck, CreditCard, Headphones } from "lucide-react";
+import { Truck, ShieldCheck, Headphones } from "lucide-react";
 
 /**
  * Trust badge data interface
@@ -45,9 +45,9 @@ const defaultBadges: TrustBadge[] = [
   },
   {
     id: "3",
-    icon: "installments",
-    title: "Cuotas sin interés",
-    subtitle: "Hasta 12 cuotas con todas las tarjetas",
+    icon: "shield",
+    title: "Compra segura",
+    subtitle: "Protegemos tus datos y transacciones",
   },
   {
     id: "4",
@@ -63,7 +63,7 @@ const defaultBadges: TrustBadge[] = [
 const icons = {
   shipping: <Truck className="h-7 w-7" />,
   warranty: <ShieldCheck className="h-7 w-7" />,
-  installments: <CreditCard className="h-7 w-7" />,
+  shield: <ShieldCheck className="h-7 w-7" />,
   support: <Headphones className="h-7 w-7" />,
 };
 
@@ -136,10 +136,10 @@ export function TrustBadges({
       {/* Título estático */}
       <div className="text-center">
         <h2 className="text-3xl md:text-4xl font-extrabold text-[var(--foreground)] tracking-tight">
-          ¿Por Qué Elegirnos?
+          Pensado para una mejor experiencia
         </h2>
         <p className="mt-2 text-[var(--foreground-muted)] text-sm md:text-base max-w-xl mx-auto">
-          La mejor experiencia de compra en tecnología
+          Todo lo que necesitas en un solo lugar
         </p>
       </div>
 

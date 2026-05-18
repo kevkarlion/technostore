@@ -1,7 +1,6 @@
 import type { Product as CatalogProduct } from "@/types/domain";
 import { productService } from "@/api/services/product.service";
 import { toPresentationProduct } from "@/domain/mappers/product-to-presentation";
-import { ScrollRevealSection } from "@/components/home/scroll-reveal-section";
 import { HeroWrapper } from "@/components/home/hero-wrapper";
 import { CategoryShowcase } from "@/components/home/category-showcase";
 import { PremiumFeaturedProducts } from "@/components/home/premium-featured-products";
@@ -9,6 +8,7 @@ import type { FeaturedProduct, FeaturedBadge } from "@/components/home/premium-f
 import { TrustBadges } from "@/components/home/trust-badges";
 import { ServiceDifferentials } from "@/components/home/service-differentials";
 import { ContactLocation } from "@/components/home/contact-location";
+import { ScrollRevealSection } from "@/components/home/scroll-reveal-section";
 
 // Assign badges dynamically based on position
 const badgeSequence: FeaturedBadge[] = ["featured", "new", "sale", "hot", "featured", "new", "sale", "hot"];
@@ -32,9 +32,9 @@ export default async function Home() {
   // (Categories are now displayed in HeroCarousel + CategoryShowcase)
 
   return (
-    <div className="space-y-10 pb-4 px-4 sm:px-6 lg:px-8 pt-8">
+    <div className="pb-4 px-4 sm:px-6 lg:px-8">
       {/* 1. Premium Hero - Compact version */}
-      <section className="space-y-3">
+      <section className="space-y-3 pt-8">
         <h1 className="text-3xl font-extrabold md:text-5xl uppercase">
           <span className="text-[var(--foreground)]">Tu tienda de </span>
           <span className="text-[var(--accent)]">tecnología</span>
@@ -58,37 +58,37 @@ export default async function Home() {
       </section>
 
       {/* 1.5. Hero Carousel - Categories visual */}
-      <ScrollRevealSection animation="fade-up" delay={0.05}>
+      <section className="pt-10">
         <HeroWrapper />
-      </ScrollRevealSection>
+      </section>
 
-      {/* 2. ScrollRevealSection + ServiceDifferentials */}
-      <ScrollRevealSection animation="fade-up" delay={0.1}>
+      {/* 2. ServiceDifferentials */}
+      <section className="py-16">
         <ServiceDifferentials />
-      </ScrollRevealSection>
+      </section>
 
-      {/* 3. ScrollRevealSection + CategoryShowcase */}
-      <ScrollRevealSection animation="fade-up" delay={0.15}>
+      {/* 3. CategoryShowcase */}
+      <section className="py-16">
         <CategoryShowcase />
-      </ScrollRevealSection>
+      </section>
 
-      {/* 4. ScrollRevealSection + PremiumFeaturedProducts */}
-      <ScrollRevealSection animation="fade-up" delay={0.2}>
+      {/* 4. PremiumFeaturedProducts */}
+      <section className="py-16">
         <PremiumFeaturedProducts
           products={featuredProductsWithBadges}
           title="Productos Destacados"
         />
-      </ScrollRevealSection>
+      </section>
 
-      {/* 5. ScrollRevealSection + TrustBadges */}
-      <ScrollRevealSection animation="fade-up" delay={0.15}>
+      {/* 5. TrustBadges */}
+      <section className="py-16">
         <TrustBadges />
-      </ScrollRevealSection>
+      </section>
 
-      {/* 6. ScrollRevealSection + ContactLocation - Antes del footer */}
-      <ScrollRevealSection animation="fade-up" delay={0.12}>
+      {/* 6. ContactLocation - Antes del footer */}
+      <section className="py-16">
         <ContactLocation />
-      </ScrollRevealSection>
+      </section>
 
       {/* 7. CTA Final - WhatsApp */}
       <ScrollRevealSection animation="fade-up" delay={0.08}>

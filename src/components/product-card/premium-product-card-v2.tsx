@@ -79,20 +79,48 @@ export interface ProductCardV2Props {
 }
 
 // ============================================================================
-// SKELETON LOADER
+// SKELETON LOADER - coincide con PremiumProductCardV2
 // ============================================================================
 
 function ProductCardSkeleton({ className }: { className?: string }) {
   return (
     <div className={clsx(
-      "flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)]",
+      "rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-3",
+      "overflow-hidden",
       className
     )}>
-      <div className="aspect-square animate-pulse bg-white/[0.06]" />
-      <div className="p-4 space-y-3">
-        <div className="h-3 w-16 animate-pulse rounded bg-white/[0.06]" />
+      {/* Image container */}
+      <div className="relative aspect-square overflow-hidden rounded-xl bg-white/[0.03]">
+        {/* Badge placeholder */}
+        <div className="absolute left-2 top-2 z-10 flex flex-col gap-1">
+          <div className="h-5 w-12 animate-pulse rounded-full bg-white/[0.06]" />
+        </div>
+        
+        {/* Wishlist placeholder */}
+        <div className="absolute right-2 top-2 z-10 h-9 w-9 animate-pulse rounded-full bg-white/[0.06]" />
+        
+        {/* Image skeleton */}
+        <div className="h-full w-full animate-pulse bg-white/[0.03]" />
+      </div>
+      
+      {/* Content */}
+      <div className="mt-3 space-y-2">
+        {/* Title */}
         <div className="h-4 w-3/4 animate-pulse rounded bg-white/[0.06]" />
+        
+        {/* Short description */}
         <div className="h-3 w-1/2 animate-pulse rounded bg-white/[0.06]" />
+        
+        {/* Price */}
+        <div className="h-6 w-24 animate-pulse rounded bg-white/[0.06]" />
+        
+        {/* Rating */}
+        <div className="flex items-center gap-1">
+          <div className="h-3 w-20 animate-pulse rounded bg-white/[0.06]" />
+          <div className="h-3 w-12 animate-pulse rounded bg-white/[0.06]" />
+        </div>
+        
+        {/* Add to cart button */}
         <div className="h-10 w-full animate-pulse rounded-lg bg-white/[0.06]" />
       </div>
     </div>

@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { useMotionPreferences, TRANSITION, EASE } from "@/lib/motion-config";
 import { clsx } from "clsx";
 import { MapPin, Phone, Clock, Navigation, Mail } from "lucide-react";
-
 import { ReactNode } from "react";
 
 // Iconos SVG para redes sociales
@@ -32,20 +31,22 @@ interface ContactLocationProps {
   className?: string;
 }
 
-// Datos de contacto - editables
+// Datos de contacto - TechnoStore General Roca
 const storeInfo = {
-  phone: "+54 11 1234-5678",
-  email: "ventas@technostore.com",
-  address: "Av. Corrientes 1234, CABA",
-  directionsLink: "https://maps.google.com/?q=Av.+Corrientes+1234+Buenos+Aires",
-  schedule: {
-    weekdays: "9:00 a 18:00",
-    saturday: "9:00 a 13:00",
-    sunday: "Cerrado",
-  },
+  phone: "+54 298 413-0230",
+  email: "ventas.store900@gmail.com",
+  address: "9 de Julio 793, General Roca, Río Negro",
+  directionsLink: "https://maps.google.com/?q=9+de+Julio+793+General+Roca+R%C3%ADo+Negro+Argentina",
+  // Coordenadas de General Roca, Río Negro
   coordinates: {
-    lat: -34.6037,
-    lng: -58.3816,
+    lat: -39.0332,
+    lng: -67.5780,
+  },
+  schedule: {
+    weekdaysMorning: "9am - 1pm",
+    weekdaysAfternoon: "5:30pm - 8:30pm",
+    saturday: "9:30am - 1pm",
+    sunday: "Cerrado",
   },
 };
 
@@ -60,7 +61,7 @@ interface SocialLink {
 const socialLinks: SocialLink[] = [
   { name: "Instagram", icon: InstagramIcon, url: "https://instagram.com/technostore" },
   { name: "Facebook", icon: FacebookIcon, url: "https://facebook.com/technostore" },
-  { name: "WhatsApp", icon: WhatsAppIcon, url: "https://wa.me/541112345678" },
+  { name: "WhatsApp", icon: WhatsAppIcon, url: "https://wa.me/5492984130230" },
 ];
 
 export function ContactLocation({ className }: ContactLocationProps) {
@@ -95,17 +96,16 @@ export function ContactLocation({ className }: ContactLocationProps) {
           className="relative rounded-2xl overflow-hidden border border-zinc-700/50 bg-zinc-900/80"
         >
           <iframe
-            src={`https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3284.219232538924!2d${storeInfo.coordinates.lng}!3d${storeInfo.coordinates.lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzTCMzM4JzA1LjIiUyA1OMKwMzInNDQuNCJX!5e0!3m2!1ses!2sus!4v1234567890`}
+            src="https://maps.google.com/maps?q=9+de+Julio+793+General+Roca+R%C3%ADo+Negro&t=&z=15&ie=UTF8&iwloc=&output=embed"
             width="100%"
-            height="300"
-            style={{ border: 0, filter: "grayscale(100%) contrast(1.1)" }}
+            height="350"
+            style={{ border: 0 }}
             allowFullScreen
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            className="w-full h-[300px]"
+            className="w-full h-[350px]"
+            title="Ubicación de TechnoStore en General Roca"
           />
-          {/* Overlay para mejorar visibilidad del mapa */}
-          <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-zinc-900/50 to-transparent" />
         </motion.div>
 
         {/* Info de contacto */}
@@ -194,9 +194,10 @@ export function ContactLocation({ className }: ContactLocationProps) {
               <div>
                 <p className="text-xs text-[var(--foreground-muted)]">Horarios de atención</p>
                 <div className="text-sm font-semibold text-[var(--foreground)] space-y-0.5">
-                  <p>Lun - Vie: {storeInfo.schedule.weekdays}</p>
+                  <p>Lun - Vie: {storeInfo.schedule.weekdaysMorning}</p>
+                  <p>Lun - Vie: {storeInfo.schedule.weekdaysAfternoon}</p>
                   <p>Sáb: {storeInfo.schedule.saturday}</p>
-                  <p className="text-[var(--foreground-muted)]">{storeInfo.schedule.sunday}</p>
+                  <p className="text-rose-400">{storeInfo.schedule.sunday}</p>
                 </div>
               </div>
             </div>

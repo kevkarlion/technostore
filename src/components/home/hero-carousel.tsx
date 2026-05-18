@@ -90,9 +90,9 @@ const defaultSlides: HeroSlide[] = [
 // ============================================================================
 
 const TRANSITION = {
-  fast: { duration: 0.2 },
-  medium: { duration: 0.35 },
-  slow: { duration: 0.5 },
+  fast: { duration: 0.3 },
+  medium: { duration: 0.8 },
+  slow: { duration: 1.5 },
 };
 
 // ============================================================================
@@ -128,7 +128,7 @@ const HeroSlideContent = memo(function HeroSlideContent({
       />
 
       {/* Content */}
-      <div className="absolute inset-0 flex flex-col justify-end pb-6 px-5 sm:px-8 md:px-16 lg:px-20">
+      <div className="absolute inset-0 flex flex-col justify-end pb-16 px-5 sm:px-8 md:px-16 lg:px-20">
         <div className="w-full max-w-full">
           {/* Badge */}
           {slide.badge && (
@@ -210,7 +210,7 @@ const DotNavigation = memo(function DotNavigation({
 }) {
   return (
     <div 
-      className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-2 sm:bottom-4 md:bottom-6"
+      className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-3 sm:bottom-6 md:bottom-6"
       role="tablist"
       aria-label="Navegación del carrusel"
     >
@@ -222,7 +222,7 @@ const DotNavigation = memo(function DotNavigation({
           aria-selected={index === current}
           aria-label={`Ir a slide ${index + 1}`}
           className={clsx(
-            "h-2.5 w-2.5 rounded-full transition-all md:h-3 md:w-3 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 focus:ring-offset-black/50",
+            "h-3 w-3 rounded-full transition-all md:h-3 md:w-3 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 focus:ring-offset-black/50",
             index === current
               ? "bg-[var(--accent)] scale-110"
               : "bg-white/60 hover:bg-white/80"
@@ -240,7 +240,7 @@ const DotNavigation = memo(function DotNavigation({
 export function HeroCarousel({
   slides = defaultSlides,
   autoPlay = true,
-  autoPlayInterval = 5000,
+  autoPlayInterval = 7000,
   className,
 }: HeroCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -368,10 +368,12 @@ export function HeroCarousel({
                 ? { opacity: isActive ? 1 : 0 }
                 : { 
                     opacity: isActive ? 1 : 0,
-                    scale: isActive ? 1 : 1.02,
                   }
               }
-              transition={TRANSITION.slow}
+              transition={{ 
+                duration: 1.5,
+                ease: "easeInOut"
+              }}
               className={clsx(
                 "absolute inset-0",
                 isActive ? "z-10" : "z-0"

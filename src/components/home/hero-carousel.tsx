@@ -245,7 +245,6 @@ export function HeroCarousel({
 }: HeroCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
   
   const reducedMotion = useReducedMotion();
   
@@ -295,13 +294,14 @@ export function HeroCarousel({
     setCurrentIndex((prev) => (prev + 1) % slides.length);
   }, [slides.length]);
 
-  // Touch handlers
+  // Touch handlers - prevenir scroll del body durante swipe
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     const touch = e.touches[0];
     (e.target as HTMLElement).dataset.touchStart = String(touch.clientX);
   }, []);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
     const target = e.target as HTMLElement;
     const touchStart = target.dataset.touchStart;
     if (!touchStart) return;
@@ -335,11 +335,10 @@ export function HeroCarousel({
     <div
       id="hero-carousel"
       className={clsx(
-        "relative overflow-hidden rounded-xl will-change-transform",
+        "relative overflow-hidden rounded-xl",
         className
       )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      style={{ touchAction: "pan-y" }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -347,36 +346,21 @@ export function HeroCarousel({
       <div className="relative aspect-[3/4] w-full sm:aspect-[4/3] md:aspect-[5/2]">
         {slides.map((slide, index) => {
           const isActive = index === currentIndex;
-          // Solo renderizar slide activa y siguiente para lazy loading
-          const shouldRender = isActive || index === (currentIndex + 1) % slides.length;
-          
-          if (!shouldRender) {
-            return (
-              <div
-                key={slide.id}
-                className="absolute inset-0"
-                aria-hidden="true"
-              />
-            );
-          }
           
           return (
             <motion.div
               key={slide.id}
-              initial={reducedMotion ? false : { opacity: 0 }}
-              animate={reducedMotion 
-                ? { opacity: isActive ? 1 : 0 }
-                : { 
-                    opacity: isActive ? 1 : 0,
-                  }
-              }
+              initial={{ opacity: 0 }}
+              animate={{ 
+                opacity: isActive ? 1 : 0,
+              }}
               transition={{ 
-                duration: 1.5,
-                ease: "easeInOut"
+                duration: 1.2,
+                ease: "linear"
               }}
               className={clsx(
                 "absolute inset-0",
-                isActive ? "z-10" : "z-0"
+                isActive ? "z-10" : "z-5"
               )}
             >
               <HeroSlideContent 

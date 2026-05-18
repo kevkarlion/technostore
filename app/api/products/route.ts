@@ -1,8 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
 import { productController } from "@/api/controllers/product.controller";
+import { productRepository } from "@/api/repository/product.repository";
+import { toPresentationProduct } from "@/domain/mappers/product-to-presentation";
 import { HttpError, internalServerError } from "@/api/errors/http-error";
 
 export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const q = searchParams.get("q");
+
+  // Endpoint de búsqueda
+  if (q) {
+    try {
+      const page = parseInt(searchParams.get("page") || "1", 10);
+      const limit = parseInt(searchParams.get("limit") || "20", 10);
+      const result = await productRepository.searchByName(q, { page, limit });
+      const presentationProducts = result.items.map(toPresentationProduct);
+      return NextResponse.json({
+        products: presentationProducts,
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+      }, { status: 200 });
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+
+  // Endpoint de productos destacados (sin query)
+  if (req.url.includes("featured")) {
+    try {
+      const limit = parseInt(searchParams.get("limit") || "20", 10);
+      const products = await productRepository.findFeatured(limit);
+      const presentationProducts = products.map(toPresentationProduct);
+      return NextResponse.json({
+        products: presentationProducts,
+        total: products.length,
+        page: 1,
+        limit
+      }, { status: 200 });
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+
+  // Default: list
   try {
     const result = await productController.list(req);
     return NextResponse.json(result, { status: 200 });

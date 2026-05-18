@@ -2,12 +2,13 @@ import type { Product as CatalogProduct } from "@/types/domain";
 import { productService } from "@/api/services/product.service";
 import { toPresentationProduct } from "@/domain/mappers/product-to-presentation";
 import { ScrollRevealSection } from "@/components/home/scroll-reveal-section";
-import { HeroCarousel } from "@/components/home/hero-carousel";
+import { HeroWrapper } from "@/components/home/hero-wrapper";
 import { CategoryShowcase } from "@/components/home/category-showcase";
 import { PremiumFeaturedProducts } from "@/components/home/premium-featured-products";
 import type { FeaturedProduct, FeaturedBadge } from "@/components/home/premium-featured-products";
 import { TrustBadges } from "@/components/home/trust-badges";
 import { ServiceDifferentials } from "@/components/home/service-differentials";
+import { ContactLocation } from "@/components/home/contact-location";
 
 // Assign badges dynamically based on position
 const badgeSequence: FeaturedBadge[] = ["featured", "new", "sale", "hot", "featured", "new", "sale", "hot"];
@@ -31,7 +32,7 @@ export default async function Home() {
   // (Categories are now displayed in HeroCarousel + CategoryShowcase)
 
   return (
-    <div className="space-y-8 pb-4 px-4 sm:px-6 lg:px-8">
+    <div className="space-y-20 pb-4 px-4 sm:px-6 lg:px-8">
       {/* 1. Premium Hero - Compact version */}
       <section className="space-y-3">
         <h1 className="text-2xl font-bold md:text-3xl">
@@ -58,7 +59,7 @@ export default async function Home() {
 
       {/* 1.5. Hero Carousel - Categories visual */}
       <ScrollRevealSection animation="fade-up" delay={0.05}>
-        <HeroCarousel />
+        <HeroWrapper />
       </ScrollRevealSection>
 
       {/* 2. ScrollRevealSection + ServiceDifferentials */}
@@ -82,6 +83,28 @@ export default async function Home() {
       {/* 5. ScrollRevealSection + TrustBadges */}
       <ScrollRevealSection animation="fade-up" delay={0.15}>
         <TrustBadges />
+      </ScrollRevealSection>
+
+      {/* 6. ScrollRevealSection + ContactLocation - Antes del footer */}
+      <ScrollRevealSection animation="fade-up" delay={0.12}>
+        <ContactLocation />
+      </ScrollRevealSection>
+
+      {/* 7. CTA Final - WhatsApp */}
+      <ScrollRevealSection animation="fade-up" delay={0.08}>
+        <div className="text-center">
+          <a
+            href="https://wa.me/541112345678"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-3 px-10 py-5 text-lg font-bold rounded-2xl bg-[var(--accent)] text-zinc-900 hover:opacity-90 transition-all shadow-xl shadow-[var(--accent)]/40"
+          >
+            Potencia tu setup
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+            </svg>
+          </a>
+        </div>
       </ScrollRevealSection>
     </div>
   );

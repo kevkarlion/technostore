@@ -6,6 +6,7 @@ import Link from "next/link";
 import { clsx } from "clsx";
 import { Badge } from "@/components/ui/badge";
 import { Price } from "@/components/ui/price";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Product } from "@/types/domain";
 
 /**
@@ -83,29 +84,63 @@ export function PremiumFeaturedProducts({
     }
   };
 
+  const scrollLeft = () => {
+    if (containerRef.current) {
+      const scrollAmount = containerRef.current.offsetWidth;
+      containerRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+    }
+  };
+
+  const scrollRight = () => {
+    if (containerRef.current) {
+      const scrollAmount = containerRef.current.offsetWidth;
+      containerRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
+
   return (
     <div className={clsx("w-full", className)}>
       {title && (
         <h2 className="mb-4 text-xl font-bold text-[var(--foreground)]">{title}</h2>
       )}
 
-      {/* Scrollable container */}
-      <div
-        ref={containerRef}
-        onScroll={handleScroll}
-        className={clsx(
-          "flex gap-4",
-          "overflow-x-auto",
-          "scroll-snap-x mandatory",
-          "hide-scrollbar",
-          "pb-2",
-          // Mobile padding
-          "px-4 md:px-0"
-        )}
-        style={{
-          scrollBehavior: "smooth",
-        }}
-      >
+      {/* Contenedor con flechas */}
+      <div className="relative group">
+        {/* Flecha izquierda - solo desktop */}
+        <button
+          onClick={scrollLeft}
+          className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 items-center justify-center w-10 h-10 rounded-full bg-zinc-800/90 border border-zinc-700 text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-zinc-700"
+          aria-label="Scroll left"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+
+        {/* Flecha derecha - solo desktop */}
+        <button
+          onClick={scrollRight}
+          className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 items-center justify-center w-10 h-10 rounded-full bg-zinc-800/90 border border-zinc-700 text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-zinc-700"
+          aria-label="Scroll right"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+
+        {/* Scrollable container */}
+        <div
+          ref={containerRef}
+          onScroll={handleScroll}
+          className={clsx(
+            "flex gap-4",
+            "overflow-x-auto",
+            "scroll-snap-x mandatory",
+            "hide-scrollbar",
+            "pb-2",
+            // Mobile padding
+            "px-4 md:px-0"
+          )}
+          style={{
+            scrollBehavior: "smooth",
+          }}
+        >
         {products.map((product) => {
           const primaryImage = product.images?.[0];
           const badge = product.featuredBadge;
@@ -184,9 +219,11 @@ export function PremiumFeaturedProducts({
         })}
       </div>
 
-      {/* Navigation dots */}
+        </div>
+
+      {/* Navigation dots - solo mobile */}
       {totalDots > 1 && (
-        <div className="mt-4 flex justify-center gap-2">
+        <div className="mt-4 flex justify-center gap-2 md:hidden">
           {Array.from({ length: totalDots }).map((_, index) => (
             <button
               key={index}

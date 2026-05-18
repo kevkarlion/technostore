@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { clsx } from "clsx";
 import { SearchBar } from "@/components/ui/search-bar";
 import { CartLink } from "@/components/ui/cart-link";
+import { FavoritesLink } from "@/components/ui/favorites-link";
 import { JOTAKP_CATEGORIES } from "@/components/ui/category-dropdown";
 import type { Category } from "@/domain/models/category";
 import { Menu, Search } from "lucide-react";
@@ -148,16 +149,8 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
       style={headerWithShadowStyles}
     >
       <div className="w-full px-4 sm:px-6 lg:px-8">
-        {/* Row 1: Top bar - Hot Sale + Redes + Armá tu PC */}
-        <div className="hidden lg:flex items-center justify-between py-2 border-b border-[var(--border-subtle)]/30">
-          {/* Hot Sale */}
-          <Link
-            href="/search?badge=hot"
-            className="group relative overflow-hidden rounded-full bg-gradient-to-r from-[var(--accent)] to-[var(--accent-purple)] px-4 py-1.5 text-xs font-semibold text-[var(--background)] transition-all hover:shadow-lg hover:shadow-[var(--accent)]/25"
-          >
-            <span className="relative z-10">🔥 Hot Sale</span>
-          </Link>
-
+        {/* Row 1: Top bar - Redes Sociales */}
+        <div className="hidden lg:flex items-center justify-center py-2 border-b border-[var(--border-subtle)]/30">
           {/* Redes Sociales */}
           <div className="flex items-center gap-3">
             <a
@@ -191,14 +184,6 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
               </svg>
             </a>
           </div>
-
-          {/* Armá tu PC */}
-          <Link
-            href="/productos/armatuPC"
-            className="rounded-full px-4 py-1.5 text-sm font-medium text-[var(--accent)] transition-all hover:bg-[var(--accent)]/10"
-          >
-            Armá tu PC
-          </Link>
         </div>
 
         {/* Row 2: Logo + Search bar */}
@@ -234,14 +219,18 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
             <SearchBar className="w-full" />
           </div>
 
-          {/* Cart desktop */}
-          <div className="ml-auto hidden lg:block shrink-0">
+          {/* Cart + Favorites desktop */}
+          <div className="ml-auto hidden lg:flex items-center gap-3 shrink-0">
+            <FavoritesLink
+              variant="icon"
+              className="rounded-full bg-[var(--surface)] p-2.5 ring-1 ring-[var(--border-subtle)] text-[var(--foreground)] hover:text-red-400 hover:ring-red-400/50 transition-all"
+            />
             <CartLink
               className="relative rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-[var(--background)] shadow-lg shadow-[var(--accent)]/20 transition-all hover:scale-[1.05] hover:shadow-xl"
             />
           </div>
 
-          {/* Mobile: cart + menu */}
+          {/* Mobile: favorites + cart + menu */}
           <div className="ml-auto flex items-center gap-2 lg:hidden">
             <button
               onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
@@ -250,6 +239,10 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
             >
               <Search className="h-5 w-5" />
             </button>
+            <FavoritesLink
+              variant="icon"
+              className="rounded-full bg-[var(--surface)] p-2.5 ring-1 ring-[var(--border-subtle)] text-[var(--foreground)]"
+            />
             <CartLink
               variant="icon"
               className="relative rounded-full bg-[var(--accent)] p-2.5 text-sm font-bold text-[var(--background)] shadow-lg transition-all hover:scale-110"
@@ -377,14 +370,14 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
                   {navItem.label}
                 </Link>
               ))}
-              <Link href="/search" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
+              <Link href="/buscar" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
                 Buscar productos
+              </Link>
+              <Link href="/favoritos" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
+                Mis favoritos
               </Link>
               <Link href="/carrito" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
                 Mi carrito
-              </Link>
-              <Link href="/productos/armatuPC" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--surface)]">
-                Armá tu PC
               </Link>
             </div>
 
@@ -448,16 +441,7 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
               ))}
             </div>
             
-            {/* Footer - Promo */}
-            <div className="border-t border-[var(--border-subtle)] p-5">
-              <Link 
-                href="/search?badge=hot" 
-                onClick={handleNavigate}
-                className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-purple)] py-3 text-sm font-bold text-[var(--background)]"
-              >
-                Ver Hot Sale
-              </Link>
-            </div>
+            
           </motion.div>
         </div>
       )}

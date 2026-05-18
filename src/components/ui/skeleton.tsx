@@ -8,9 +8,11 @@ export function Skeleton({ className, ...props }: SkeletonProps) {
   return (
     <div
       className={clsx(
-        "animate-pulse rounded-lg bg-slate-800/70",
+        "animate-pulse rounded-lg bg-[var(--surface)]",
         className
       )}
+      role="status"
+      aria-label="Cargando contenido..."
       {...props}
     />
   );

@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { clsx } from "clsx";
 import { SearchBar } from "@/components/ui/search-bar";
 import { CartLink } from "@/components/ui/cart-link";
+import { FavoritesLink } from "@/components/ui/favorites-link";
 import { JOTAKP_CATEGORIES } from "@/components/ui/category-dropdown";
 import { Menu, Search } from "lucide-react";
 
@@ -105,6 +106,12 @@ export function ScrollNavbar() {
                     </a>
                   </div>
 
+                  {/* Favoritos */}
+                  <FavoritesLink
+                    variant="icon"
+                    className="rounded-full bg-[var(--surface)] p-2.5 text-[var(--foreground)] ring-1 ring-[var(--border-subtle)] hover:text-red-400 hover:ring-red-400/50"
+                  />
+
                   {/* Carrito */}
                   <CartLink
                     variant="icon"
@@ -112,7 +119,7 @@ export function ScrollNavbar() {
                   />
                 </div>
 
-                {/* Mobile: cart + menu */}
+                {/* Mobile: favorites + cart + menu */}
                 <div className="ml-auto flex items-center gap-2 lg:hidden">
                   <button
                     onClick={() => setIsSearchOpen(!isSearchOpen)}
@@ -121,6 +128,10 @@ export function ScrollNavbar() {
                   >
                     <Search className="h-5 w-5" />
                   </button>
+                  <FavoritesLink
+                    variant="icon"
+                    className="rounded-full bg-[var(--surface)] p-2.5 text-[var(--foreground)] ring-1 ring-[var(--border-subtle)]"
+                  />
                   <CartLink
                     variant="icon"
                     className="relative rounded-full bg-[var(--accent)] p-2.5 text-[var(--background)] shadow-lg"
@@ -235,14 +246,11 @@ export function ScrollNavbar() {
                 <Link href="/" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
                   Inicio
                 </Link>
-                <Link href="/search" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
+                <Link href="/buscar" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
                   Buscar productos
                 </Link>
                 <Link href="/carrito" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
                   Mi carrito
-                </Link>
-                <Link href="/productos/armatuPC" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--accent)] transition-colors hover:bg-[var(--surface)]">
-                  Armá tu PC
                 </Link>
               </div>
 
@@ -304,15 +312,7 @@ export function ScrollNavbar() {
                 ))}
               </div>
               
-              <div className="border-t border-[var(--border-subtle)] p-5">
-                <Link 
-                  href="/search?badge=hot" 
-                  onClick={handleNavigate}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-purple)] py-3 text-sm font-bold text-[var(--background)]"
-                >
-                  🔥 Ver Hot Sale
-                </Link>
-              </div>
+              
             </motion.div>
           </div>
         )}

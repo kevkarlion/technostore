@@ -126,7 +126,7 @@ export function PCBuilderCTA({ onCtaClick, className }: PCBuilderCTAProps) {
           className="mt-8"
         >
           <Link
-            href="/search?pcbuilder=true"
+            href="/buscar?pcbuilder=true"
             className={clsx(
               "group relative inline-flex items-center justify-center",
               "min-h-[56px] min-w-[200px]",

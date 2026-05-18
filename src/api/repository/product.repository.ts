@@ -70,9 +70,15 @@ export const productRepository = {
    * Search products by name (case-insensitive and accent-insensitive).
    * Returns ALL products matching the query, regardless of status or stock.
    */
-  async searchByName(query: string, limit = 500): Promise<Product[]> {
+  async searchByName(
+    query: string,
+    options: { page?: number; limit?: number } = {}
+  ): Promise<{ items: Product[]; total: number; page: number; limit: number }> {
+    const page = Math.max(1, options.page || 1);
+    const limit = Math.min(100, Math.max(1, options.limit || 20));
+
     if (!query || !query.trim()) {
-      return [];
+      return { items: [], total: 0, page, limit };
     }
 
     const db = await getDb();
@@ -102,8 +108,12 @@ export const productRepository = {
       return normalizedName.includes(normalizedQuery);
     });
 
-    // Apply limit AFTER filtering
-    return filtered.slice(0, limit);
+    // Apply pagination
+    const total = filtered.length;
+    const start = (page - 1) * limit;
+    const items = filtered.slice(start, start + limit);
+
+    return { items, total, page, limit };
   },
 
   async create(data: CreateProductDTO): Promise<Product> {

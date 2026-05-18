@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import type { Product } from "@/types/domain";
 import { useCartStore } from "@/features/cart/store/cart-store";
+import { useFavoritesStore } from "@/features/favorites/store/favorites-store";
 import { toast } from "sonner";
 
 // ============================================================================
@@ -189,11 +190,11 @@ function ProductCardBadges({ badges, discount }: ProductCardBadgesProps) {
 // ============================================================================
 
 interface WishlistButtonProps {
-  isWishlisted: boolean;
+  isFavorite: boolean;
   onToggle: () => void;
 }
 
-function WishlistButton({ isWishlisted, onToggle }: WishlistButtonProps) {
+function WishlistButton({ isFavorite, onToggle }: WishlistButtonProps) {
   return (
     <motion.button
       whileHover={{ scale: 1.1 }}
@@ -203,12 +204,14 @@ function WishlistButton({ isWishlisted, onToggle }: WishlistButtonProps) {
         onToggle();
       }}
       className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 backdrop-blur-md transition-colors hover:bg-black/60 z-20"
-      aria-label={isWishlisted ? "Quitar de favoritos" : "Agregar a favoritos"}
+      aria-label={isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
     >
       <Heart 
         className={clsx(
-          "h-4 w-4 transition-colors",
-          isWishlisted ? "fill-red-500 text-red-500" : "text-white"
+          "h-4 w-4 transition-all duration-300",
+          isFavorite 
+            ? "fill-red-500 text-red-500 scale-110" 
+            : "text-white hover:scale-110"
         )} 
       />
     </motion.button>
@@ -348,9 +351,14 @@ export function PremiumProductCardV2({
   onToggleWishlist
 }: ProductCardV2Props) {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  
+  // Favorites store - estado reactivo
+  const isFavorite = useFavoritesStore((state) => 
+    state.items.some((item) => item.id === product.id)
+  );
+  const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
   
   const primaryImage = product.images?.[0];
   const hasDiscount = product.originalPrice && product.originalPrice > product.price;
@@ -397,7 +405,15 @@ const cartProduct = {
   };
 
   const handleToggleWishlist = () => {
-    setIsWishlisted(!isWishlisted);
+    const isNowFavorite = toggleFavorite(product);
+    if (isNowFavorite) {
+      toast.success("Agregado a favoritos");
+    } else {
+      toast("Eliminado de favoritos", { 
+        duration: 2000,
+        icon: "💔"
+      });
+    }
     onToggleWishlist?.(product.id);
   };
 
@@ -428,7 +444,7 @@ const cartProduct = {
           />
           
           <WishlistButton
-            isWishlisted={isWishlisted}
+            isFavorite={isFavorite}
             onToggle={handleToggleWishlist}
           />
         </div>

@@ -17,7 +17,7 @@ export function SearchBar({ className, variant = "full" }: SearchBarProps) {
     (e: React.FormEvent) => {
       e.preventDefault();
       if (query.trim()) {
-        router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+        router.push(`/buscar?q=${encodeURIComponent(query.trim())}`);
       }
     },
     [query, router]
@@ -26,7 +26,7 @@ export function SearchBar({ className, variant = "full" }: SearchBarProps) {
   if (variant === "compact") {
     return (
       <Link
-        href="/search"
+        href="/buscar"
         className={className}
         aria-label="Search products"
       >

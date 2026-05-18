@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SiteHeaderServer } from "@/components/layout/site-header-server";
 import { ScrollNavbar } from "@/components/layout/scroll-navbar";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,6 +51,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ts-shell antialiased`}
       >
         <ThemeProvider>
+          <Toaster position="bottom-right" richColors closeButton />
           <SiteHeaderServer />
           <ScrollNavbar />
           <main className="pb-16 pt-10">{children}</main>

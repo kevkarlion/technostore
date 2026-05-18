@@ -32,25 +32,30 @@ interface CategoryShowcaseProps {
  * Default categories for TechnoStore
  */
 const defaultCategories: Category[] = [
-  { id: "1", name: "Cargadores Notebook", slug: "cargadores-alternativos-notebook", image: "/cargadores.png", gradient: "from-blue-600 to-blue-800" },
-  { id: "2", name: "SSD", slug: "ssd", image: "/ssd.png", gradient: "from-purple-600 to-purple-800" },
-  { id: "3", name: "Micro SD", slug: "micro-sd", image: "/pendrive.png", gradient: "from-cyan-600 to-cyan-800" },
-  { id: "4", name: "Pendrive", slug: "pendrive", image: "/pendrive.png", gradient: "from-green-600 to-green-800" },
-  { id: "5", name: "Mouse", slug: "mouse-gamer-oficina", image: "/mouse.png", gradient: "from-orange-600 to-orange-800" },
-  { id: "6", name: "Teclados", slug: "teclados-gamer-oficina", image: "/teclados.png", gradient: "from-pink-600 to-pink-800" },
-  { id: "7", name: "Routers/Extensores", slug: "routers-extensores", image: "/routers.png", gradient: "from-red-600 to-red-800" },
-  { id: "8", name: "Adaptadores", slug: "adaptadores-hdmi-vga-wifi-bt", image: "/adaptadores.png", gradient: "from-indigo-600 to-indigo-800" },
+  { id: "1", name: "Cargadores", slug: "cargadores-energia", image: "/cargadores.webp", gradient: "from-blue-600 to-blue-800" },
+  { id: "2", name: "SSD", slug: "memorias", image: "/ssd.webp", gradient: "from-purple-600 to-purple-800" },
+  { id: "3", name: "Micro SD", slug: "memorias-flash", image: "/micro-sd.webp", gradient: "from-cyan-600 to-cyan-800" },
+  { id: "4", name: "Pendrive", slug: "pendrive", image: "/pendrive.webp", gradient: "from-green-600 to-green-800" },
+  { id: "5", name: "Mouse", slug: "mouse-gamer", image: "/mouse.webp", gradient: "from-orange-600 to-orange-800" },
+  { id: "6", name: "Teclado", slug: "teclado-gamer", image: "/teclados.webp", gradient: "from-pink-600 to-pink-800" },
+  { id: "7", name: "Router", slug: "routers", image: "/routers.webp", gradient: "from-red-600 to-red-800" },
+  { id: "8", name: "Adaptadores", slug: "conversores-adaptadores-imagen", image: "/adaptadores.webp", gradient: "from-indigo-600 to-indigo-800" },
 ];
 
 /**
- * CategoryCard - Card individual con imagen real
+ * Blur placeholder como data URL base64 (1x1 px transparente)
  */
-function CategoryCard({ category }: { category: Category }) {
+const blurPlaceholder = "data:image/webp;base64,UklGRh4AAABXRUJQVlA4TDEAAAAvEAAAAEAcSARERAAABEFUd3eEAAA==";
+
+/**
+ * CategoryCard - Card individual con imagen optimizada Next.js
+ */
+function CategoryCard({ category, priority = false }: { category: Category; priority?: boolean }) {
   const ref = useRef<HTMLAnchorElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
-  const [imageError, setImageError] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
-  const hasImage = category.image && !imageError;
+  const hasImage = category.image && !hasError;
 
   return (
     <a
@@ -72,7 +77,11 @@ function CategoryCard({ category }: { category: Category }) {
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-105"
           sizes="(max-width: 768px) 50vw, 25vw"
-          onError={() => setImageError(true)}
+          quality={80}
+          priority={priority}
+          placeholder="blur"
+          blurDataURL={blurPlaceholder}
+          onError={() => setHasError(true)}
         />
       ) : (
         <div
@@ -106,11 +115,12 @@ function CategoryCard({ category }: { category: Category }) {
 }
 
 /**
- * CategoryShowcase - Grid de categorías con imágenes reales
+ * CategoryShowcase - Grid de categorías con imágenes optimizadas Next.js
  *
  * Features:
  * - 2-column grid on mobile, 4-column on desktop
- * - Imágenes reales con fallback a gradientes
+ * - Imágenes .webp optimizadas con Next.js Image
+ * - Blur placeholder para loading suave
  * - Animación sutil de entrada optimizada para iOS
  */
 export function CategoryShowcase({
@@ -130,7 +140,10 @@ export function CategoryShowcase({
             key={category.id}
             style={{ transitionDelay: `${index * 60}ms` }}
           >
-            <CategoryCard category={category} />
+            <CategoryCard 
+              category={category} 
+              priority={index < 4} // Prioridad para primeras 4 imágenes
+            />
           </div>
         ))}
       </div>

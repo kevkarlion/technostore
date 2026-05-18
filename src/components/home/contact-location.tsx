@@ -121,7 +121,7 @@ export function ContactLocation({ className }: ContactLocationProps) {
             {/* Teléfono */}
             <motion.div
               whileHover={reducedMotion ? {} : { scale: 1.02 }}
-              className="group relative overflow-hidden rounded-xl border border-zinc-700/50 bg-gradient-to-br from-zinc-900/80 via-zinc-800/50 to-zinc-900/80 p-4"
+              className="group relative overflow-hidden rounded-xl border border-zinc-700/50 bg-gradient-to-br from-zinc-900/80 via-zinc-800/50 to-zinc-900/80 p-4 will-change-transform"
             >
               <div className="flex items-start gap-3">
                 <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/30 shrink-0">
@@ -139,7 +139,7 @@ export function ContactLocation({ className }: ContactLocationProps) {
             {/* Email */}
             <motion.div
               whileHover={reducedMotion ? {} : { scale: 1.02 }}
-              className="group relative overflow-hidden rounded-xl border border-zinc-700/50 bg-gradient-to-br from-zinc-900/80 via-zinc-800/50 to-zinc-900/80 p-4"
+              className="group relative overflow-hidden rounded-xl border border-zinc-700/50 bg-gradient-to-br from-zinc-900/80 via-zinc-800/50 to-zinc-900/80 p-4 will-change-transform"
             >
               <div className="flex items-start gap-3">
                 <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/30 shrink-0">
@@ -157,7 +157,7 @@ export function ContactLocation({ className }: ContactLocationProps) {
             {/* Dirección */}
             <motion.div
               whileHover={reducedMotion ? {} : { scale: 1.02 }}
-              className="group relative overflow-hidden rounded-xl border border-zinc-700/50 bg-gradient-to-br from-zinc-900/80 via-zinc-800/50 to-zinc-900/80 p-4 sm:col-span-2"
+              className="group relative overflow-hidden rounded-xl border border-zinc-700/50 bg-gradient-to-br from-zinc-900/80 via-zinc-800/50 to-zinc-900/80 p-4 sm:col-span-2 will-change-transform"
             >
               <div className="flex items-start gap-3">
                 <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/30 shrink-0">
@@ -185,7 +185,7 @@ export function ContactLocation({ className }: ContactLocationProps) {
           {/* Horarios */}
           <motion.div
             whileHover={reducedMotion ? {} : { scale: 1.01 }}
-            className="group relative overflow-hidden rounded-xl border border-zinc-700/50 bg-gradient-to-br from-zinc-900/80 via-zinc-800/50 to-zinc-900/80 p-4"
+            className="group relative overflow-hidden rounded-xl border border-zinc-700/50 bg-gradient-to-br from-zinc-900/80 via-zinc-800/50 to-zinc-900/80 p-4 will-change-transform"
           >
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/30 shrink-0">

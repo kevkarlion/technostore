@@ -32,10 +32,10 @@ export default async function Home() {
   // (Categories are now displayed in HeroCarousel + CategoryShowcase)
 
   return (
-    <div className="space-y-20 pb-4 px-4 sm:px-6 lg:px-8">
+    <div className="space-y-10 pb-4 px-4 sm:px-6 lg:px-8 pt-8">
       {/* 1. Premium Hero - Compact version */}
       <section className="space-y-3">
-        <h1 className="text-2xl font-bold md:text-3xl">
+        <h1 className="text-3xl font-extrabold md:text-5xl uppercase">
           <span className="text-[var(--foreground)]">Tu tienda de </span>
           <span className="text-[var(--accent)]">tecnología</span>
         </h1>
@@ -97,7 +97,10 @@ export default async function Home() {
             href="https://wa.me/541112345678"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-3 px-10 py-5 text-lg font-bold rounded-2xl bg-[var(--accent)] text-zinc-900 hover:opacity-90 transition-all shadow-xl shadow-[var(--accent)]/40"
+            className="inline-flex items-center justify-center gap-3 px-10 py-5 text-lg font-bold rounded-lg bg-[var(--accent)] text-zinc-900 hover:opacity-90 transition-all shadow-xl shadow-[var(--accent)]/40"
+            style={{
+              background: "linear-gradient(90deg, #00D2B4 0%, #2D77A2 50%, #4B4A94 100%)",
+            }}
           >
             Potencia tu setup
             <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

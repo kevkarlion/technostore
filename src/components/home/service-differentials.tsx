@@ -91,17 +91,20 @@ export function ServiceDifferentials({
               ease: EASE.emphasis,
             }}
             whileHover={reducedMotion ? {} : { scale: 1.02, y: -2 }}
+            style={{ willChange: "transform" }}
             className={clsx(
               "group relative overflow-hidden rounded-2xl",
               "border backdrop-blur-sm transition-all duration-300",
               "bg-gradient-to-br shadow-lg shadow-black/20",
               cardGradient,
-              borderColor
+              borderColor,
+              // Fix Safari flicker: force GPU compositing layer
+              "backface-hidden"
             )}
           >
             {/* Gradient overlay on hover */}
             <div className={clsx(
-              "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
+              "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 will-change-opacity",
               "bg-gradient-to-br",
               cardGradient
             )} />

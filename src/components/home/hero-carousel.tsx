@@ -128,7 +128,7 @@ const HeroSlideContent = memo(function HeroSlideContent({
       />
 
       {/* Content */}
-      <div className="absolute inset-0 flex flex-col justify-end pb-12 px-5 sm:px-8 md:px-16 lg:px-20">
+      <div className="absolute inset-0 flex flex-col justify-end pb-6 px-5 sm:px-8 md:px-16 lg:px-20">
         <div className="w-full max-w-full">
           {/* Badge */}
           {slide.badge && (
@@ -180,7 +180,10 @@ const NavigationArrow = memo(function NavigationArrow({
   return (
     <button
       onClick={onClick}
-      className="hidden md:flex absolute top-1/2 z-20 -translate-y-1/2 rounded-full bg-black/50 p-3 text-white backdrop-blur-sm transition hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 focus:ring-offset-black/50"
+      className={clsx(
+        "hidden md:flex absolute top-1/2 z-20 -translate-y-1/2 rounded-full bg-black/50 p-3 text-white backdrop-blur-sm transition hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 focus:ring-offset-black/50",
+        direction === "prev" ? "left-3" : "right-3"
+      )}
       aria-label={ariaLabel}
     >
       {direction === "prev" ? (
@@ -188,7 +191,7 @@ const NavigationArrow = memo(function NavigationArrow({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
       ) : (
-        <svg className="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       )}

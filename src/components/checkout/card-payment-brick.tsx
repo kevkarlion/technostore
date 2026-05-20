@@ -22,6 +22,7 @@ export function CardPaymentBrick({
   useEffect(() => {
     const init = async () => {
       try {
+        console.log("[MP] Public key being used:", process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY);
         await initMercadoPago(process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY);
         setReady(true);
       } catch (e) {

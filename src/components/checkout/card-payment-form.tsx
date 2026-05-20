@@ -151,7 +151,7 @@ export function CardPaymentForm({ amount, customerEmail, onPaymentSuccess, onPay
         total_amount: amount.toFixed(2),
         external_reference: `ORD-${Date.now()}`,
         payer: {
-          email: customerEmail || "test@testuser.com",
+          email: customerEmail || (process.env.NEXT_PUBLIC_MP_ENV === 'sandbox' ? "test@testuser.com" : "cliente@placeholder.com"),
           first_name: "Cliente",
           last_name: "Test",
           identification: {

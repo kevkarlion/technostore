@@ -203,10 +203,11 @@ export default function CheckoutPage() {
       console.log("[Checkout] Installments:", data.installments);
       console.log("[Checkout] Sending totalAmount:", totalAmount);
 
-      // For sandbox, always use test@testuser.com
-      const payerEmail = data.payer.email.includes('@testuser.com') 
-        ? data.payer.email 
-        : 'test@testuser.com';
+      // Use real email in production, test email only in sandbox
+      const isSandbox = process.env.NEXT_PUBLIC_MP_ENV === 'sandbox';
+      const payerEmail = isSandbox
+        ? (data.payer.email.includes('@testuser.com') ? data.payer.email : 'test@testuser.com')
+        : data.payer.email;
       
       const payload = {
         externalReference: `ORD-${Date.now()}`,

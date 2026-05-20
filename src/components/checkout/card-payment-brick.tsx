@@ -76,7 +76,7 @@ export function CardPaymentBrick({
         initialization={{
           amount: initialAmount,
           payer: {
-            email: customerEmail || "test@testuser.com",
+            email: customerEmail || (process.env.NEXT_PUBLIC_MP_ENV === 'sandbox' ? "test@testuser.com" : undefined),
           },
         }}
         onSubmit={onSubmit}

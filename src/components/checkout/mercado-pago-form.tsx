@@ -72,7 +72,7 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
           onError("Error al cargar Mercado Pago");
           return;
         }
-        mpRef.current = new mp("APP_USR-b17e9b0b-1892-44c1-a944-dfc4e67aa7c9");
+        mpRef.current = new mp(process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY);
         
         try {
           const idTypes = await mpRef.current.getIdentificationTypes();

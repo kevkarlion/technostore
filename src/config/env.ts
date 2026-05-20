@@ -14,7 +14,7 @@ const envSchema = z.object({
   CRON_SECRET: z.string().optional(),
   // Mercado Pago
   MERCADOPAGO_ACCESS_TOKEN: z.string().min(1, "MERCADOPAGO_ACCESS_TOKEN is required"),
-  MERCADOPAGO_PUBLIC_KEY: z.string().min(1, "MERCADOPAGO_PUBLIC_KEY is required"),
+  NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY: z.string().min(1, "NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY is required"),
   MERCADOPAGO_WEBHOOK_SECRET: z.string().optional(),
   // Supplier scraper configuration
   SUPPLIER_URL: z.string().url().optional(),
@@ -42,7 +42,7 @@ export function getEnv(): Env {
     CLOUDINARY_FOLDER: process.env.CLOUDINARY_FOLDER,
     CRON_SECRET: process.env.CRON_SECRET,
     MERCADOPAGO_ACCESS_TOKEN: process.env.MERCADOPAGO_ACCESS_TOKEN,
-    MERCADOPAGO_PUBLIC_KEY: process.env.MERCADOPAGO_PUBLIC_KEY,
+    NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY: process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY,
     MERCADOPAGO_WEBHOOK_SECRET: process.env.MERCADOPAGO_WEBHOOK_SECRET,
     SUPPLIER_URL: process.env.SUPPLIER_URL,
     SUPPLIER_LOGIN_URL: process.env.SUPPLIER_LOGIN_URL,

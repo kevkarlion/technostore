@@ -22,7 +22,7 @@ export function CardPaymentBrick({
   useEffect(() => {
     const init = async () => {
       try {
-        await initMercadoPago("APP_USR-b17e9b0b-1892-44c1-a944-dfc4e67aa7c9");
+        await initMercadoPago(process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY);
         setReady(true);
       } catch (e) {
         console.error("[MP] Init error:", e);

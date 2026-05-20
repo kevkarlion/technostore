@@ -1,0 +1,47 @@
+"use client";
+
+import { useAdminStore } from "@/store/admin-store";
+import { AdminSidebar } from "./AdminSidebar";
+import { SectionRenderer } from "./SectionRenderer";
+import { Menu, X } from "lucide-react";
+
+export function AdminDashboard() {
+  const { sidebarOpen, setSidebarOpen, sidebarCollapsed } = useAdminStore();
+
+  const sidebarWidth = sidebarCollapsed ? "w-16" : "w-64";
+
+  return (
+    <div className="min-h-screen bg-[var(--background)]">
+      {/* Mobile menu toggle */}
+      <button
+        className="fixed top-4 left-4 z-50 rounded-lg bg-[var(--surface)] p-2 text-[var(--foreground)] transition hover:bg-[var(--surface-hover)] lg:hidden"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        aria-label={sidebarOpen ? "Close menu" : "Open menu"}
+      >
+        {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      </button>
+
+      {/* Overlay for mobile */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <AdminSidebar />
+
+      {/* Main content area */}
+      <main
+        className={`min-h-screen transition-all duration-300 ${
+          sidebarCollapsed ? "lg:pl-16" : "lg:pl-64"
+        }`}
+      >
+        <div className="p-6 lg:p-8 pt-16 lg:pt-8">
+          <SectionRenderer />
+        </div>
+      </main>
+    </div>
+  );
+}

@@ -46,7 +46,7 @@ export function AdminSidebar() {
   const handleNavClick = (section: typeof activeSection) => {
     setActiveSection(section);
     // Close mobile sidebar after navigation
-    if (window.innerWidth < 1024) {
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
       setSidebarOpen(false);
     }
   };

@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, Mail, Send, ChevronLeft, Clock } from "lucide-react";
+import { Search, Mail, Send, ChevronLeft } from "lucide-react";
 
 interface Message {
   id: string;
@@ -73,7 +72,6 @@ export default function AdminMessages() {
 
   const handleSendReply = () => {
     if (!replyText.trim()) return;
-    // TODO: Implement actual reply logic
     setReplyText("");
     setSelectedMessage(null);
   };

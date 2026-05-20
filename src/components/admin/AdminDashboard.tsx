@@ -8,8 +8,6 @@ import { Menu, X } from "lucide-react";
 export function AdminDashboard() {
   const { sidebarOpen, setSidebarOpen, sidebarCollapsed } = useAdminStore();
 
-  const sidebarWidth = sidebarCollapsed ? "w-16" : "w-64";
-
   return (
     <div className="min-h-screen bg-[var(--background)]">
       {/* Mobile menu toggle */}

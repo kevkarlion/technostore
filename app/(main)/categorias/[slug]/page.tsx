@@ -86,7 +86,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             {subcategories.map((sub) => (
               <Link
                 key={sub.id}
-                href={`/category/${slug}/${sub.slug}`}
+                href={`/categorias/${sub.slug}`}
                 className="group flex flex-col items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--surface)] p-4 text-center transition hover:border-[var(--accent)] hover:bg-[var(--surface-hover)]"
               >
                 <span className="text-sm font-medium text-[var(--foreground)] group-hover:text-[var(--accent)]">
@@ -132,7 +132,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       products={products}
       result={result}
       currentPage={currentPage}
-      baseUrl={`/category/${slug}`}
+      baseUrl={`/categorias/${slug}`}
       categorySlug={slug}
       priceRange={priceRange}
       brands={availableBrands}

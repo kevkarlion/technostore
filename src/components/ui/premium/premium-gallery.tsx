@@ -10,7 +10,7 @@ import { Price } from "@/components/ui/price";
 import { GlassContainer } from "@/components/ui/premium/glass-container";
 import { AnimatedBadge } from "@/components/ui/premium/animated-badge";
 import { useMotionPreferences } from "@/lib/motion-config";
-import { AddToCartButton } from "../../../../app/productos/[slug]/add-to-cart-button";
+import { AddToCartButton } from "../../../../app/(main)/productos/[slug]/add-to-cart-button";
 
 interface PremiumGalleryProps {
   product: Product;

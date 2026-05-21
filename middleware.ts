@@ -7,6 +7,13 @@ const BYPASS_COOKIE = "maintenance-bypass";
 export function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
 
+  // Redirect /category/* → /categorias/* (migración de ruta)
+  if (pathname.startsWith("/category/")) {
+    const dest = new URL(request.url);
+    dest.pathname = pathname.replace(/^\/category/, "/categorias");
+    return NextResponse.redirect(dest, { status: 308 });
+  }
+
   // Rutas que siempre permiten acceso
   const alwaysAllowed = [
     "/maintenance",

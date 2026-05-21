@@ -11,14 +11,16 @@ import { badRequest } from "../errors/http-error";
 const listQuerySchema = z.object({
   page: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().positive().optional(),
+  search: z.string().optional(),
 });
 
 export const productController = {
   async list(req: NextRequest) {
     const url = new URL(req.url);
     const parsed = listQuerySchema.safeParse({
-      page: url.searchParams.get("page"),
-      limit: url.searchParams.get("limit"),
+      page: url.searchParams.get("page") ?? undefined,
+      limit: url.searchParams.get("limit") ?? undefined,
+      search: url.searchParams.get("search") ?? undefined,
     });
     if (!parsed.success) {
       throw badRequest("Invalid query params", parsed.error.flatten());
@@ -30,6 +32,7 @@ export const productController = {
       total: result.total,
       page: result.page,
       limit: result.limit,
+      totalPages: result.totalPages,
     };
   },
 
@@ -50,6 +53,16 @@ export const productController = {
       throw notFound("Product not found");
     }
     return productMapper.toResponse(product);
+  },
+
+  async update(req: NextRequest, id: string, body: unknown) {
+    const parsed = updateProductSchema.safeParse(body);
+    if (!parsed.success) {
+      throw badRequest("Invalid product data", parsed.error.flatten());
+    }
+
+    const updated = await productService.updateProduct(id, parsed.data);
+    return productMapper.toResponse(updated);
   },
 };
 

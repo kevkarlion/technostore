@@ -6,6 +6,7 @@ import { notFound } from "../errors/http-error";
 export interface ListProductsInput {
   page?: number;
   limit?: number;
+  search?: string;
 }
 
 export const productService = {
@@ -13,6 +14,7 @@ export const productService = {
     return productRepository.findPaginated({
       page: input.page,
       limit: input.limit,
+      search: input.search,
     });
   },
 

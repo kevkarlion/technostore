@@ -10,6 +10,7 @@ const COLLECTION_NAME = "products";
 export interface ListProductsParams {
   page?: number;
   limit?: number;
+  search?: string;
 }
 
 export interface PaginatedResult<T> {
@@ -32,14 +33,23 @@ export const productRepository = {
 
     const collection = db.collection(COLLECTION_NAME);
 
+    const filter: Record<string, any> = { status: "active" };
+    if (params.search && params.search.trim()) {
+      const escaped = params.search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      filter.$or = [
+        { name: { $regex: escaped, $options: "i" } },
+        { description: { $regex: escaped, $options: "i" } },
+      ];
+    }
+
     const [docs, total] = await Promise.all([
       collection
-        .find({ status: "active" })
+        .find(filter)
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 })
         .toArray(),
-      collection.countDocuments({ status: "active" }),
+      collection.countDocuments(filter),
     ]);
 
     return {
@@ -158,9 +168,22 @@ export const productRepository = {
 
     const now = new Date();
 
+    const setFields: Record<string, any> = { ...data, updatedAt: now };
+
+    // Si se están actualizando imageUrls y contienen URLs de Cloudinary,
+    // sincronizar también cloudinaryUrls para que el front las muestre
+    if (data.imageUrls && data.imageUrls.length > 0) {
+      const cloudinaryUrls = data.imageUrls.filter(
+        (url: string) => url.includes("res.cloudinary.com")
+      );
+      if (cloudinaryUrls.length > 0) {
+        setFields.cloudinaryUrls = cloudinaryUrls;
+      }
+    }
+
     const doc = await collection.findOneAndUpdate(
       { _id: new ObjectId(id) },
-      { $set: { ...data, updatedAt: now } },
+      { $set: setFields },
       { returnDocument: "after" }
     );
 

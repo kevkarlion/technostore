@@ -27,3 +27,27 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     );
   }
 }
+
+export async function PATCH(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params;
+    const body = await req.json();
+
+    const result = await productController.update(req, id, body);
+    return NextResponse.json(result, { status: 200 });
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return NextResponse.json(
+        { message: error.message, details: error.details },
+        { status: error.status }
+      );
+    }
+
+    const fallback = internalServerError();
+    console.error("Unexpected error in PATCH /api/products/[id]:", error);
+    return NextResponse.json(
+      { message: fallback.message },
+      { status: fallback.status }
+    );
+  }
+}

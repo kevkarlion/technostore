@@ -1,50 +1,180 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Edit, Trash2, Image as ImageIcon } from "lucide-react";
+import {
+  Search,
+  Edit2,
+  Save,
+  X,
+  Plus,
+  Image as ImageIcon,
+  Package,
+  AlertTriangle,
+  RefreshCw,
+} from "lucide-react";
+import { Toaster, toast } from "sonner";
+import ProductFormModal from "../ProductFormModal";
 
 interface Product {
   id: string;
   name: string;
   price: number;
   stock: number;
+  inStock: boolean;
   category: string;
-  status: "active" | "draft" | "archived";
+  status: string;
+  imageUrl?: string;
 }
 
-// Mock data
-const mockProducts: Product[] = [
-  { id: "1", name: "Monitor LG UltraGear 27\"", price: 459.99, stock: 15, category: "Monitores", status: "active" },
-  { id: "2", name: "Teclado Mecánico RGB", price: 129.99, stock: 42, category: "Periféricos", status: "active" },
-  { id: "3", name: "Auriculares Sony WH-1000XM5", price: 349.99, stock: 8, category: "Audio", status: "active" },
-  { id: "4", name: "Mouse Gaming Pro X", price: 79.99, stock: 65, category: "Periféricos", status: "active" },
-  { id: "5", name: "Webcam 4K Ultra HD", price: 159.99, stock: 23, category: "Cámaras", status: "draft" },
-];
+interface FetchResponse {
+  items: Product[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 15;
 
 export default function AdminProducts() {
-  const [search, setSearch] = useState("");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [products] = useState<Product[]>(mockProducts);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [editingStock, setEditingStock] = useState<string | null>(null);
+  const [stockValue, setStockValue] = useState<number>(0);
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [editProduct, setEditProduct] = useState<{
+    id: string;
+    name: string;
+    description?: string;
+    price: number;
+    currency: string;
+    stock: number;
+    inStock: boolean;
+    status: string;
+    categories: string[];
+    imageUrls: string[];
+  } | null>(null);
+  const [loadingEdit, setLoadingEdit] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const filteredProducts = products.filter(
-    (p) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.category.toLowerCase().includes(search.toLowerCase())
-  );
+  const fetchProducts = useCallback(async (search: string, page: number) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams();
+      params.set("limit", String(ITEMS_PER_PAGE));
+      params.set("page", String(page));
+      if (search.trim()) params.set("search", search.trim());
 
-  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+      const res = await fetch(`/api/products?${params.toString()}`);
+      if (!res.ok) throw new Error("Error al cargar productos");
+      const data: FetchResponse = await res.json();
+
+      const mapped: Product[] = (data.items || []).map((p: any) => ({
+        id: p.id || p._id,
+        name: p.name || "Sin nombre",
+        price: p.price ?? 0,
+        stock: p.stock ?? p.stockQuantity ?? 0,
+        inStock: p.inStock ?? false,
+        category: p.categories?.[0] || "Sin categoría",
+        status: p.status || "active",
+        imageUrl: p.images?.[0]?.src || p.imageUrls?.[0],
+      }));
+
+      setProducts(mapped);
+      setTotalItems(data.total);
+      setTotalPages(data.totalPages);
+    } catch (err) {
+      console.error("[AdminProducts] Error:", err);
+      setError(
+        err instanceof Error ? err.message : "Error al cargar productos"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Debounce del input de búsqueda
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearchQuery(value);
+      setCurrentPage(1);
+    }, 350);
+  };
+
+  // Fetch cuando cambia searchQuery o currentPage
+  useEffect(() => {
+    fetchProducts(searchQuery, currentPage);
+  }, [searchQuery, currentPage, fetchProducts]);
+
+  // Cleanup del debounce
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  const handleStockSave = async (productId: string, newStock: number) => {
+    try {
+      const res = await fetch(`/api/products/${productId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          stock: newStock,
+          inStock: newStock > 0,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Error al actualizar stock");
+
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === productId
+            ? { ...p, stock: newStock, inStock: newStock > 0 }
+            : p
+        )
+      );
+
+      setEditingStock(null);
+      toast.success("Stock actualizado");
+    } catch (err) {
+      console.error("[AdminProducts] Stock update error:", err);
+      toast.error("Error al actualizar stock");
+    }
+  };
+
+  const lowStockCount = products.filter((p) => p.stock > 0 && p.stock < 10).length;
+  const outOfStockCount = products.filter((p) => p.stock === 0).length;
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-rose-800/50 bg-rose-950/20 py-16">
+          <AlertTriangle className="h-12 w-12 text-rose-400" />
+          <p className="mt-4 text-sm text-rose-400">{error}</p>
+          <Button onClick={() => fetchProducts(searchQuery, currentPage)} className="mt-4">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Reintentar
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      <Toaster position="top-right" />
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -52,7 +182,11 @@ export default function AdminProducts() {
             Productos
           </h1>
           <p className="mt-1 text-sm text-[var(--foreground-muted)]">
-            {filteredProducts.length} productos
+            {loading
+              ? "Cargando..."
+              : searchQuery
+              ? `${totalItems} resultados para "${searchQuery}"`
+              : `${totalItems} productos`}
           </p>
         </div>
         <div className="flex gap-2">
@@ -60,14 +194,76 @@ export default function AdminProducts() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--foreground-muted)]" />
             <Input
               placeholder="Buscar productos..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={searchInput}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="w-64 pl-9"
             />
           </div>
-          <Button iconLeft={<Plus className="h-4 w-4" />}>
-            Añadir producto
+          <Button onClick={() => { setEditProduct(null); setShowProductForm(true); }}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo
           </Button>
+          <Button
+            variant="outline"
+            onClick={() => fetchProducts(searchQuery, currentPage)}
+            disabled={loading}
+          >
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
+            />
+            Actualizar
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-emerald-500/10 p-2">
+              <Package className="h-5 w-5 text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-semibold text-[var(--foreground)]">
+                {totalItems}
+              </p>
+              <p className="text-xs text-[var(--foreground-muted)]">
+                Productos activos
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-amber-500/10 p-2">
+              <AlertTriangle className="h-5 w-5 text-amber-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-semibold text-[var(--foreground)]">
+                {lowStockCount}
+              </p>
+              <p className="text-xs text-[var(--foreground-muted)]">
+                Stock bajo (&lt;10)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-rose-500/10 p-2">
+              <X className="h-5 w-5 text-rose-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-semibold text-[var(--foreground)]">
+                {outOfStockCount}
+              </p>
+              <p className="text-xs text-[var(--foreground-muted)]">
+                Sin stock
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -97,80 +293,176 @@ export default function AdminProducts() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/50">
-            {paginatedProducts.map((product) => (
-              <tr
-                key={product.id}
-                className="transition-colors hover:bg-slate-900/30"
-              >
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-800">
-                      <ImageIcon className="h-5 w-5 text-[var(--foreground-muted)]" />
-                    </div>
-                    <span className="text-sm font-medium text-[var(--foreground)]">
-                      {product.name}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <span className="text-sm text-[var(--foreground-muted)]">
-                    {product.category}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <span className="text-sm font-medium text-[var(--foreground)]">
-                    ${product.price.toFixed(2)}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`text-sm font-medium ${
-                      product.stock < 10
-                        ? "text-rose-400"
-                        : "text-[var(--foreground)]"
-                    }`}
-                  >
-                    {product.stock}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <Badge
-                    tone={
-                      product.status === "active"
-                        ? "success"
-                        : product.status === "draft"
-                        ? "warning"
-                        : "default"
-                    }
-                  >
-                    {product.status}
-                  </Badge>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button variant="ghost" size="sm">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-rose-400 hover:text-rose-300"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+            {loading ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-12 text-center text-sm text-[var(--foreground-muted)]">
+                  Cargando productos...
                 </td>
               </tr>
-            ))}
+            ) : products.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-12 text-center text-sm text-[var(--foreground-muted)]">
+                  {searchQuery
+                    ? `No se encontraron productos para "${searchQuery}"`
+                    : "No hay productos cargados. Corré el scraper primero."}
+                </td>
+              </tr>
+            ) : (
+              products.map((product) => (
+                <tr
+                  key={product.id}
+                  className="transition-colors hover:bg-slate-900/30"
+                >
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-slate-800">
+                        {product.imageUrl ? (
+                          <img
+                            src={product.imageUrl}
+                            alt={product.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <ImageIcon className="h-5 w-5 text-[var(--foreground-muted)]" />
+                        )}
+                      </div>
+                      <span className="max-w-xs truncate text-sm font-medium text-[var(--foreground)]">
+                        {product.name}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-sm text-[var(--foreground-muted)]">
+                      {product.category}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-sm font-medium text-[var(--foreground)]">
+                      ${product.price.toFixed(2)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {editingStock === product.id ? (
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type="number"
+                          min={0}
+                          value={stockValue}
+                          onChange={(e) =>
+                            setStockValue(parseInt(e.target.value) || 0)
+                          }
+                          className="h-8 w-20 text-sm"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter")
+                              handleStockSave(product.id, stockValue);
+                            if (e.key === "Escape") setEditingStock(null);
+                          }}
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            handleStockSave(product.id, stockValue)
+                          }
+                          className="h-8 w-8 p-0 text-emerald-400"
+                        >
+                          <Save className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setEditingStock(null)}
+                          className="h-8 w-8 p-0 text-rose-400"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setEditingStock(product.id);
+                          setStockValue(product.stock);
+                        }}
+                        className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-medium transition hover:bg-slate-800 ${
+                          product.stock === 0
+                            ? "text-rose-400"
+                            : product.stock < 10
+                            ? "text-amber-400"
+                            : "text-[var(--foreground)]"
+                        }`}
+                      >
+                        <span>{product.stock}</span>
+                        <Edit2 className="h-3 w-3 opacity-0 group-hover:opacity-100" />
+                      </button>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge
+                      tone={
+                        product.status === "active"
+                          ? "success"
+                          : product.status === "discontinued"
+                          ? "danger"
+                          : "warning"
+                      }
+                    >
+                      {product.status === "active"
+                        ? "Activo"
+                        : product.status === "discontinued"
+                        ? "Descontinuado"
+                        : product.status}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={loadingEdit}
+                        onClick={async () => {
+                          setLoadingEdit(true);
+                          try {
+                            const res = await fetch(`/api/products/${product.id}`);
+                            if (!res.ok) throw new Error("Error al cargar producto");
+                            const data = await res.json();
+                            setEditProduct({
+                              id: data.id || data._id,
+                              name: data.name,
+                              description: data.description,
+                              price: data.price,
+                              currency: data.currency || "USD",
+                              stock: data.stock ?? 0,
+                              inStock: data.inStock ?? false,
+                              status: data.status || "active",
+                              categories: data.categories || [],
+                              imageUrls: data.imageUrls || [],
+                            });
+                            setShowProductForm(true);
+                          } catch (err) {
+                            console.error("[AdminProducts] Error fetching product:", err);
+                            toast.error("Error al cargar producto para editar");
+                          } finally {
+                            setLoadingEdit(false);
+                          }
+                        }}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {!loading && totalPages > 1 && (
         <div className="flex items-center justify-between">
           <span className="text-sm text-[var(--foreground-muted)]">
-            Página {currentPage} de {totalPages}
+            Página {currentPage} de {totalPages} · {totalItems} productos
           </span>
           <div className="flex gap-2">
             <Button
@@ -192,6 +484,13 @@ export default function AdminProducts() {
           </div>
         </div>
       )}
+
+      <ProductFormModal
+        open={showProductForm}
+        onClose={() => { setShowProductForm(false); setEditProduct(null); }}
+        onSuccess={() => fetchProducts(searchQuery, 1)}
+        editProduct={editProduct}
+      />
     </div>
   );
 }

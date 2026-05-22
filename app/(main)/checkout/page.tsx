@@ -183,8 +183,8 @@ export default function CheckoutPage() {
       // Always use order API for all payment types
       const endpoint = "/api/mercadopago/order";
 
-      // Calculate total from items
-      const totalAmount = Math.round(paymentItems.reduce((acc, item) => acc + item.unit_price * item.quantity, 0));
+      // Calculate total with taxes (same as order totals below)
+      const totalAmount = Math.round(total);
       
       // Determine if it's a card payment
       const isCard = data.type === "card";

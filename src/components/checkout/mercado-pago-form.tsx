@@ -22,27 +22,24 @@ interface MercadoPagoFormProps {
   onError: (error: string) => void;
 }
 
-// Card brand logos (SVG)
+// Card brand logos — ultra-simple, guaranteed to render
 const CardBrands = {
   visa: () => (
-    <svg viewBox="0 0 48 32" className="h-6 w-auto">
-      <rect fill="#1A1F71" width="48" height="32" rx="4"/>
-      <path fill="#F7B600" d="M19.5 21.5h-3l2.5-15h3l-2.5 15zm9.5-14.5c-1.5-.5-3.5-.5-5.5 0l-1 5c0 0 2.5-.5 4 .5s3.5 1 5-1l.5-4.5h-3zm6 14.5h-3l2-12 4.5 8c0 0-1 2.5-3.5 4zm6.5-14.5c-1.5-.5-3.5-.5-5.5 0l-1.5 6.5 1.5 1c1.5 1 3 1 4.5 0l1-4.5c.5-1.5 0-3-.5-3z"/>
-    </svg>
+    <div className="flex items-center justify-center h-6 w-9 rounded bg-[#1A1F71] text-[10px] font-bold text-[#F7B600] leading-none px-1">
+      VISA
+    </div>
   ),
   mastercard: () => (
-    <svg viewBox="0 0 48 32" className="h-6 w-auto">
-      <rect fill="#000" width="48" height="32" rx="4"/>
-      <circle fill="#EB001B" cx="18" cy="16" r="8"/>
-      <circle fill="#F79E1B" cx="30" cy="16" r="8"/>
-      <path fill="#FF5F00" d="M24 10.5c2.5 2 4 5 4 8s-1.5 6-4 8c-2.5-2-4-5-4-8s1.5-6 4-8z"/>
-    </svg>
+    <div className="flex items-center justify-center h-6 w-9 rounded bg-black text-[10px] font-bold text-white leading-none relative overflow-hidden">
+      <span className="absolute -left-0.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-[#EB001B] opacity-80" />
+      <span className="absolute -right-0.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-[#F79E1B] opacity-80" />
+      <span className="relative z-10 text-[7px] font-black tracking-tight">MC</span>
+    </div>
   ),
   amex: () => (
-    <svg viewBox="0 0 48 32" className="h-6 w-auto">
-      <rect fill="#016FD0" width="48" height="32" rx="4"/>
-      <text x="24" y="20" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">AMEX</text>
-    </svg>
+    <div className="flex items-center justify-center h-6 w-9 rounded bg-[#016FD0] text-[8px] font-bold text-white leading-none px-1">
+      AMEX
+    </div>
   ),
 };
 
@@ -308,11 +305,11 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
                 placeholder="1234 5678 9012 3456"
                 maxLength={19}
                 autoComplete="cc-number"
-                className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-base placeholder:text-slate-500 focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors"
+                className="w-full px-4 py-3 pr-14 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-base placeholder:text-slate-500 focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors"
               />
               {/* Card brand icon */}
               {cardBrand && CardBrands[cardBrand as keyof typeof CardBrands] && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
                   {CardBrands[cardBrand as keyof typeof CardBrands]()}
                 </div>
               )}

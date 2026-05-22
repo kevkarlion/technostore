@@ -11,6 +11,7 @@ interface MercadoPagoFormProps {
     type: PaymentMethodType;
     token?: string;
     paymentMethodId?: string;
+    paymentTypeId?: string;
     installments?: number;
     payer: {
       email: string;
@@ -54,6 +55,7 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
   const [paymentMethodType, setPaymentMethodType] = useState<PaymentMethodType>("card");
   const [identificationTypes, setIdentificationTypes] = useState<{ id: string; name: string }[]>([]);
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string>("");
+  const [paymentTypeId, setPaymentTypeId] = useState<string>("");
   const [selectedInstallments, setSelectedInstallments] = useState<number>(1);
   const [installmentsList, setInstallmentsList] = useState<any[]>([]);
   const [isLoadingInstallments, setIsLoadingInstallments] = useState(false);
@@ -102,6 +104,15 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
         if (pmResponse.results && pmResponse.results.length > 0) {
           const pm = pmResponse.results[0];
           setSelectedPaymentMethodId(pm.id);
+          setPaymentTypeId(pm.payment_type_id);
+          
+          // Debit cards don't support installments — force 1 cuota
+          if (pm.payment_type_id === "debit_card") {
+            setInstallmentsList([]);
+            setSelectedInstallments(1);
+            setIsLoadingInstallments(false);
+            return;
+          }
           
           try {
             const installmentsResponse = await mpRef.current.getInstallments({
@@ -166,6 +177,7 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
           type: "card",
           token: token.id,
           paymentMethodId,
+          paymentTypeId,
           installments: selectedInstallments,
           payer: {
             email: customerEmail,
@@ -378,6 +390,10 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
               <div className="flex items-center gap-2 py-3 px-4 bg-slate-900/50 rounded-lg">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#009EE3]"></div>
                 <span className="text-sm text-slate-400">Cargando...</span>
+              </div>
+            ) : paymentTypeId === "debit_card" ? (
+              <div className="p-3 bg-slate-900/50 rounded-lg text-sm text-slate-300">
+                Pago único (1 cuota) — las tarjetas de débito no permiten cuotas
               </div>
             ) : selectedPaymentMethodId ? (
               <div className="space-y-2">

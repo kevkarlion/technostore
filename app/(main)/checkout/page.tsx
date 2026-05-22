@@ -156,6 +156,7 @@ export default function CheckoutPage() {
       type: "card" | "rapipago" | "pagofacil";
       token?: string;
       paymentMethodId?: string;
+      paymentTypeId?: string;
       installments?: number;
       payer: {
         email: string;
@@ -209,6 +210,8 @@ export default function CheckoutPage() {
         ? (data.payer.email.includes('@testuser.com') ? data.payer.email : 'test@testuser.com')
         : data.payer.email;
       
+      const paymentType = isCard ? (data.paymentTypeId || "credit_card") : "ticket";
+
       const payload = {
         externalReference: `ORD-${Date.now()}`,
         total_amount: totalAmount, // Send as number, not string
@@ -224,7 +227,7 @@ export default function CheckoutPage() {
               amount: totalAmount,
               payment_method: {
                 id: paymentMethodId,
-                type: isCard ? "credit_card" : "ticket",
+                type: paymentType,
                 token: data.token,
                 installments: data.installments || 1,
               },

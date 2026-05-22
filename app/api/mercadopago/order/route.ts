@@ -21,6 +21,7 @@ interface OrderRequest {
   paymentMethodId?: string;
   token?: string;
   installments?: number;
+  payment_type_id?: string;
   total_amount?: string;
   transactions?: {
     payments: Array<{
@@ -99,12 +100,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Determine payment method type - if it's a known card, use credit_card, otherwise ticket
-    const cardPaymentMethods = ["visa", "master", "amex", "elo", "hipercard", "carnet"];
-    const isCard = cardPaymentMethods.some(pm => 
-      paymentMethodId.toLowerCase().includes(pm.toLowerCase())
-    );
-    const paymentMethodType = isCard ? "credit_card" : "ticket";
+    // Determine payment method type - use real type from frontend, or fallback detection
+    const paymentMethodType = body.payment_type_id 
+      || (body.transactions?.payments?.[0]?.payment_method?.type)
+      || "credit_card";
     
     // Get token from body or from transactions
     const token = body.token || body.transactions?.payments?.[0]?.payment_method?.token;

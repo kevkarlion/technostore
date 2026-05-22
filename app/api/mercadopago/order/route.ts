@@ -80,14 +80,6 @@ export async function POST(req: NextRequest) {
         : parseFloat(body.transactions.payments[0].amount);
     }
     
-    // Validate minimum amount per Mercado Pago requirements
-    if (totalAmount < 0.50) {
-      return NextResponse.json<ErrorResponse>(
-        { message: "El monto mínimo es de $0.50" },
-        { status: 400 }
-      );
-    }
-    
     console.log("[MP Order] Final totalAmount:", totalAmount);
 
     // If still no amount, fail

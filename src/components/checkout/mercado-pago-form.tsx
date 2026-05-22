@@ -30,10 +30,9 @@ const CardBrands = {
     </div>
   ),
   mastercard: () => (
-    <div className="flex items-center justify-center h-6 w-9 rounded bg-black text-[10px] font-bold text-white leading-none relative overflow-hidden">
-      <span className="absolute -left-0.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-[#EB001B] opacity-80" />
-      <span className="absolute -right-0.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-[#F79E1B] opacity-80" />
-      <span className="relative z-10 text-[7px] font-black tracking-tight">MC</span>
+    <div className="flex items-center justify-center h-6 w-9 rounded bg-white relative">
+      <span className="absolute left-[6px] top-1/2 -translate-y-1/2 w-[14px] h-[14px] rounded-full bg-[#EB001B]" />
+      <span className="absolute left-[10px] top-1/2 -translate-y-1/2 w-[14px] h-[14px] rounded-full bg-[#FF5F00]" />
     </div>
   ),
   amex: () => (

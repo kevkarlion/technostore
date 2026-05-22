@@ -8,9 +8,26 @@ export interface CustomerData {
   lastName: string;
   email: string;
   phone: string;
-  address: string;
+  street: string;
+  number: string;
+  floor?: string;
+  apartment?: string;
+  tower?: string;
+  province: string;
   city: string;
   postalCode: string;
+  additionalInstructions?: string;
+  saveAddress: boolean;
+  sameForBilling: boolean;
+}
+
+/** Compose a single address line from structured fields, for backward compat */
+export function composeFullAddress(data: CustomerData): string {
+  const parts = [data.street, data.number];
+  if (data.floor) parts.push(`Piso ${data.floor}`);
+  if (data.apartment) parts.push(`Depto ${data.apartment}`);
+  if (data.tower) parts.push(`Torre ${data.tower}`);
+  return parts.join(", ");
 }
 
 export interface OrderResult {
@@ -114,7 +131,7 @@ export async function createMercadoPagoPreference(
       email: customer.email,
       phone: { number: customer.phone },
       address: {
-        street_name: customer.address,
+        street_name: composeFullAddress(customer),
         zip_code: customer.postalCode,
       },
     },

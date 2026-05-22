@@ -189,14 +189,24 @@ export function OrderDetailModal({ order, onClose }: OrderDetailModalProps) {
                     {order.customer.phone}
                   </p>
                 </div>
-                <div>
+                <div className="sm:col-span-2">
                   <p className="text-xs text-[var(--foreground-muted)]">
                     Dirección
                   </p>
                   <p className="text-sm text-[var(--foreground)]">
-                    {order.customer.address}, {order.customer.city}{" "}
-                    CP {order.customer.postalCode}
+                    {order.customer.street} {order.customer.number}
+                    {order.customer.floor && `, Piso ${order.customer.floor}`}
+                    {order.customer.apartment && `, Depto ${order.customer.apartment}`}
+                    {order.customer.tower && `, Torre ${order.customer.tower}`}
                   </p>
+                  <p className="text-xs text-[var(--foreground-muted)] mt-0.5">
+                    {order.customer.city}, {order.customer.province} · CP {order.customer.postalCode}
+                  </p>
+                  {order.customer.additionalInstructions && (
+                    <p className="text-xs text-[var(--foreground-muted)] mt-1 italic">
+                      "{order.customer.additionalInstructions}"
+                    </p>
+                  )}
                 </div>
               </div>
             </section>

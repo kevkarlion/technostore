@@ -14,8 +14,17 @@ export const orderCustomerSchema = z.object({
   email: z.string().email(),
   phone: z.string().min(1),
   address: z.string().min(1),
+  street: z.string().min(1),
+  number: z.string().min(1),
+  floor: z.string().optional(),
+  apartment: z.string().optional(),
+  tower: z.string().optional(),
+  province: z.string().min(1),
   city: z.string().min(1),
   postalCode: z.string().min(1),
+  additionalInstructions: z.string().optional(),
+  saveAddress: z.boolean(),
+  sameForBilling: z.boolean(),
 });
 
 export const orderTotalsSchema = z.object({

@@ -23,18 +23,18 @@ interface CartSummaryProps {
   showCheckoutButton?: boolean;
 }
 
-function CheckoutButtonDebug() {
+function CheckoutButton() {
   const router = useRouter();
   
   const handleClick = (e: React.MouseEvent) => {
-    console.log("[Checkout] Clicked, navigating to /checkout");
+    e.preventDefault();
     router.push("/checkout");
   };
   
   return (
     <button
       onClick={handleClick}
-      className="w-full rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+      className="w-full rounded-lg bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-white transition-all hover:brightness-110 shadow-lg shadow-[var(--accent)]/20"
     >
       Proceder al checkout
     </button>
@@ -58,7 +58,7 @@ function CheckoutButtonDebug() {
 export function CartSummary({
   subtotal,
   shipping = DEFAULT_CART_CONFIG.shippingCost,
-  tax = Math.round(subtotal * DEFAULT_CART_CONFIG.taxRate),
+  tax = subtotal * DEFAULT_CART_CONFIG.taxRate,
   total,
   itemCount,
   onClear,
@@ -126,7 +126,17 @@ export function CartSummary({
       </div>
 
       {/* Botón checkout */}
-      {showCheckoutButton && !isEmpty && <CheckoutButtonDebug />}
+      {showCheckoutButton && !isEmpty && <CheckoutButton />}
+
+      {/* Continuar comprando */}
+      {!isEmpty && (
+        <Link
+          href="/"
+          className="block w-full rounded-lg border border-[var(--border-subtle)] bg-transparent px-4 py-3 text-center text-sm font-medium text-[var(--foreground-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+        >
+          ← Continuar comprando
+        </Link>
+      )}
 
       {/* Carrito vacío */}
       {isEmpty && (

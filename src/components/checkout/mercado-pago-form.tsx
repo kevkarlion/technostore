@@ -396,75 +396,36 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
                 Pago único (1 cuota) — las tarjetas de débito y prepagas no permiten cuotas
               </div>
             ) : selectedPaymentMethodId ? (
-              <div className="space-y-2">
+              <select
+                value={selectedInstallments}
+                onChange={(e) => setSelectedInstallments(Number(e.target.value))}
+                className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-base focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors"
+              >
                 {installmentsList.length > 0 ? (
                   installmentsList.map((inst) => (
-                    <label
+                    <option
                       key={inst.installments}
-                      className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
-                        selectedInstallments === inst.installments
-                          ? "border-[#009EE3] bg-[#009EE3]/10"
-                          : "border-slate-700 hover:border-slate-600 bg-slate-900"
-                      }`}
+                      value={inst.installments}
+                      className="bg-slate-900"
                     >
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="radio"
-                          name="installments"
-                          value={inst.installments}
-                          checked={selectedInstallments === inst.installments}
-                          onChange={(e) => setSelectedInstallments(Number(e.target.value))}
-                          className="accent-[#009EE3]"
-                        />
-                        <div>
-                          <span className="text-sm text-slate-200 font-medium">
-                            {inst.installments === 1 ? "1 cuota" : `${inst.installments} cuotas`}
-                          </span>
-                          {inst.installments > 1 && (
-                            <span className="text-xs text-slate-400 ml-2">
-                              ${inst.installment_amount?.toFixed(2)} c/u
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <span className="text-sm text-slate-200 font-medium">
-                        ${(inst.total_amount || totalAmount).toFixed(2)}
-                      </span>
-                    </label>
+                      {inst.installments === 1
+                        ? `1 cuota — $${(inst.total_amount || totalAmount).toFixed(2)}`
+                        : `${inst.installments} cuotas de $${inst.installment_amount?.toFixed(2)} — total $${(inst.total_amount || totalAmount).toFixed(2)}`
+                      }
+                    </option>
                   ))
                 ) : (
                   // Fallback options
-                  <>
-                    {[1, 3, 6, 12].map((inst) => (
-                      <label
-                        key={inst}
-                        className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
-                          selectedInstallments === inst
-                            ? "border-[#009EE3] bg-[#009EE3]/10"
-                            : "border-slate-700 hover:border-slate-600 bg-slate-900"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="radio"
-                            name="installments"
-                            value={inst}
-                            checked={selectedInstallments === inst}
-                            onChange={(e) => setSelectedInstallments(Number(e.target.value))}
-                            className="accent-[#009EE3]"
-                          />
-                          <span className="text-sm text-slate-200 font-medium">
-                            {inst === 1 ? "1 cuota sin interés" : `${inst} cuotas`}
-                          </span>
-                        </div>
-                        <span className="text-sm text-slate-200 font-medium">
-                          ${(totalAmount / inst).toFixed(2)}
-                        </span>
-                      </label>
-                    ))}
-                  </>
+                  [1, 3, 6, 12].map((inst) => (
+                    <option key={inst} value={inst} className="bg-slate-900">
+                      {inst === 1
+                        ? `1 cuota sin interés — $${totalAmount.toFixed(2)}`
+                        : `${inst} cuotas de $${(totalAmount / inst).toFixed(2)} — total $${totalAmount.toFixed(2)}`
+                      }
+                    </option>
+                  ))
                 )}
-              </div>
+              </select>
             ) : (
               <div className="p-3 bg-slate-900/50 rounded-lg text-sm text-slate-400">
                 Completá el número de tarjeta para ver las cuotas disponibles

@@ -139,7 +139,7 @@ export function CartClient() {
     (sum, item) => sum + (item.product?.price || 0) * item.quantity,
     0
   );
-  const tax = Math.round(subtotal * 0.21);
+  const tax = subtotal * 0.21;
   const shipping = 0;
   const total = subtotal + tax + shipping;
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);

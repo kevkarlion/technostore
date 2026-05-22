@@ -88,7 +88,7 @@ export function computeCart(
   );
   
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const tax = Math.round(subtotal * config.taxRate);
+  const tax = subtotal * config.taxRate;
   const shipping = items.length > 0 ? config.shippingCost : 0;
   const total = subtotal + tax + shipping;
 

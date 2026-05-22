@@ -22,8 +22,17 @@ export interface OrderCustomer {
   email: string;
   phone: string;
   address: string;
+  street: string;
+  number: string;
+  floor?: string;
+  apartment?: string;
+  tower?: string;
+  province: string;
   city: string;
   postalCode: string;
+  additionalInstructions?: string;
+  saveAddress: boolean;
+  sameForBilling: boolean;
 }
 
 export interface OrderTotals {

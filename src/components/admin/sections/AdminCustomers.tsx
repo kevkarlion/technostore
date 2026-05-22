@@ -20,8 +20,17 @@ interface Customer {
   lastName: string;
   phone: string;
   address: string;
+  street: string;
+  number: string;
+  floor?: string | null;
+  apartment?: string | null;
+  tower?: string | null;
+  province: string;
   city: string;
   postalCode: string;
+  additionalInstructions?: string | null;
+  saveAddress: boolean;
+  sameForBilling: boolean;
   totalOrders: number;
   totalSpent: number;
   firstOrderDate: string | null;
@@ -228,9 +237,19 @@ export default function AdminCustomers() {
                 <Phone className="h-4 w-4 shrink-0" />
                 <span className="truncate">{customer.phone}</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-[var(--foreground-muted)]">
-                <MapPin className="h-4 w-4 shrink-0" />
-                <span className="truncate">{customer.city}</span>
+              <div className="flex items-start gap-2 text-sm text-[var(--foreground-muted)]">
+                <MapPin className="h-4 w-4 shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="truncate">
+                    {customer.street} {customer.number}
+                    {customer.floor && `, Piso ${customer.floor}`}
+                    {customer.apartment && `, Depto ${customer.apartment}`}
+                    {customer.tower && `, Torre ${customer.tower}`}
+                  </p>
+                  <p className="truncate text-xs text-[var(--foreground-muted)]">
+                    {customer.city}, {customer.province} · CP {customer.postalCode}
+                  </p>
+                </div>
               </div>
             </div>
 

@@ -78,8 +78,17 @@ export const customerRepository = {
     lastName: string;
     phone: string;
     address: string;
+    street: string;
+    number: string;
+    floor?: string;
+    apartment?: string;
+    tower?: string;
+    province: string;
     city: string;
     postalCode: string;
+    additionalInstructions?: string;
+    saveAddress: boolean;
+    sameForBilling: boolean;
     orderRef: CustomerOrderRef;
   }): Promise<Customer> {
     const db = await getDb();
@@ -102,8 +111,17 @@ export const customerRepository = {
             lastName: data.lastName,
             phone: data.phone,
             address: data.address,
+            street: data.street,
+            number: data.number,
+            floor: data.floor ?? null,
+            apartment: data.apartment ?? null,
+            tower: data.tower ?? null,
+            province: data.province,
             city: data.city,
             postalCode: data.postalCode,
+            additionalInstructions: data.additionalInstructions ?? null,
+            saveAddress: data.saveAddress,
+            sameForBilling: data.sameForBilling,
             totalOrders: newTotalOrders,
             totalSpent: newTotalSpent,
             lastOrderDate: data.orderRef.createdAt,
@@ -130,8 +148,17 @@ export const customerRepository = {
       lastName: data.lastName,
       phone: data.phone,
       address: data.address,
+      street: data.street,
+      number: data.number,
+      floor: data.floor ?? null,
+      apartment: data.apartment ?? null,
+      tower: data.tower ?? null,
+      province: data.province,
       city: data.city,
       postalCode: data.postalCode,
+      additionalInstructions: data.additionalInstructions ?? null,
+      saveAddress: data.saveAddress,
+      sameForBilling: data.sameForBilling,
       totalOrders: 1,
       totalSpent: data.orderRef.total,
       firstOrderDate: data.orderRef.createdAt,

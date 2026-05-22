@@ -2,21 +2,17 @@
 
 import { useState, useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useCartStore } from "@/features/cart/store/cart-store";
-import { useCheckoutStore, type CustomerData } from "@/store/checkout-store";
+import { useCheckoutStore, type CustomerData, composeFullAddress } from "@/store/checkout-store";
 import { useOrderStore } from "@/store/order-store";
 import { useShallow } from "zustand/react/shallow";
 import { Toaster, toast } from "sonner";
 import { Price } from "@/components/ui/price";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import type { ProductResponseDTO } from "@/domain/dto/product.dto";
 import { MercadoPagoForm } from "@/components/checkout/mercado-pago-form";
-import { CheckoutForm, type CustomerFormData } from "@/components/checkout/checkout-form";
+import { CheckoutForm, type CheckoutFormData } from "@/components/checkout/checkout-form";
 
 // Subscribe to cart store hydration
 function useStoreHydration() {
@@ -32,18 +28,6 @@ function useStoreHydration() {
 
 const SHIPPING_COST = 0; // Free shipping for testing
 const TAX_RATE = 0.21;
-
-const customerSchema = z.object({
-  name: z.string().min(1, "El nombre es requerido"),
-  lastName: z.string().min(1, "El apellido es requerido"),
-  email: z.string().email("Email inválido"),
-  phone: z.string().min(1, "El teléfono es requerido"),
-  address: z.string().min(1, "La dirección es requerida"),
-  city: z.string().min(1, "La ciudad es requerida"),
-  postalCode: z.string().min(1, "El código postal es requerido"),
-});
-
-type CustomerFormData = z.infer<typeof customerSchema>;
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -111,14 +95,6 @@ export default function CheckoutPage() {
     fetchProducts();
   }, [items.length, router, isHydrated]);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<CustomerFormData>({
-    resolver: zodResolver(customerSchema),
-  });
-
   // Calculate order totals
   const enriched = items
     .map((item) => {
@@ -138,15 +114,23 @@ export default function CheckoutPage() {
   const taxes = Math.round(subtotal * TAX_RATE);
   const total = subtotal + shipping + taxes;
 
-  const onSubmit = (data: CustomerFormData) => {
+  const onSubmit = (data: CheckoutFormData) => {
     const custData: CustomerData = {
       name: data.name,
       lastName: data.lastName,
       email: data.email,
       phone: data.phone,
-      address: data.address,
+      street: data.street,
+      number: data.number,
+      floor: data.floor || undefined,
+      apartment: data.apartment || undefined,
+      tower: data.tower || undefined,
+      province: data.province,
       city: data.city,
       postalCode: data.postalCode,
+      additionalInstructions: data.additionalInstructions || undefined,
+      saveAddress: data.saveAddress,
+      sameForBilling: data.sameForBilling,
     };
     setCustomerDataLocal(custData);
     setShowCardForm(true);
@@ -296,7 +280,24 @@ export default function CheckoutPage() {
           taxes,
           total,
         },
-        customer: customerData,
+        customer: {
+          name: customerData.name,
+          lastName: customerData.lastName,
+          email: customerData.email,
+          phone: customerData.phone,
+          address: composeFullAddress(customerData),
+          street: customerData.street,
+          number: customerData.number,
+          floor: customerData.floor ?? null,
+          apartment: customerData.apartment ?? null,
+          tower: customerData.tower ?? null,
+          province: customerData.province,
+          city: customerData.city,
+          postalCode: customerData.postalCode,
+          additionalInstructions: customerData.additionalInstructions ?? null,
+          saveAddress: customerData.saveAddress,
+          sameForBilling: customerData.sameForBilling,
+        },
         payment: {
           paymentId: result.id,
           paymentMethodId: data.paymentMethodId,

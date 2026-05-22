@@ -53,30 +53,32 @@ export default function AdminMedia() {
             {filteredMedia.length} archivos
           </p>
         </div>
-        <div className="flex gap-2">
-          <div className="relative">
+        <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+          <div className="relative order-2 w-full sm:order-1 sm:w-auto sm:min-w-[200px] lg:w-64">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--foreground-muted)]" />
             <Input
               placeholder="Buscar archivos..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-64 pl-9"
+              className="w-full pl-9"
             />
           </div>
-          <Button iconLeft={<Upload className="h-4 w-4" />}>
-            Subir archivo
-          </Button>
+          <div className="order-1 flex gap-2 sm:order-2">
+            <Button iconLeft={<Upload className="h-4 w-4" />}>
+              Subir archivo
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Upload Zone */}
-      <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-800 bg-slate-950/30 py-12 transition-colors hover:border-slate-700">
-        <Upload className="h-12 w-12 text-[var(--foreground-muted)]" />
-        <p className="mt-4 text-sm text-[var(--foreground-muted)]">
-          Arrastra archivos aquí o haz clic para seleccionar
+      <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-800 bg-slate-950/30 px-4 py-8 sm:py-12 transition-colors hover:border-slate-700">
+        <Upload className="h-8 w-8 sm:h-12 sm:w-12 text-[var(--foreground-muted)]" />
+        <p className="mt-3 text-center text-sm text-[var(--foreground-muted)]">
+          Arrastra archivos o hacé clic para seleccionar
         </p>
         <p className="mt-1 text-xs text-[var(--foreground-muted)]">
-          PNG, JPG, WEBP, SVG hasta 10MB
+          PNG, JPG, WEBP, SVG · hasta 10MB
         </p>
       </div>
 

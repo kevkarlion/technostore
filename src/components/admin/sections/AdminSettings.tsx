@@ -16,7 +16,7 @@ export default function AdminSettings() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-[var(--foreground)]">
             Ajustes
@@ -25,11 +25,13 @@ export default function AdminSettings() {
             Configura tu tienda
           </p>
         </div>
-        <Button iconLeft={<Save className="h-4 w-4" />}>Guardar cambios</Button>
+        <Button iconLeft={<Save className="h-4 w-4" />} className="self-start sm:self-auto">
+          Guardar cambios
+        </Button>
       </div>
 
       {/* Store Settings */}
-      <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-6">
+      <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 sm:p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--accent)]/10">
             <Store className="h-5 w-5 text-[var(--accent)]" />
@@ -90,7 +92,7 @@ export default function AdminSettings() {
       </div>
 
       {/* Payment Settings */}
-      <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-6">
+      <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 sm:p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--accent)]/10">
             <CreditCard className="h-5 w-5 text-[var(--accent)]" />
@@ -128,7 +130,7 @@ export default function AdminSettings() {
       </div>
 
       {/* Shipping Settings */}
-      <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-6">
+      <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 sm:p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--accent)]/10">
             <Truck className="h-5 w-5 text-[var(--accent)]" />
@@ -149,7 +151,7 @@ export default function AdminSettings() {
       </div>
 
       {/* Notifications Settings */}
-      <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-6">
+      <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 sm:p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--accent)]/10">
             <Bell className="h-5 w-5 text-[var(--accent)]" />
@@ -182,11 +184,13 @@ export default function AdminSettings() {
                   {item.description}
                 </p>
               </div>
-              <input
-                type="checkbox"
-                className="h-5 w-5 rounded border-slate-700 bg-slate-800 text-[var(--accent)]"
-                defaultChecked
-              />
+              <label className="flex cursor-pointer p-2 -mr-2">
+                <input
+                  type="checkbox"
+                  className="h-5 w-5 rounded border-slate-700 bg-slate-800 text-[var(--accent)]"
+                  defaultChecked
+                />
+              </label>
             </div>
           ))}
         </div>

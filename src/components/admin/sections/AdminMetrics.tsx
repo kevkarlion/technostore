@@ -89,7 +89,7 @@ export default function AdminMetrics() {
         <h2 className="text-lg font-semibold text-[var(--foreground)]">
           Ingresos últimos 7 días
         </h2>
-        <div className="mt-6 flex h-48 items-end justify-between gap-2">
+        <div className="mt-6 flex h-32 sm:h-48 items-end justify-between gap-2">
           {[40, 65, 45, 80, 55, 90, 70].map((height, i) => (
             <div
               key={i}

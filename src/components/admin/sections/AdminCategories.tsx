@@ -62,41 +62,41 @@ export default function AdminCategories() {
     return (
       <div key={category.id}>
         <div
-          className="flex items-center justify-between rounded-lg border border-slate-800/50 bg-slate-900/30 px-4 py-3 transition-colors hover:bg-slate-900/50"
+          className="flex flex-col gap-2 rounded-lg border border-slate-800/50 bg-slate-900/30 px-4 py-3 transition-colors hover:bg-slate-900/50 sm:flex-row sm:items-center sm:justify-between"
           style={{ paddingLeft: `${depth * 24 + 16}px` }}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             {hasChildren && (
               <button
                 onClick={() => toggleExpand(category.id)}
-                className="flex h-5 w-5 items-center justify-center rounded text-[var(--foreground-muted)] transition-colors hover:text-[var(--foreground)]"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded text-[var(--foreground-muted)] transition-colors hover:text-[var(--foreground)]"
               >
                 <ChevronRight
                   className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
                 />
               </button>
             )}
-            {!hasChildren && <div className="w-5" />}
-            <Folder className="h-5 w-5 text-[var(--accent)]" />
-            <div>
-              <p className="text-sm font-medium text-[var(--foreground)]">
+            {!hasChildren && <div className="w-7 shrink-0" />}
+            <Folder className="mt-0.5 h-5 w-5 shrink-0 text-[var(--accent)]" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-[var(--foreground)]">
                 {category.name}
               </p>
-              <p className="text-xs text-[var(--foreground-muted)]">
+              <p className="truncate text-xs text-[var(--foreground-muted)]">
                 /{category.slug}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between gap-3 pl-9 sm:pl-0">
             <Badge tone="default">{category.productCount} productos</Badge>
-            <div className="flex gap-1">
-              <Button variant="ghost" size="sm">
+            <div className="flex gap-1 shrink-0">
+              <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
                 <Edit className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-rose-400 hover:text-rose-300"
+                className="h-9 w-9 p-0 text-rose-400 hover:text-rose-300"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

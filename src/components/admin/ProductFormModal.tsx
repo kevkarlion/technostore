@@ -283,7 +283,7 @@ export default function ProductFormModal({
         onClick={onClose}
       />
       {/* Modal */}
-      <div className="relative z-10 mx-4 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-700 bg-slate-950 p-6 shadow-2xl">
+      <div className="relative z-10 mx-2 sm:mx-4 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-700 bg-slate-950 p-4 sm:p-6 shadow-2xl">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-[var(--foreground)]">
@@ -330,7 +330,7 @@ export default function ProductFormModal({
           </div>
 
           {/* Precio + Moneda */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="mb-1 block text-sm font-medium text-[var(--foreground)]">
                 Precio *
@@ -363,7 +363,7 @@ export default function ProductFormModal({
           </div>
 
           {/* Stock + Estado */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="mb-1 block text-sm font-medium text-[var(--foreground)]">
                 Stock
@@ -437,7 +437,7 @@ export default function ProductFormModal({
             />
 
             {images.length > 0 && (
-              <div className="mt-3 grid grid-cols-3 gap-2">
+              <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {images.map((img, i) => (
                   <div key={i} className="group relative aspect-square">
                     <img

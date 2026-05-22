@@ -98,7 +98,7 @@ export default function CategoryDropdown({
 
       {/* Dropdown panel */}
       {open && (
-        <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-lg border border-slate-700 bg-slate-950 shadow-2xl">
+        <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-60 sm:max-h-72 overflow-y-auto rounded-lg border border-slate-700 bg-slate-950 shadow-2xl">
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-5 w-5 animate-spin text-[var(--foreground-muted)]" />

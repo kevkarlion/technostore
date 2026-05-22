@@ -88,7 +88,7 @@ export function AdminSidebar() {
                 key={item.section}
                 onClick={() => handleNavClick(item.section)}
                 className={clsx(
-                  "group flex w-full items-center gap-3 px-4 py-3 text-left transition-all duration-200",
+                  "group flex w-full items-center gap-3 px-4 py-3.5 lg:py-3 text-left transition-all duration-200",
                   isActive
                     ? "bg-[var(--accent)]/10 text-[var(--accent)] border-r-2 border-[var(--accent)]"
                     : "text-[var(--foreground-muted)] hover:bg-slate-800/50 hover:text-[var(--foreground)]"
@@ -126,7 +126,7 @@ export function AdminSidebar() {
 
         {/* Footer / Logout */}
         <div className="border-t border-slate-800 p-2">
-          <button className="flex w-full items-center gap-3 rounded-lg px-4 py-2 text-sm text-[var(--foreground-muted)] transition hover:bg-slate-800 hover:text-[var(--foreground)]">
+          <button className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 lg:py-2 text-sm text-[var(--foreground-muted)] transition hover:bg-slate-800 hover:text-[var(--foreground)]">
             <LogOut className="h-4 w-4" />
             {!sidebarCollapsed && <span>Cerrar sesión</span>}
           </button>
@@ -166,7 +166,7 @@ export function AdminSidebar() {
                 key={item.section}
                 onClick={() => handleNavClick(item.section)}
                 className={clsx(
-                  "group flex w-full items-center gap-3 px-4 py-3 text-left transition-all duration-200",
+                  "group flex w-full items-center gap-3 px-4 py-3.5 text-left transition-all duration-200",
                   isActive
                     ? "bg-[var(--accent)]/10 text-[var(--accent)] border-r-2 border-[var(--accent)]"
                     : "text-[var(--foreground-muted)] hover:bg-slate-800/50 hover:text-[var(--foreground)]"
@@ -186,7 +186,7 @@ export function AdminSidebar() {
 
         {/* Footer / Logout */}
         <div className="border-t border-slate-800 p-4">
-          <button className="flex w-full items-center gap-3 rounded-lg px-4 py-2 text-sm text-[var(--foreground-muted)] transition hover:bg-slate-800 hover:text-[var(--foreground)]">
+          <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-[var(--foreground-muted)] transition hover:bg-slate-800 hover:text-[var(--foreground)]">
             <LogOut className="h-4 w-4" />
             <span>Cerrar sesión</span>
           </button>

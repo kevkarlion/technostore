@@ -3,8 +3,33 @@ import {
   verifyWebhookSignature,
   type MercadopagoWebhookPayload,
 } from "@/lib/mercadopago/client";
+import { orderRepository } from "@/api/repository/order.repository";
+import type { OrderStatus } from "@/domain/models/order";
 
 const WEBHOOK_LOG_PREFIX = "[MP Webhook]";
+
+/**
+ * Map MP payment actions to our order status.
+ * With capture_mode: manual, "approved" means funds reserved (not captured yet).
+ */
+function mapActionToStatus(action: string): OrderStatus | null {
+  switch (action) {
+    case "payment.created":
+    case "payment.pending":
+      return "pending";
+    case "payment.approved":
+      return "reserved";
+    case "payment.rejected":
+      return "failed";
+    case "payment.cancelled":
+      return "cancelled";
+    case "payment.refunded":
+    case "payment.charged_back":
+      return "refunded";
+    default:
+      return null;
+  }
+}
 
 // ─── Handler ───────────────────────────────────────────────────────────────
 
@@ -60,37 +85,36 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ received: true }, { status: 200 });
       }
 
-      // Log for audit — future: update order status in DB
-      switch (action) {
-        case "payment.created":
-          console.log(`${WEBHOOK_LOG_PREFIX} Payment created: ${paymentId}`);
-          break;
-        case "payment.updated":
-          console.log(`${WEBHOOK_LOG_PREFIX} Payment updated: ${paymentId}`);
-          break;
-        case "payment.pending":
-          console.log(`${WEBHOOK_LOG_PREFIX} Payment pending: ${paymentId}`);
-          break;
-        case "payment.approved":
-          console.log(`${WEBHOOK_LOG_PREFIX} Payment approved: ${paymentId}`);
-          break;
-        case "payment.rejected":
-          console.log(`${WEBHOOK_LOG_PREFIX} Payment rejected: ${paymentId}`);
-          break;
-        case "payment.cancelled":
-          console.log(`${WEBHOOK_LOG_PREFIX} Payment cancelled: ${paymentId}`);
-          break;
-        case "payment.refunded":
-          console.log(`${WEBHOOK_LOG_PREFIX} Payment refunded: ${paymentId}`);
-          break;
-        case "payment.charged_back":
-          console.log(`${WEBHOOK_LOG_PREFIX} Payment charged back: ${paymentId}`);
-          break;
-        default:
-          console.log(`${WEBHOOK_LOG_PREFIX} Unknown payment action: ${action}`);
+      // Determine new status from action
+      const newStatus = mapActionToStatus(action);
+      if (newStatus) {
+        try {
+          // Find order by paymentId in MongoDB
+          const order = await orderRepository.findByPaymentId(String(paymentId));
+          if (order && order._id) {
+            await orderRepository.updateStatus(
+              order._id.toString(),
+              newStatus,
+              `Webhook: ${action}`
+            );
+            console.log(
+              `${WEBHOOK_LOG_PREFIX} Updated order ${order.orderId} → ${newStatus}`
+            );
+          } else {
+            console.log(
+              `${WEBHOOK_LOG_PREFIX} No order found for payment ${paymentId} — may be created later via checkout`
+            );
+          }
+        } catch (dbErr) {
+          // Non-blocking: log but don't fail the webhook response
+          console.error(
+            `${WEBHOOK_LOG_PREFIX} Failed to update order for payment ${paymentId}:`,
+            dbErr
+          );
+        }
       }
 
-      // Acknowledge receipt
+      // Always acknowledge receipt — MP expects 200
       return NextResponse.json({ received: true }, { status: 200 });
     }
 

@@ -91,21 +91,23 @@ export default function AdminMessages() {
             {filteredMessages.length} mensajes totales
           </p>
         </div>
-        <div className="relative">
+        <div className="relative w-full sm:w-auto sm:min-w-[200px] lg:w-64">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--foreground-muted)]" />
           <Input
             placeholder="Buscar mensajes..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-64 pl-9"
+            className="w-full pl-9"
           />
         </div>
       </div>
 
       {/* Messages Container */}
-      <div className="flex h-[600px] gap-4 rounded-xl border border-slate-800 bg-slate-950/50 overflow-hidden">
-        {/* Messages List */}
-        <div className="w-full overflow-y-auto lg:w-1/3">
+      <div className="flex min-h-[400px] sm:min-h-[500px] lg:h-[600px] rounded-xl border border-slate-800 bg-slate-950/50 overflow-hidden">
+        {/* Messages List - full width on mobile when no msg selected, 1/3 on desktop */}
+        <div className={`overflow-y-auto ${
+          selectedMessage ? "hidden lg:block lg:w-1/3" : "w-full lg:w-1/3"
+        }`}>
           {filteredMessages.map((message) => (
             <button
               key={message.id}
@@ -118,7 +120,7 @@ export default function AdminMessages() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     {!message.read && (
-                      <div className="h-2 w-2 rounded-full bg-[var(--accent)]" />
+                      <div className="h-2 w-2 shrink-0 rounded-full bg-[var(--accent)]" />
                     )}
                     <p className={`truncate text-sm ${!message.read ? "font-semibold text-[var(--foreground)]" : "text-[var(--foreground)]"}`}>
                       {message.name}
@@ -145,14 +147,16 @@ export default function AdminMessages() {
           )}
         </div>
 
-        {/* Message Detail */}
+        {/* Message Detail - full width on mobile, 2/3 on desktop */}
         {selectedMessage ? (
-          <div className="hidden flex-1 flex-col border-l border-slate-800 lg:flex">
+          <div className={`flex flex-1 flex-col border-l border-slate-800 ${
+            !selectedMessage ? "hidden" : "w-full lg:flex"
+          }`}>
             {/* Header */}
             <div className="border-b border-slate-800 p-4">
               <button
                 onClick={() => setSelectedMessage(null)}
-                className="mb-2 flex items-center gap-1 text-sm text-[var(--foreground-muted)] transition-colors hover:text-[var(--foreground)] lg:hidden"
+                className="mb-2 flex items-center gap-1 text-sm text-[var(--foreground-muted)] transition-colors hover:text-[var(--foreground)]"
               >
                 <ChevronLeft className="h-4 w-4" />
                 <span>Volver</span>
@@ -160,13 +164,17 @@ export default function AdminMessages() {
               <h2 className="text-lg font-semibold text-[var(--foreground)]">
                 {selectedMessage.subject}
               </h2>
-              <div className="mt-2 flex items-center gap-2 text-sm text-[var(--foreground-muted)]">
+              <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[var(--foreground-muted)]">
                 <span>{selectedMessage.name}</span>
-                <span>·</span>
-                <span>{selectedMessage.email}</span>
-                <span>·</span>
+                <span className="hidden sm:inline">·</span>
+                <span className="hidden sm:inline">{selectedMessage.email}</span>
+                <span className="hidden sm:inline">·</span>
                 <span>{selectedMessage.date}</span>
               </div>
+              {/* Always-visible email on mobile */}
+              <p className="mt-1 text-xs text-[var(--foreground-muted)] sm:hidden">
+                {selectedMessage.email}
+              </p>
             </div>
 
             {/* Message Content */}
@@ -188,11 +196,12 @@ export default function AdminMessages() {
                   className="flex-1"
                 />
                 <Button
-                  iconLeft={<Send className="h-4 w-4" />}
                   onClick={handleSendReply}
                   disabled={!replyText.trim()}
+                  className="shrink-0"
                 >
-                  Enviar
+                  <Send className="h-4 w-4 sm:mr-1.5" />
+                  <span className="hidden sm:inline">Enviar</span>
                 </Button>
               </div>
             </div>

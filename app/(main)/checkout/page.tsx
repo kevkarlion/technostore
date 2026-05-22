@@ -262,12 +262,60 @@ export default function CheckoutPage() {
         id: result.id,
         externalReference: result.external_reference || `ORD-${Date.now()}`,
         totalAmount: totalAmount,
-        status: "reserved", // Funds reserved, waiting for capture
+        status: "reserved",
         statusDetail: result.transactions?.payments?.[0]?.status_detail,
         paymentMethodId: data.paymentMethodId,
         createdAt: Date.now(),
         customerEmail: payerEmail,
         customerName: customerData ? `${customerData.name} ${customerData.lastName}` : undefined,
+      });
+
+      // Save complete order to MongoDB (non-blocking)
+      const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      const orderPayload = {
+        orderId,
+        externalReference: result.external_reference || `ORD-${Date.now()}`,
+        status: "reserved" as const,
+        statusDetail: result.transactions?.payments?.[0]?.status_detail,
+        items: items.map((item) => {
+          const product = products[item.productId];
+          return {
+            productId: item.productId,
+            productName: product?.name || "Producto",
+            quantity: item.quantity,
+            unitPrice: product?.price || 0,
+            imageUrl: product?.imageUrls?.[0],
+          };
+        }),
+        totals: {
+          subtotal,
+          shipping,
+          taxes,
+          total,
+        },
+        customer: customerData,
+        payment: {
+          paymentId: result.id,
+          paymentMethodId: data.paymentMethodId,
+          paymentMethodType: data.type,
+          installments: data.installments,
+        },
+        timeline: [
+          {
+            status: "reserved" as const,
+            timestamp: new Date().toISOString(),
+            detail: "Payment reserved via Mercado Pago",
+          },
+        ],
+      };
+
+      fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderPayload),
+      }).catch((err) => {
+        console.error("[Checkout] Failed to save order to DB:", err);
+        // Non-blocking — don't interrupt the success flow
       });
       
       clear(); // Clear cart on success

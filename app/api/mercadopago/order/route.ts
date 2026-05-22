@@ -107,7 +107,9 @@ export async function POST(req: NextRequest) {
     
     // Get token from body or from transactions
     const token = body.token || body.transactions?.payments?.[0]?.payment_method?.token;
-    const installments = body.installments || body.transactions?.payments?.[0]?.payment_method?.installments || 1;
+    const installments = (paymentMethodType !== "credit_card")
+      ? 1
+      : (body.installments || body.transactions?.payments?.[0]?.payment_method?.installments || 1);
 
     // Create order with reserve (capture_mode: manual)
     const orderData = {

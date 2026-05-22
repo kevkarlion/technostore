@@ -106,8 +106,8 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
           setSelectedPaymentMethodId(pm.id);
           setPaymentTypeId(pm.payment_type_id);
           
-          // Debit cards don't support installments — force 1 cuota
-          if (pm.payment_type_id === "debit_card") {
+          // Only credit cards support installments — force 1 cuota for debit/prepaid
+          if (pm.payment_type_id !== "credit_card") {
             setInstallmentsList([]);
             setSelectedInstallments(1);
             setIsLoadingInstallments(false);
@@ -391,9 +391,9 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#009EE3]"></div>
                 <span className="text-sm text-slate-400">Cargando...</span>
               </div>
-            ) : paymentTypeId === "debit_card" ? (
+            ) : paymentTypeId && paymentTypeId !== "credit_card" ? (
               <div className="p-3 bg-slate-900/50 rounded-lg text-sm text-slate-300">
-                Pago único (1 cuota) — las tarjetas de débito no permiten cuotas
+                Pago único (1 cuota) — las tarjetas de débito y prepagas no permiten cuotas
               </div>
             ) : selectedPaymentMethodId ? (
               <div className="space-y-2">

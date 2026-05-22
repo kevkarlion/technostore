@@ -288,13 +288,13 @@ export default function CheckoutPage() {
           address: composeFullAddress(customerData),
           street: customerData.street,
           number: customerData.number,
-          floor: customerData.floor ?? null,
-          apartment: customerData.apartment ?? null,
-          tower: customerData.tower ?? null,
+          floor: customerData.floor,
+          apartment: customerData.apartment,
+          tower: customerData.tower,
           province: customerData.province,
           city: customerData.city,
           postalCode: customerData.postalCode,
-          additionalInstructions: customerData.additionalInstructions ?? null,
+          additionalInstructions: customerData.additionalInstructions,
           saveAddress: customerData.saveAddress,
           sameForBilling: customerData.sameForBilling,
         },
@@ -317,10 +317,18 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderPayload),
-      }).catch((err) => {
-        console.error("[Checkout] Failed to save order to DB:", err);
-        // Non-blocking — don't interrupt the success flow
-      });
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            const errBody = await res.json().catch(() => ({}));
+            console.error("[Checkout] Order save FAILED:", res.status, errBody);
+          } else {
+            console.log("[Checkout] Order saved OK");
+          }
+        })
+        .catch((err) => {
+          console.error("[Checkout] Network error saving order:", err);
+        });
       
       clear(); // Clear cart on success
       setPaymentStatus("success");

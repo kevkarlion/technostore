@@ -115,11 +115,13 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
           }
           
           try {
+            console.log("[MP] Getting installments with:", { bin, amount: totalAmount, paymentTypeId: pm.payment_type_id });
             const installmentsResponse = await mpRef.current.getInstallments({
+              amount: String(totalAmount),
               bin,
-              amount: totalAmount,
-              payment_type_id: pm.payment_type_id,
+              paymentTypeId: pm.payment_type_id,
             });
+            console.log("[MP] Installments response:", installmentsResponse);
             
             if (installmentsResponse && installmentsResponse.length > 0) {
               const payerCosts = installmentsResponse[0]?.payer_costs || [];
@@ -408,22 +410,17 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
                       value={inst.installments}
                       className="bg-slate-900"
                     >
-                      {inst.installments === 1
-                        ? `1 cuota — $${(inst.total_amount || totalAmount).toFixed(2)}`
-                        : `${inst.installments} cuotas de $${inst.installment_amount?.toFixed(2)} — total $${(inst.total_amount || totalAmount).toFixed(2)}`
-                      }
+                      {inst.recommended_message || (
+                        inst.installments === 1
+                          ? `1 cuota — $${(inst.total_amount || totalAmount).toFixed(2)}`
+                          : `${inst.installments} cuotas de $${inst.installment_amount?.toFixed(2)} — total $${(inst.total_amount || totalAmount).toFixed(2)}`
+                      )}
                     </option>
                   ))
                 ) : (
-                  // Fallback options
-                  [1, 3, 6, 12].map((inst) => (
-                    <option key={inst} value={inst} className="bg-slate-900">
-                      {inst === 1
-                        ? `1 cuota sin interés — $${totalAmount.toFixed(2)}`
-                        : `${inst} cuotas de $${(totalAmount / inst).toFixed(2)} — total $${totalAmount.toFixed(2)}`
-                      }
-                    </option>
-                  ))
+                  <option value={1} className="bg-slate-900">
+                    1 cuota — ${totalAmount.toFixed(2)}
+                  </option>
                 )}
               </select>
             ) : (

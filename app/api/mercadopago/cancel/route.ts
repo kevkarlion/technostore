@@ -35,8 +35,14 @@ export async function POST(req: NextRequest) {
     console.log("[MP Cancel] Response:", response.status, JSON.stringify(cancelResult, null, 2));
 
     if (response.status !== 200 && response.status !== 201) {
+      // MP puede devolver error en message, error, o cause[0].description
+      const mpMessage =
+        cancelResult.message ||
+        cancelResult.error ||
+        cancelResult.cause?.[0]?.description ||
+        `Error MP (status ${response.status})`;
       return NextResponse.json(
-        { message: cancelResult.message || "Error al cancelar" },
+        { message: mpMessage, details: cancelResult },
         { status: response.status }
       );
     }

@@ -36,8 +36,14 @@ export async function POST(req: NextRequest) {
     console.log("[MP Capture] Response:", response.status, JSON.stringify(captureResult, null, 2));
 
     if (response.status !== 200 && response.status !== 201) {
+      // MP puede devolver error en message, error, o cause[0].description
+      const mpMessage =
+        captureResult.message ||
+        captureResult.error ||
+        captureResult.cause?.[0]?.description ||
+        `Error MP (status ${response.status})`;
       return NextResponse.json(
-        { message: captureResult.message || "Error al capturar" },
+        { message: mpMessage, details: captureResult },
         { status: response.status }
       );
     }

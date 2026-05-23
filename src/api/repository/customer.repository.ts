@@ -58,6 +58,22 @@ export const customerRepository = {
     };
   },
 
+  async updateOrderStatus(
+    orderId: string,
+    status: string,
+    detail?: string
+  ): Promise<void> {
+    const db = await getDb();
+    const collection = db.collection(COLLECTION);
+
+    await collection.updateOne(
+      { "orders.orderId": orderId },
+      {
+        $set: { "orders.$.status": status },
+      }
+    );
+  },
+
   async findById(id: string): Promise<Customer | null> {
     const db = await getDb();
     const collection = db.collection(COLLECTION);

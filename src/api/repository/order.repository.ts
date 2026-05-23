@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import { getDb } from "@/config/db";
 import { orderMapper } from "@/domain/mappers/order.mapper";
+import { customerRepository } from "@/api/repository/customer.repository";
 import type { Order, OrderStatus } from "@/domain/models/order";
 import type { CreateOrderDTO, ListOrdersQueryDTO } from "@/domain/dto/order.dto";
 
@@ -152,6 +153,14 @@ export const orderRepository = {
     );
 
     if (!doc) return null;
+
+    // Sync status to customer document
+    await customerRepository.updateOrderStatus(
+      doc.orderId,
+      status,
+      detail
+    );
+
     return orderMapper.toDomain(doc);
   },
 };

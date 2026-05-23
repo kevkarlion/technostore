@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${accessToken}`,
+        "X-Idempotency-Key": `cancel-${Date.now()}-${Math.random().toString(36).substring(7)}`,
       },
     });
 

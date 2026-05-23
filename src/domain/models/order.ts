@@ -44,6 +44,7 @@ export interface OrderTotals {
 
 export interface OrderPayment {
   paymentId?: string;
+  mpPaymentId?: string;
   paymentMethodId?: string;
   paymentMethodType?: string;
   installments?: number;

@@ -19,6 +19,12 @@ import {
 import { Toaster, toast } from "sonner";
 import type { Order } from "@/domain/models/order";
 
+/** Check if a payment ID looks like a real Mercado Pago order ID */
+function isRealMpOrderId(id: string): boolean {
+  // MP V1 Orders API ID format: "ORD" + alphanumeric, 25+ chars
+  return /^ORD[A-Za-z0-9]{10,}$/.test(id);
+}
+
 const statusConfig: Record<
   Order["status"],
   { label: string; tone: "success" | "warning" | "danger" | "default" }
@@ -402,29 +408,38 @@ export default function AdminOrders() {
                         </Button>
                         {order.status === "reserved" && (
                           <>
-                            <Button
-                              size="sm"
-                              onClick={() => handleCapture(order)}
-                              disabled={isLoading}
-                              className="bg-emerald-600 hover:bg-emerald-700 whitespace-nowrap"
-                            >
-                              {isLoading ? (
-                                <RefreshCw className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Check className="h-4 w-4" />
-                              )}
-                              Capturar
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleCancel(order)}
-                              disabled={isLoading}
-                              className="border-slate-700 text-slate-300 hover:bg-slate-800 whitespace-nowrap"
-                            >
-                              <X className="h-4 w-4" />
-                              Cancelar
-                            </Button>
+                            {order.payment?.paymentId &&
+                            isRealMpOrderId(order.payment.paymentId) ? (
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleCapture(order)}
+                                  disabled={isLoading}
+                                  className="bg-emerald-600 hover:bg-emerald-700 whitespace-nowrap"
+                                >
+                                  {isLoading ? (
+                                    <RefreshCw className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Check className="h-4 w-4" />
+                                  )}
+                                  Capturar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleCancel(order)}
+                                  disabled={isLoading}
+                                  className="border-slate-700 text-slate-300 hover:bg-slate-800 whitespace-nowrap"
+                                >
+                                  <X className="h-4 w-4" />
+                                  Cancelar
+                                </Button>
+                              </>
+                            ) : (
+                              <span className="text-xs text-amber-400 whitespace-nowrap">
+                                ⏳ Pendiente
+                              </span>
+                            )}
                           </>
                         )}
                         {order.status === "captured" && (
@@ -517,29 +532,38 @@ export default function AdminOrders() {
                   </Button>
                   {order.status === "reserved" && (
                     <>
-                      <Button
-                        size="sm"
-                        onClick={() => handleCapture(order)}
-                        disabled={isLoading}
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-                      >
-                        {isLoading ? (
-                          <RefreshCw className="mr-1.5 h-4 w-4 animate-spin" />
-                        ) : (
-                          <Check className="mr-1.5 h-4 w-4" />
-                        )}
-                        Capturar
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleCancel(order)}
-                        disabled={isLoading}
-                        className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800"
-                      >
-                        <X className="mr-1.5 h-4 w-4" />
-                        Cancelar
-                      </Button>
+                      {order.payment?.paymentId &&
+                      isRealMpOrderId(order.payment.paymentId) ? (
+                        <>
+                          <Button
+                            size="sm"
+                            onClick={() => handleCapture(order)}
+                            disabled={isLoading}
+                            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                          >
+                            {isLoading ? (
+                              <RefreshCw className="mr-1.5 h-4 w-4 animate-spin" />
+                            ) : (
+                              <Check className="mr-1.5 h-4 w-4" />
+                            )}
+                            Capturar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleCancel(order)}
+                            disabled={isLoading}
+                            className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800"
+                          >
+                            <X className="mr-1.5 h-4 w-4" />
+                            Cancelar
+                          </Button>
+                        </>
+                      ) : (
+                        <span className="flex-1 text-center text-xs font-medium text-amber-400">
+                          ⏳ Pendiente
+                        </span>
+                      )}
                     </>
                   )}
                   {order.status === "captured" && (

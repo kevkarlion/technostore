@@ -31,16 +31,25 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const cancelResult = await response.json();
-    console.log("[MP Cancel] Response:", response.status, JSON.stringify(cancelResult, null, 2));
+    const responseText = await response.text();
+    console.log("[MP Cancel] Response status:", response.status);
+    console.log("[MP Cancel] Response body:", responseText);
+
+    let cancelResult: Record<string, unknown>;
+    try {
+      cancelResult = JSON.parse(responseText);
+    } catch {
+      cancelResult = { raw_body: responseText };
+    }
 
     if (response.status !== 200 && response.status !== 201) {
-      // MP puede devolver error en message, error, o cause[0].description
+      const cause = cancelResult.cause as Array<{ code?: string; description?: string }> | undefined;
       const mpMessage =
         cancelResult.message ||
         cancelResult.error ||
-        cancelResult.cause?.[0]?.description ||
-        `Error MP (status ${response.status})`;
+        cancelResult.error_description ||
+        cause?.[0]?.description ||
+        JSON.stringify(cancelResult);
       return NextResponse.json(
         { message: mpMessage, details: cancelResult },
         { status: response.status }

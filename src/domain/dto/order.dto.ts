@@ -36,6 +36,7 @@ export const orderTotalsSchema = z.object({
 
 export const orderPaymentSchema = z.object({
   paymentId: z.string().optional(),
+  mpPaymentId: z.string().optional(),
   paymentMethodId: z.string().optional(),
   paymentMethodType: z.string().optional(),
   installments: z.number().int().positive().optional(),

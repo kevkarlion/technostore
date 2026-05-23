@@ -32,16 +32,26 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const captureResult = await response.json();
-    console.log("[MP Capture] Response:", response.status, JSON.stringify(captureResult, null, 2));
+    const responseText = await response.text();
+    console.log("[MP Capture] Response status:", response.status);
+    console.log("[MP Capture] Response body:", responseText);
+
+    let captureResult: Record<string, unknown>;
+    try {
+      captureResult = JSON.parse(responseText);
+    } catch {
+      captureResult = { raw_body: responseText };
+    }
 
     if (response.status !== 200 && response.status !== 201) {
-      // MP puede devolver error en message, error, o cause[0].description
+      // MP puede devolver error en message, error, cause, o formato anidado
+      const cause = captureResult.cause as Array<{ code?: string; description?: string }> | undefined;
       const mpMessage =
         captureResult.message ||
         captureResult.error ||
-        captureResult.cause?.[0]?.description ||
-        `Error MP (status ${response.status})`;
+        captureResult.error_description ||
+        cause?.[0]?.description ||
+        JSON.stringify(captureResult);
       return NextResponse.json(
         { message: mpMessage, details: captureResult },
         { status: response.status }

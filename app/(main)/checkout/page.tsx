@@ -300,6 +300,8 @@ export default function CheckoutPage() {
         },
         payment: {
           paymentId: result.id,
+          // Also try the payment ID from within the transaction
+          mpPaymentId: result.transactions?.payments?.[0]?.id,
           paymentMethodId: data.paymentMethodId,
           paymentMethodType: data.type,
           installments: data.installments,

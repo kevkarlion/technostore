@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useSyncExternalStore } from "react";
+import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/features/cart/store/cart-store";
 import { useCheckoutStore, type CustomerData, composeFullAddress } from "@/store/checkout-store";
@@ -49,6 +49,14 @@ export default function CheckoutPage() {
   const [customerData, setCustomerDataLocal] = useState<CustomerData | null>(null);
   const [showCardForm, setShowCardForm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const cardFormRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to card form when it appears
+  useEffect(() => {
+    if (showCardForm && cardFormRef.current) {
+      cardFormRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [showCardForm]);
 
   // Fetch products from API
   useEffect(() => {
@@ -397,7 +405,7 @@ export default function CheckoutPage() {
               ← Volver
             </Button>
             
-            <div className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4">
+            <div ref={cardFormRef} className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4">
               <h2 className="text-sm font-semibold text-slate-50 mb-4">
                 Datos de tu tarjeta
               </h2>

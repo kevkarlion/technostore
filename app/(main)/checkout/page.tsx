@@ -53,8 +53,11 @@ export default function CheckoutPage() {
 
   // Scroll to card form when it appears
   useEffect(() => {
-    if (showCardForm && cardFormRef.current) {
-      cardFormRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (showCardForm) {
+      // Use rAF to ensure DOM is painted before scrolling
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
     }
   }, [showCardForm]);
 

@@ -75,7 +75,7 @@ export default function TerminosPage() {
         {/* Content */}
         <div className="space-y-12">
           {/* 1. Introducción */}
-          <section id="introduccion" className="scroll-mt-20">
+          <section id="introduccion" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">1</span>
               Introducción
@@ -96,7 +96,7 @@ export default function TerminosPage() {
           </section>
 
           {/* 2. Aceptación de los términos */}
-          <section id="aceptacion-de-los-terminos" className="scroll-mt-20">
+          <section id="aceptacion-de-los-terminos" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">2</span>
               Aceptación de los términos
@@ -117,7 +117,7 @@ export default function TerminosPage() {
           </section>
 
           {/* 3. Información de la empresa */}
-          <section id="informacion-de-la-empresa" className="scroll-mt-20">
+          <section id="informacion-de-la-empresa" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">3</span>
               Información de la empresa
@@ -145,7 +145,7 @@ export default function TerminosPage() {
           </section>
 
           {/* 4. Productos y disponibilidad */}
-          <section id="productos-y-disponibilidad" className="scroll-mt-20">
+          <section id="productos-y-disponibilidad" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">4</span>
               Productos y disponibilidad
@@ -170,7 +170,7 @@ export default function TerminosPage() {
           </section>
 
           {/* 5. Precios y métodos de pago */}
-          <section id="precios-y-metodos-de-pago" className="scroll-mt-20">
+          <section id="precios-y-metodos-de-pago" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">5</span>
               Precios y métodos de pago
@@ -200,7 +200,7 @@ export default function TerminosPage() {
           </section>
 
           {/* 6. Facturación */}
-          <section id="facturacion" className="scroll-mt-20">
+          <section id="facturacion" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">6</span>
               Facturación
@@ -226,7 +226,7 @@ export default function TerminosPage() {
           </section>
 
           {/* 7. Envíos y tiempos de entrega */}
-          <section id="envios-y-tiempos-de-entrega" className="scroll-mt-20">
+          <section id="envios-y-tiempos-de-entrega" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">7</span>
               Envíos y tiempos de entrega
@@ -260,7 +260,7 @@ export default function TerminosPage() {
           </section>
 
           {/* 8. Cambios y devoluciones */}
-          <section id="cambios-y-devoluciones" className="scroll-mt-20">
+          <section id="cambios-y-devoluciones" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">8</span>
               Cambios y devoluciones
@@ -294,7 +294,7 @@ export default function TerminosPage() {
           </section>
 
           {/* 9. Garantías */}
-          <section id="garantias" className="scroll-mt-20">
+          <section id="garantias" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">9</span>
               Garantías
@@ -322,7 +322,7 @@ export default function TerminosPage() {
           </section>
 
           {/* 10. Cancelaciones */}
-          <section id="cancelaciones" className="scroll-mt-20">
+          <section id="cancelaciones" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">10</span>
               Cancelaciones
@@ -348,7 +348,7 @@ export default function TerminosPage() {
           </section>
 
           {/* 11. Uso del sitio */}
-          <section id="uso-del-sitio" className="scroll-mt-20">
+          <section id="uso-del-sitio" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">11</span>
               Uso del sitio
@@ -374,7 +374,7 @@ export default function TerminosPage() {
           </section>
 
           {/* 12. Protección de datos personales */}
-          <section id="proteccion-de-datos-personales" className="scroll-mt-20">
+          <section id="proteccion-de-datos-personales" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">12</span>
               Protección de datos personales
@@ -406,7 +406,7 @@ export default function TerminosPage() {
           </section>
 
           {/* 13. Propiedad intelectual */}
-          <section id="propiedad-intelectual" className="scroll-mt-20">
+          <section id="propiedad-intelectual" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">13</span>
               Propiedad intelectual
@@ -433,7 +433,7 @@ export default function TerminosPage() {
           </section>
 
           {/* 14. Limitación de responsabilidad */}
-          <section id="limitacion-de-responsabilidad" className="scroll-mt-20">
+          <section id="limitacion-de-responsabilidad" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">14</span>
               Limitación de responsabilidad
@@ -458,7 +458,7 @@ export default function TerminosPage() {
           </section>
 
           {/* 15. Promociones y ofertas */}
-          <section id="promociones-y-ofertas" className="scroll-mt-20">
+          <section id="promociones-y-ofertas" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">15</span>
               Promociones y ofertas
@@ -481,7 +481,7 @@ export default function TerminosPage() {
           </section>
 
           {/* 16. Modificaciones */}
-          <section id="modificaciones" className="scroll-mt-20">
+          <section id="modificaciones" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">16</span>
               Modificaciones
@@ -502,7 +502,7 @@ export default function TerminosPage() {
           </section>
 
           {/* 17. Legislación aplicable */}
-          <section id="legislacion-aplicable" className="scroll-mt-20">
+          <section id="legislacion-aplicable" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">17</span>
               Legislación aplicable
@@ -529,7 +529,7 @@ export default function TerminosPage() {
           </section>
 
           {/* 18. Contacto */}
-          <section id="contacto" className="scroll-mt-20">
+          <section id="contacto" className="scroll-mt-24 lg:scroll-mt-44">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4 flex items-center gap-3">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)] text-zinc-900 text-sm font-bold">18</span>
               Contacto

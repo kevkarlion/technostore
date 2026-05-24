@@ -15,9 +15,7 @@ function useNotificationPoller() {
   const {
     setNotifications,
     addLatest,
-    lastPollAt,
     setPolling,
-    polling,
   } = useNotificationStore();
 
   const poll = useCallback(async () => {
@@ -36,25 +34,19 @@ function useNotificationPoller() {
         })
       );
 
-      // Determine what's new since last poll
-      const now = Date.now();
-      const prevPoll = useNotificationStore.getState().lastPollAt;
+      // Detect new notifications by ID — avoids clock skew between server/client
+      const knownIds = new Set(useNotificationStore.getState().knownIds);
+      const fresh = items.filter((n) => !knownIds.has(n._id));
 
-      if (prevPoll) {
-        // Second poll onwards: only show notifications created after last poll
-        const fresh = items.filter(
-          (n) => new Date(n.createdAt).getTime() > prevPoll
-        );
-        if (fresh.length > 0) {
-          addLatest(fresh);
-        }
-      } else if (items.length > 0) {
-        // First poll: show any existing unread notifications immediately
-        addLatest(items);
+      if (fresh.length > 0) {
+        addLatest(fresh);
       }
 
+      // Update known IDs with current batch
+      const allIds = items.map((n) => n._id);
+      useNotificationStore.setState({ knownIds: allIds });
+
       setNotifications(items);
-      useNotificationStore.setState({ lastPollAt: now });
     } catch {
       // Silently retry next interval
     }

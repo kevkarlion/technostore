@@ -16,7 +16,8 @@ interface NotificationState {
   /** IDs of notifications that are new since last poll (shown as popup) */
   latest: NotificationItem[];
   polling: boolean;
-  lastPollAt: number | null;
+  /** IDs of notifications we've already shown or dismissed this session */
+  knownIds: string[];
 
   setNotifications: (items: NotificationItem[]) => void;
   addLatest: (items: NotificationItem[]) => void;
@@ -31,7 +32,7 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
   unreadCount: 0,
   latest: [],
   polling: false,
-  lastPollAt: null,
+  knownIds: [],
 
   setNotifications: (items) =>
     set({
@@ -41,7 +42,6 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
 
   addLatest: (items) => {
     const existing = get().latest;
-    // Only add items not already in latest (avoid duplicates)
     const existingIds = new Set(existing.map((n) => n._id));
     const trulyNew = items.filter((n) => !existingIds.has(n._id));
 

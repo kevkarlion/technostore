@@ -126,9 +126,12 @@ function NotificationPopupCard({
 export function AdminNotificationPopup() {
   useNotificationPoller();
 
-  const { latest, clearLatest, markRead, unreadCount } = useNotificationStore();
+  const { latest, clearLatest, markRead, unreadCount, notifications } = useNotificationStore();
   const setActiveSection = useAdminStore((s) => s.setActiveSection);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // DEBUG: log state on every render
+  console.log("[AdminNotificationPopup] render:", { latestCount: latest.length, unreadCount, totalCount: notifications.length });
 
   // Auto-hide popups after 8 seconds
   useEffect(() => {
@@ -157,10 +160,27 @@ export function AdminNotificationPopup() {
     setActiveSection("orders");
   };
 
-  if (latest.length === 0) return null;
+  if (latest.length === 0) {
+    // Even when no popup, show a tiny debug indicator so we know the component mounted
+    return (
+      <>
+        {/* Tiny debug indicator — shows notification polling is active */}
+        <div className="fixed bottom-2 right-2 z-[9999] flex items-center gap-1 rounded-full bg-slate-900/60 px-2 py-0.5 text-[10px] text-slate-500 border border-slate-800/50">
+          <span className={`inline-block h-1.5 w-1.5 rounded-full ${unreadCount > 0 ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
+          N:{unreadCount}
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
+      {/* Debug indicator */}
+      <div className="fixed bottom-2 right-2 z-[9999] flex items-center gap-1 rounded-full bg-slate-900/60 px-2 py-0.5 text-[10px] text-slate-500 border border-slate-800/50">
+        <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        N:{unreadCount}
+      </div>
+
       {/* Bell icon with badge when there are unread notifications in background */}
       {unreadCount > 0 && (
         <div className="fixed top-4 right-4 z-[60]">

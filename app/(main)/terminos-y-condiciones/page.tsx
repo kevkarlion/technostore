@@ -1,6 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+/** Normalize a heading to a URL-safe slug matching the section IDs */
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove diacritics (acentos)
+    .replace(/ñ/g, "n")
+    .replace(/\s+/g, "-");
+}
+
 export const metadata: Metadata = {
   title: "Términos y Condiciones",
   description: "Términos y condiciones de TechnoStore - Tu tienda de tecnología en General Roca, Río Negro. Información legal, políticas de compra y venta.",
@@ -54,7 +63,7 @@ export default function TerminosPage() {
               "Contacto",
             ].map((item, i) => (
               <li key={i}>
-                <a href={`#${item.toLowerCase().replace(/\s+/g, '-').replace(/ñ/g, 'n')}`} className="text-[var(--foreground-muted)] hover:text-[var(--accent)] transition-colors">
+                <a href={`#${slugify(item)}`} className="text-[var(--foreground-muted)] hover:text-[var(--accent)] transition-colors">
                   <span className="text-[var(--accent)] mr-2">{i + 1}.</span>
                   {item}
                 </a>

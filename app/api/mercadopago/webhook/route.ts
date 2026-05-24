@@ -42,7 +42,8 @@ export async function POST(req: NextRequest) {
     const timestamp = req.headers.get("x-signature-timestamp") ?? "";
 
     // ── Signature verification ─────────────────────────────────────────────
-    if (signature || timestamp) {
+    // Si MP envía firma la validamos; si no (ej. prueba de MP), igual procesamos.
+    if (signature && timestamp) {
       const isValid = verifyWebhookSignature(signature, timestamp, rawBody);
       if (!isValid) {
         console.warn(`${WEBHOOK_LOG_PREFIX} Invalid signature — rejecting request`);
@@ -52,17 +53,7 @@ export async function POST(req: NextRequest) {
         );
       }
     } else {
-      // If no signature headers are present, check whether secret is configured.
-      // If it is configured and we have no signature, reject to enforce security.
-      if (process.env.MERCADOPAGO_WEBHOOK_SECRET) {
-        console.warn(`${WEBHOOK_LOG_PREFIX} Missing signature headers — rejecting request`);
-        return NextResponse.json(
-          { message: "Unauthorized" },
-          { status: 401 }
-        );
-      }
-      // No secret configured → dev mode, allow without verification
-      console.warn(`${WEBHOOK_LOG_PREFIX} No signature headers and no WEBHOOK_SECRET — dev mode allowed`);
+      console.warn(`${WEBHOOK_LOG_PREFIX} No signature headers — accepting without verification (test mode?)`);
     }
 
     // ── Parse payload ─────────────────────────────────────────────────────

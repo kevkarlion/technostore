@@ -3,6 +3,7 @@
 import { useAdminStore } from "@/store/admin-store";
 import { AdminSidebar } from "./AdminSidebar";
 import { SectionRenderer } from "./SectionRenderer";
+import { AdminNotificationPopup } from "./AdminNotificationPopup";
 import { Menu, X } from "lucide-react";
 
 export function AdminDashboard() {
@@ -29,6 +30,9 @@ export function AdminDashboard() {
 
       {/* Sidebar */}
       <AdminSidebar />
+
+      {/* Notification popups — real-time order alerts */}
+      <AdminNotificationPopup />
 
       {/* Main content area */}
       <main

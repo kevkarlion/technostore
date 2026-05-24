@@ -1,5 +1,8 @@
 import { orderRepository } from "@/api/repository/order.repository";
 import { customerRepository } from "@/api/repository/customer.repository";
+import { notificationRepository } from "@/api/repository/notification.repository";
+import { sendBuyerConfirmation, sendAdminNotification } from "@/lib/email/email.service";
+import { notifyNewOrder, notifyOrderConfirmed } from "@/lib/admin-notifications";
 import type { CreateOrderDTO, ListOrdersQueryDTO } from "@/domain/dto/order.dto";
 import type { Order } from "@/domain/models/order";
 import { notFound } from "@/api/errors/http-error";
@@ -56,14 +59,42 @@ export const orderService = {
       });
     }
 
+    // Notify admin of new order (non-blocking)
+    notifyNewOrder(order);
+
     return order;
   },
 
   async updateOrderStatus(id: string, status: Order["status"], detail?: string) {
+    // Read current order FIRST to know the old status
+    const currentOrder = await orderRepository.findById(id);
+    if (!currentOrder) {
+      throw notFound("Orden no encontrada");
+    }
+
     const order = await orderRepository.updateStatus(id, status, detail);
     if (!order) {
       throw notFound("Orden no encontrada");
     }
+
+    // ── Trigger emails when purchase is fully confirmed ────────────────
+    // Both conditions met: webhook confirmed (status was "reserved")
+    // AND admin captured (status becomes "captured")
+    if (currentOrder.status === "reserved" && status === "captured") {
+      // Send buyer confirmation + admin notification (non-blocking)
+      Promise.all([
+        sendBuyerConfirmation(order),
+        sendAdminNotification(order),
+      ]).then(([buyerSent, adminSent]) => {
+        console.log(
+          `[OrderService] Confirmation emails for ${order.orderId}: buyer=${buyerSent}, admin=${adminSent}`
+        );
+      });
+
+      // Create admin panel notification
+      notifyOrderConfirmed(order);
+    }
+
     return order;
   },
 };

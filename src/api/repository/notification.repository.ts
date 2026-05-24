@@ -13,14 +13,11 @@ export const notificationRepository = {
     orderRef: string;
   }): Promise<void> {
     const db = await getDb();
-    const insertData = {
+    await db.collection(COLLECTION).insertOne({
       ...data,
       read: false,
       createdAt: new Date(),
-    };
-    console.log(`[NotifRepo] Inserting into "${COLLECTION}" collection:`, JSON.stringify(insertData));
-    const result = await db.collection(COLLECTION).insertOne(insertData);
-    console.log(`[NotifRepo] Insert result: acknowledged=${result.acknowledged}, id=${result.insertedId}`);
+    });
   },
 
   /** Get unread notifications, newest first */
@@ -32,11 +29,6 @@ export const notificationRepository = {
       .sort({ createdAt: -1 })
       .limit(20)
       .toArray();
-
-    console.log(`[NotifRepo] getUnread: found ${docs.length} docs`);
-    if (docs.length > 0) {
-      console.log(`[NotifRepo] First doc:`, JSON.stringify({ _id: docs[0]._id, type: docs[0].type, title: docs[0].title, read: docs[0].read, createdAt: docs[0].createdAt }));
-    }
 
     return docs.map((doc) => ({
       _id: doc._id,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ShoppingCart, Bell } from "lucide-react";
 import { useAdminStore } from "@/store/admin-store";
@@ -126,29 +126,11 @@ function NotificationPopupCard({
 export function AdminNotificationPopup() {
   useNotificationPoller();
 
-  const { latest, clearLatest, markRead, unreadCount, notifications } = useNotificationStore();
+  const { latest, clearLatest, markRead, unreadCount } = useNotificationStore();
   const setActiveSection = useAdminStore((s) => s.setActiveSection);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // DEBUG: log state on every render
-  console.log("[AdminNotificationPopup] render:", { latestCount: latest.length, unreadCount, totalCount: notifications.length });
-
-  // Auto-hide popups after 8 seconds
-  useEffect(() => {
-    if (latest.length > 0) {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => {
-        clearLatest();
-      }, 8000);
-    }
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, [latest.length, clearLatest]);
 
   const handleDismiss = (id: string) => {
     markRead(id);
-    // Also remove from latest
     useNotificationStore.setState({
       latest: latest.filter((n) => n._id !== id),
     });
@@ -160,28 +142,12 @@ export function AdminNotificationPopup() {
     setActiveSection("orders");
   };
 
-  if (latest.length === 0) {
-    // Even when no popup, show a tiny debug indicator so we know the component mounted
-    return (
-      <>
-        {/* Tiny debug indicator — shows notification polling is active */}
-        <div className="fixed bottom-2 right-2 z-[9999] flex items-center gap-1 rounded-full bg-slate-900/60 px-2 py-0.5 text-[10px] text-slate-500 border border-slate-800/50">
-          <span className={`inline-block h-1.5 w-1.5 rounded-full ${unreadCount > 0 ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
-          N:{unreadCount}
-        </div>
-      </>
-    );
-  }
+  // No popups? Nothing to render
+  if (latest.length === 0) return null;
 
   return (
     <>
-      {/* Debug indicator */}
-      <div className="fixed bottom-2 right-2 z-[9999] flex items-center gap-1 rounded-full bg-slate-900/60 px-2 py-0.5 text-[10px] text-slate-500 border border-slate-800/50">
-        <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-        N:{unreadCount}
-      </div>
-
-      {/* Bell icon with badge when there are unread notifications in background */}
+      {/* Bell icon with badge when there are unread notifications */}
       {unreadCount > 0 && (
         <div className="fixed top-4 right-4 z-[60]">
           <div className="relative">
@@ -193,7 +159,7 @@ export function AdminNotificationPopup() {
         </div>
       )}
 
-      {/* Popup stack — top right */}
+      {/* Popup stack — persistent until dismissed */}
       <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 w-80 max-w-[calc(100vw-32px)]">
         <AnimatePresence mode="popLayout">
           {latest.slice(0, 3).map((notification) => (

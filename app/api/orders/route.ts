@@ -13,12 +13,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    console.log("[Orders API] POST /api/orders called");
     const order = await orderController.create(req);
-    console.log(`[Orders API] Order created: ${order.orderId}`);
     return NextResponse.json(order, { status: 201 });
   } catch (error) {
-    console.error("[Orders API] POST error:", error);
     return handleError(error);
   }
 }

@@ -8,27 +8,19 @@ import type { Order } from "@/domain/models/order";
 export async function notifyNewOrder(order: Order): Promise<void> {
   try {
     const orderId = order._id?.toString();
-    console.log(`[Notifications] notifyNewOrder: orderId=${orderId}, order.orderId=${order.orderId}, _id exists=${!!order._id}`);
+    if (!orderId) return;
 
-    if (!orderId) {
-      console.warn(`[Notifications] SKIP: no _id for order ${order.orderId}`);
-      return;
-    }
-
-    const notifData = {
-      type: "new_order" as const,
+    await notificationRepository.create({
+      type: "new_order",
       title: "Nuevo pedido recibido",
       message: `${order.customer.name} ${order.customer.lastName} — $${order.totals.total.toFixed(2)}`,
       orderId,
       orderRef: order.orderId.substring(0, 12),
-    };
-    console.log(`[Notifications] Creating notification:`, JSON.stringify(notifData));
-
-    await notificationRepository.create(notifData);
-    console.log(`[Notifications] SUCCESS: notification created for order ${order.orderId}`);
+    });
+    console.log(`[Notifications] New order notification created: ${order.orderId}`);
   } catch (err) {
     // Non-blocking — don't fail the order flow
-    console.error("[Notifications] FAILED to create new-order notification:", err);
+    console.error("[Notifications] Failed to create new-order notification:", err);
   }
 }
 

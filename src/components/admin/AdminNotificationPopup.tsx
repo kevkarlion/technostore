@@ -9,7 +9,7 @@ import type { NotificationItem } from "@/store/notification-store";
 
 // ─── Polling hook ───────────────────────────────────────────────────────────
 
-const POLL_INTERVAL_MS = 15_000; // every 15 seconds
+const POLL_INTERVAL_MS = 5_000; // every 5 seconds
 
 function useNotificationPoller() {
   const {
@@ -41,12 +41,16 @@ function useNotificationPoller() {
       const prevPoll = useNotificationStore.getState().lastPollAt;
 
       if (prevPoll) {
+        // Second poll onwards: only show notifications created after last poll
         const fresh = items.filter(
           (n) => new Date(n.createdAt).getTime() > prevPoll
         );
         if (fresh.length > 0) {
           addLatest(fresh);
         }
+      } else if (items.length > 0) {
+        // First poll: show any existing unread notifications immediately
+        addLatest(items);
       }
 
       setNotifications(items);

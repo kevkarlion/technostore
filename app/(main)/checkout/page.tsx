@@ -343,6 +343,14 @@ export default function CheckoutPage() {
           console.error("[Checkout] Network error saving order:", err);
         });
       
+      // Save order data for the success page
+      try {
+        sessionStorage.setItem("checkout_order", JSON.stringify(orderPayload));
+        sessionStorage.setItem("checkout_payment_id", result.id);
+      } catch {
+        // Non-critical, sessionStorage might be full or unavailable
+      }
+
       clear(); // Clear cart on success
       setPaymentStatus("success");
       

@@ -245,6 +245,7 @@ export function HeroCarousel({
 }: HeroCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [interactionKey, setInteractionKey] = useState(0); // increments on manual nav
   
   const reducedMotion = useReducedMotion();
   
@@ -265,33 +266,31 @@ export function HeroCarousel({
     return () => observer.disconnect();
   }, []);
 
-  // Auto-play con Intersection Observer
+  // Auto-play: se reinicia cada vez que interactionKey cambia (navegación manual)
   useEffect(() => {
     if (!autoPlay || reducedMotion || !isVisible) return;
     
-    // No iniciar auto-play hasta que el usuario no haya interactuado por lo menos 3 segundos
-    const timeoutId = setTimeout(() => {
-      const interval = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % slides.length);
-      }, autoPlayInterval);
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % slides.length);
+    }, autoPlayInterval);
 
-      return () => clearInterval(interval);
-    }, 3000);
+    return () => clearInterval(interval);
+  }, [autoPlay, autoPlayInterval, slides.length, reducedMotion, isVisible, interactionKey]);
 
-    return () => clearTimeout(timeoutId);
-  }, [autoPlay, autoPlayInterval, slides.length, reducedMotion, isVisible]);
-
-  // Handlers memoizados
+  // Handlers memoizados: al navegar manualmente, incrementa interactionKey para reiniciar el timer
   const goToSlide = useCallback((index: number) => {
     setCurrentIndex(index);
+    setInteractionKey((k) => k + 1);
   }, []);
 
   const goToPrevious = useCallback(() => {
     setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
+    setInteractionKey((k) => k + 1);
   }, [slides.length]);
 
   const goToNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % slides.length);
+    setInteractionKey((k) => k + 1);
   }, [slides.length]);
 
   // Touch handlers - prevenir scroll del body durante swipe

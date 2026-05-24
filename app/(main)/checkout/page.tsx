@@ -326,23 +326,22 @@ export default function CheckoutPage() {
         ],
       };
 
-      fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderPayload),
-      })
-        .then(async (res) => {
-          if (!res.ok) {
-            const errBody = await res.json().catch(() => ({}));
-            console.error("[Checkout] Order save FAILED:", res.status, errBody);
-          } else {
-            console.log("[Checkout] Order saved OK");
-          }
-        })
-        .catch((err) => {
-          console.error("[Checkout] Network error saving order:", err);
+      try {
+        const orderRes = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(orderPayload),
         });
-      
+        if (!orderRes.ok) {
+          const errBody = await orderRes.json().catch(() => ({}));
+          console.error("[Checkout] Order save FAILED:", orderRes.status, errBody);
+        } else {
+          console.log("[Checkout] Order saved OK");
+        }
+      } catch (err) {
+        console.error("[Checkout] Network error saving order:", err);
+      }
+
       // Save order data for the success page
       try {
         sessionStorage.setItem("checkout_order", JSON.stringify(orderPayload));

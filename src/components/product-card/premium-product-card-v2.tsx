@@ -283,10 +283,7 @@ function ProductCardPrice({ price, originalPrice }: ProductCardPriceProps) {
         </span>
       )}
       
-      {/* Installments - always prominent */}
-      <p className="text-sm font-medium text-[var(--accent)]">
-        6x ${installmentAmount.toFixed(2)} sin interés
-      </p>
+
     </div>
   );
 }

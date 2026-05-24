@@ -59,8 +59,8 @@ export const orderService = {
       });
     }
 
-    // Notify admin of new order (non-blocking)
-    notifyNewOrder(order);
+    // Notify admin of new order
+    await notifyNewOrder(order);
 
     return order;
   },

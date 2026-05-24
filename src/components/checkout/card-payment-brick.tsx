@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CardPayment, initMercadoPago } from "@mercadopago/sdk-react";
+import { formatAndTranslateError } from "@/lib/mp-errors";
 
 interface CardPaymentBrickProps {
   initialAmount: number;
@@ -46,10 +47,7 @@ export function CardPaymentBrick({
     console.error("[MP Brick] Error:", err);
     console.error("[MP Brick] Error JSON:", JSON.stringify(err, null, 2));
     
-    const errorMsg = 
-      err?.message || 
-      err?.cause?.message ||
-      JSON.stringify(err);
+    const errorMsg = formatAndTranslateError(err?.message || err?.cause?.message || JSON.stringify(err));
     setError(errorMsg);
     onPaymentError(errorMsg);
   };

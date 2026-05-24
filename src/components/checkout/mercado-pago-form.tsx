@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { loadMercadoPago } from "@mercadopago/sdk-js";
 import { Price } from "@/components/ui/price";
+import { formatAndTranslateError } from "@/lib/mp-errors";
 
 type PaymentMethodType = "card" | "rapipago" | "pagofacil";
 
@@ -193,7 +194,7 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
         setCardError("Error al tokenizar la tarjeta. Verificá los datos.");
       }
     } catch (err: any) {
-      const errorMsg = err?.message || "Error al procesar la tarjeta";
+      const errorMsg = formatAndTranslateError(err?.message || "Error al procesar la tarjeta");
       setCardError(errorMsg);
     }
   };

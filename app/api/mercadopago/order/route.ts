@@ -36,6 +36,8 @@ interface OrderRequest {
   };
 }
 
+import { translateMpError } from "@/lib/mp-errors";
+
 interface ErrorResponse {
   message: string;
   details?: unknown;
@@ -182,7 +184,8 @@ export async function POST(req: NextRequest) {
         errorMessage = orderResult.message;
       }
       
-      console.log("[MP Order] Extracted error:", errorMessage);
+      // Translate MP errors to Spanish before returning to client
+      errorMessage = translateMpError(errorMessage);
       
       return NextResponse.json<ErrorResponse>(
         { message: errorMessage, details: orderResult },

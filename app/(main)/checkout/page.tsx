@@ -11,6 +11,7 @@ import { Price } from "@/components/ui/price";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import type { ProductResponseDTO } from "@/domain/dto/product.dto";
+import { formatAndTranslateError } from "@/lib/mp-errors";
 import { MercadoPagoForm } from "@/components/checkout/mercado-pago-form";
 import { CheckoutForm, type CheckoutFormData } from "@/components/checkout/checkout-form";
 
@@ -361,16 +362,18 @@ export default function CheckoutPage() {
       }
     } catch (err) {
       console.error("[Checkout] Payment error:", err);
+      const userMsg = formatAndTranslateError(err);
       setPaymentStatus("error");
-      setError(err instanceof Error ? err.message : "Error en el procesamiento del pago");
-      toast.error(err instanceof Error ? err.message : "Error en el procesamiento del pago");
+      setError(userMsg);
+      toast.error(userMsg);
       setIsProcessing(false);
     }
   };
 
   const handleCardError = (error: string) => {
-    setError(error);
-    toast.error(error);
+    const userMsg = formatAndTranslateError(error);
+    setError(userMsg);
+    toast.error(userMsg);
   };
 
   // Show loading while cart hydrates

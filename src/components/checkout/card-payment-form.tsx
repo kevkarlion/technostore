@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { loadMercadoPago } from "@mercadopago/sdk-js";
+import { formatAndTranslateError } from "@/lib/mp-errors";
 
 interface CardPaymentFormProps {
   amount: number;
@@ -200,8 +201,9 @@ export function CardPaymentForm({ amount, customerEmail, onPaymentSuccess, onPay
       }
     } catch (err: any) {
       console.error("[MP] Payment error:", err);
-      setError(err.message || "Error en el procesamiento del pago");
-      onPaymentError(err.message || "Error en el procesamiento del pago");
+      const userMsg = formatAndTranslateError(err);
+      setError(userMsg);
+      onPaymentError(userMsg);
     }
   }, [amount, customerEmail, onPaymentSuccess, onPaymentError]);
 

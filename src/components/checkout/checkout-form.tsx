@@ -310,7 +310,7 @@ function ToggleField({
 
 // ─── Order Summary (Mobile) ───────────────────────────────────────────────────
 
-function OrderSummary({
+export function OrderSummary({
   items,
   products,
   total,
@@ -322,7 +322,7 @@ function OrderSummary({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="lg:hidden">
+    <div className="lg:hidden max-w-full">
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
@@ -348,13 +348,13 @@ function OrderSummary({
       </button>
 
       {expanded && (
-        <div className="mt-2 p-4 bg-slate-900/30 rounded-xl space-y-2 animate-fadeIn border border-slate-700/40">
+        <div className="mt-2 p-4 bg-slate-900/30 rounded-xl space-y-2 animate-fadeIn border border-slate-700/40 max-h-64 overflow-y-auto">
           {items.map((item: any) => {
             const product = products[item.productId];
             return product ? (
-              <div key={item.productId} className="flex justify-between text-sm">
-                <span className="text-slate-400 truncate mr-2">{product.name} x{item.quantity}</span>
-                <span className="text-slate-200 shrink-0"><Price amount={product.price * item.quantity} /></span>
+              <div key={item.productId} className="flex gap-2 text-sm">
+                <span className="text-slate-400 break-words min-w-0">{product.name} x{item.quantity}</span>
+                <span className="text-slate-200 shrink-0 whitespace-nowrap"><Price amount={product.price * item.quantity} /></span>
               </div>
             ) : null;
           })}
@@ -636,8 +636,6 @@ export function CheckoutForm({ items, products, total, onSubmit, isLoading }: Ch
         <TrustBadges />
       </div>
 
-      {/* Mobile summary */}
-      <OrderSummary items={items} products={products} total={total} />
     </form>
   );
 }

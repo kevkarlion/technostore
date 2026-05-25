@@ -13,7 +13,7 @@ import Image from "next/image";
 import type { ProductResponseDTO } from "@/domain/dto/product.dto";
 import { formatAndTranslateError } from "@/lib/mp-errors";
 import { MercadoPagoForm } from "@/components/checkout/mercado-pago-form";
-import { CheckoutForm, type CheckoutFormData } from "@/components/checkout/checkout-form";
+import { CheckoutForm, OrderSummary, type CheckoutFormData } from "@/components/checkout/checkout-form";
 
 // Subscribe to cart store hydration
 function useStoreHydration() {
@@ -438,6 +438,7 @@ export default function CheckoutPage() {
             </div>
           </div>
         ) : (
+          <div className="min-w-0">
           <CheckoutForm
             items={items}
             products={products}
@@ -445,6 +446,8 @@ export default function CheckoutPage() {
             onSubmit={(data) => onSubmit(data as any)}
             isLoading={isProcessing}
           />
+          <OrderSummary items={items} products={products} total={total} />
+          </div>
         )}
 
         {/* Right sidebar - Order Summary (desktop) */}

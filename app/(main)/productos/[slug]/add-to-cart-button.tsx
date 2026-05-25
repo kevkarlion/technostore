@@ -75,7 +75,7 @@ export function AddToCartButton({
   return (
     <div className="space-y-3">
       {/* Selector de cantidad */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-center gap-3">
         <span className="text-sm text-[var(--foreground-muted)]">Cantidad:</span>
         <div className="flex items-center rounded-lg border border-[var(--border-subtle)]">
           <button

@@ -5,8 +5,8 @@ import { clsx } from "clsx";
 function HeaderSkeleton() {
   return (
     <header className="space-y-2">
-      <Skeleton className="h-8 w-64" />
-      <Skeleton className="h-4 w-96" />
+      <Skeleton className="h-7 w-48 sm:h-8 sm:w-64" />
+      <Skeleton className="h-3 w-64 sm:h-4 sm:w-96" />
     </header>
   );
 }
@@ -14,11 +14,11 @@ function HeaderSkeleton() {
 // Active filters skeleton (mobile)
 function ActiveFiltersSkeleton() {
   return (
-    <div className="space-y-3">
-      <div className="flex gap-2">
-        <Skeleton className="h-8 w-24 rounded-full" />
-        <Skeleton className="h-8 w-24 rounded-full" />
-        <Skeleton className="h-8 w-24 rounded-full" />
+    <div className="space-y-3 lg:hidden">
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        <Skeleton className="h-7 w-20 shrink-0 rounded-full sm:h-8 sm:w-24" />
+        <Skeleton className="h-7 w-20 shrink-0 rounded-full sm:h-8 sm:w-24" />
+        <Skeleton className="h-7 w-20 shrink-0 rounded-full sm:h-8 sm:w-24" />
       </div>
     </div>
   );
@@ -28,8 +28,8 @@ function ActiveFiltersSkeleton() {
 function ToolbarSkeleton() {
   return (
     <div className="flex items-center justify-between gap-4">
-      <Skeleton className="h-4 w-48" />
-      <div className="flex items-center gap-1 rounded-lg border border-[var(--border-subtle)]">
+      <Skeleton className="h-3 w-32 sm:h-4 sm:w-48" />
+      <div className="hidden items-center gap-1 rounded-lg border border-[var(--border-subtle)] lg:flex">
         <Skeleton className="h-9 w-9 rounded-lg" />
         <Skeleton className="h-9 w-9 rounded-lg" />
       </div>
@@ -40,7 +40,7 @@ function ToolbarSkeleton() {
 // Desktop sidebar filters skeleton
 function SidebarFiltersSkeleton() {
   return (
-    <div className="sticky top-24 space-y-6 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-5">
+    <div className="sticky top-24 hidden space-y-6 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-5 lg:block">
       <div className="flex items-center gap-2 border-b border-[var(--border-subtle)] pb-4">
         <Skeleton className="h-5 w-5 rounded" />
         <Skeleton className="h-4 w-20" />
@@ -106,11 +106,11 @@ function ProductCardSkeleton() {
   );
 }
 
-// Products grid skeleton - 4 columns desktop, 2 mobile
+// Products grid skeleton - matches CategoryProductsClient responsive grid
 function ProductsGridSkeleton({ count = 12 }: { count?: number }) {
   return (
     <div className="flex-1">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 sm:gap-4">
         {Array.from({ length: count }).map((_, i) => (
           <ProductCardSkeleton key={i} />
         ))}
@@ -122,12 +122,12 @@ function ProductsGridSkeleton({ count = 12 }: { count?: number }) {
 // Pagination skeleton
 function PaginationSkeleton() {
   return (
-    <div className="flex items-center justify-center gap-1 py-8">
-      <Skeleton className="h-9 w-16 rounded-md" />
-      <Skeleton className="h-9 w-9 rounded-md" />
-      <Skeleton className="h-9 w-9 rounded-md bg-[var(--accent)]" />
-      <Skeleton className="h-9 w-9 rounded-md" />
-      <Skeleton className="h-9 w-16 rounded-md" />
+    <div className="flex items-center justify-center gap-1 py-6 sm:py-8">
+      <Skeleton className="h-8 w-14 rounded-md sm:h-9 sm:w-16" />
+      <Skeleton className="h-8 w-8 rounded-md sm:h-9 sm:w-9" />
+      <Skeleton className="h-8 w-8 rounded-md bg-[var(--accent)] sm:h-9 sm:w-9" />
+      <Skeleton className="h-8 w-8 rounded-md sm:h-9 sm:w-9" />
+      <Skeleton className="h-8 w-14 rounded-md sm:h-9 sm:w-16" />
     </div>
   );
 }
@@ -135,7 +135,7 @@ function PaginationSkeleton() {
 // Mobile filter button skeleton
 function FilterButtonSkeleton() {
   return (
-    <div className="fixed bottom-20 right-4 z-40 lg:hidden">
+    <div className="fixed bottom-6 right-4 z-40 lg:hidden">
       <Skeleton className="h-12 w-12 rounded-full shadow-lg" />
     </div>
   );

@@ -34,11 +34,11 @@ export function Price({
 
   return (
     <div className={clsx("flex items-baseline gap-1.5", className)}>
-      <span className="text-base font-semibold text-slate-50">
+      <span className="font-bold text-[var(--foreground)]">
         {currentLabel}
       </span>
       {originalLabel && (
-        <span className="text-xs text-slate-500 line-through">
+        <span className="text-sm text-[var(--foreground-muted)] line-through">
           {originalLabel}
         </span>
       )}

@@ -202,30 +202,36 @@ export function PremiumGallery({ product }: PremiumGalleryProps) {
         {/* RIGHT COLUMN - Sticky Product Details */}
         <section className="space-y-4 md:sticky md:top-[80px] md:self-start">
           <GlassContainer className="space-y-4 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-5">
-            <header className="space-y-2">
+            <header className="space-y-2 pb-1">
               <p className="text-xs uppercase tracking-wide text-[var(--foreground-muted)]">
                 {product.brand} • {product.category}
               </p>
-              <h1 className="text-xl font-semibold tracking-tight text-[var(--foreground)] sm:text-2xl">
+              <h1 className="text-2xl font-bold tracking-tight text-[var(--foreground)] sm:text-3xl">
                 {product.name}
               </h1>
             </header>
 
-            {/* Price and Rating */}
-            <div className="space-y-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--background)]/50 p-4">
-              <div className="flex items-baseline justify-between gap-3">
-                <Price
-                  amount={product.price}
-                  originalAmount={product.originalPrice}
-                  className="text-lg"
-                />
-                <div className="text-right text-[0.7rem] text-[var(--foreground-muted)]">
-                  <p>
-                    {product.rating.toFixed(1)} ★ •{" "}
-                    {product.ratingCount.toLocaleString()} reviews
+            {/* Price and CTA */}
+            <div className="space-y-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--background)]/50 p-5">
+              <div className="flex items-end justify-between gap-3">
+                <div className="space-y-1">
+                  <Price
+                    amount={product.price}
+                    originalAmount={product.originalPrice}
+                    className="text-3xl sm:text-4xl"
+                  />
+                  {product.originalPrice && product.originalPrice > product.price && (
+                    <p className="text-xs text-emerald-400 font-medium">
+                      Ahorrá ${(product.originalPrice - product.price).toLocaleString("en-US")}
+                    </p>
+                  )}
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-[var(--foreground)]">
+                    {product.rating.toFixed(1)} ★
                   </p>
-                  <p className={product.inStock ? "text-emerald-400" : "text-rose-400"}>
-                    {product.inStock ? "In stock" : "Out of stock"}
+                  <p className="text-xs text-[var(--foreground-muted)]">
+                    {product.ratingCount.toLocaleString()} reviews
                   </p>
                 </div>
               </div>
@@ -352,33 +358,6 @@ export function PremiumGallery({ product }: PremiumGalleryProps) {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Mobile fixed bottom bar */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-[var(--border-subtle)] bg-[var(--background)]/95 backdrop-blur-lg p-4 md:hidden z-40">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <Price
-              amount={product.price}
-              originalAmount={product.originalPrice}
-              className="text-lg font-semibold"
-            />
-            <p className="text-xs text-[var(--foreground-muted)]">
-              {product.rating.toFixed(1)} ★
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              document.getElementById("add-to-cart")?.scrollIntoView({ behavior: "smooth" });
-            }}
-            className="rounded-full bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--background)] transition-opacity hover:opacity-90"
-          >
-            Add to Cart
-          </button>
-        </div>
-      </div>
-
-      {/* Safe area padding for notched devices */}
-      <div className="h-4 md:hidden" />
     </div>
   );
 }

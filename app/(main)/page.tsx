@@ -62,17 +62,7 @@ export default async function Home() {
         <HeroWrapper />
       </section>
 
-      {/* 2. ServiceDifferentials */}
-      <section className="py-16">
-        <ServiceDifferentials />
-      </section>
-
-      {/* 3. CategoryShowcase */}
-      <section className="py-16">
-        <CategoryShowcase />
-      </section>
-
-      {/* 4. PremiumFeaturedProducts */}
+      {/* 2. PremiumFeaturedProducts - abajo del hero */}
       <section className="py-16">
         <PremiumFeaturedProducts
           products={featuredProductsWithBadges}
@@ -80,14 +70,24 @@ export default async function Home() {
         />
       </section>
 
-      {/* 5. TrustBadges */}
+      {/* 3. CategoryShowcase - Categorías */}
       <section className="py-16">
-        <TrustBadges />
+        <CategoryShowcase />
       </section>
 
-      {/* 6. ContactLocation - Antes del footer */}
+      {/* 4. ServiceDifferentials - Por qué elegirnos */}
+      <section className="py-16">
+        <ServiceDifferentials />
+      </section>
+
+      {/* 5. ContactLocation - Visitanos en nuestra tienda */}
       <section className="py-16">
         <ContactLocation />
+      </section>
+
+      {/* 6. TrustBadges - Pensado para una mejor experiencia */}
+      <section className="py-16">
+        <TrustBadges />
       </section>
 
       {/* 7. CTA Final - WhatsApp */}

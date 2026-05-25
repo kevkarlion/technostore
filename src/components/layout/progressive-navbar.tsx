@@ -151,7 +151,7 @@ function MobileDrawer({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            className="fixed right-0 top-0 h-full w-[85%] max-w-[340px] bg-[var(--background)] border-l border-[var(--border-subtle)] z-[101] overflow-y-auto"
+            className="fixed right-0 top-0 h-dvh w-[85%] max-w-[340px] bg-[var(--background)] border-l border-[var(--border-subtle)] z-[101] overflow-y-auto pb-[max(env(safe-area-inset-bottom),1.5rem)]"
           >
             {/* Header */}
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--background)]/90 backdrop-blur-xl px-5 py-4">
@@ -418,7 +418,7 @@ function ExpandedNavbar() {
           <div className="h-5 w-px bg-[var(--border-subtle)]" />
 
           {/* Categorías */}
-          {JOTAKP_CATEGORIES.map((cat) => (
+          {JOTAKP_CATEGORIES.map((cat, idx) => (
             <div key={cat.slug} className="relative group">
               <button
                 type="button"
@@ -429,7 +429,7 @@ function ExpandedNavbar() {
               </button>
               
               {/* Dropdown */}
-              <ul className="pointer-events-none absolute left-0 top-full z-50 mt-0 min-w-[200px] rounded-xl border border-[var(--border-subtle)] bg-[var(--background)] p-1 opacity-0 shadow-xl shadow-black/20 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+              <ul className={`pointer-events-none absolute top-full z-50 mt-0 min-w-[200px] rounded-xl border border-[var(--border-subtle)] bg-[var(--background)] p-1 opacity-0 shadow-xl shadow-black/20 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 ${idx === JOTAKP_CATEGORIES.length - 1 ? 'right-0' : 'left-0'}`}>
                 {cat.subcategories.map((sub) => (
                   <li key={sub.slug}>
                     <Link

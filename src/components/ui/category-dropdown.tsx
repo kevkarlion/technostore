@@ -247,9 +247,11 @@ export interface CategoryDropdownProps {
 function CategoryItem({
   node,
   depth = 0,
+  isLast = false,
 }: {
   node: CategoryTreeNode;
   depth?: number;
+  isLast?: boolean;
 }) {
   const hasChildren = node.children.length > 0;
 
@@ -281,7 +283,7 @@ function CategoryItem({
           </svg>
         </button>
         {/* Submenu - appears on hover */}
-        <ul className="absolute left-0 top-full z-50 mt-0 min-w-[180px] rounded-lg border border-[var(--border-subtle)] bg-[var(--background)] p-1 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+        <ul className={`absolute top-full z-50 mt-0 min-w-[180px] rounded-lg border border-[var(--border-subtle)] bg-[var(--background)] p-1 opacity-0 shadow-lg transition-opacity group-hover:opacity-100 ${isLast ? 'right-0' : 'left-0'}`}>
           {node.children.map((child) => (
             <CategoryItem key={child.id} node={child} depth={depth + 1} />
           ))}
@@ -355,8 +357,8 @@ export function CategoryDropdown({
   return (
     // Use flex directly on ul instead of nav wrapper to avoid triggering dropdowns when hovering between items
     <ul className={clsx("flex flex-wrap items-center gap-1", className)}>
-      {categoryTree.map((node) => (
-        <CategoryItem key={node.id} node={node} depth={0} />
+      {categoryTree.map((node, idx) => (
+        <CategoryItem key={node.id} node={node} depth={0} isLast={idx === categoryTree.length - 1} />
       ))}
     </ul>
   );

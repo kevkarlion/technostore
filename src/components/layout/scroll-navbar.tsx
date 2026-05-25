@@ -161,7 +161,7 @@ export function ScrollNavbar() {
               <nav className="hidden pb-3 lg:flex flex-wrap content-center items-center gap-x-1.5 gap-y-1">
                 {/* Categories */}
                 <div className="flex flex-wrap content-center items-center gap-x-1 text-sm font-medium">
-                  {JOTAKP_CATEGORIES.map((cat) => (
+                  {JOTAKP_CATEGORIES.map((cat, idx) => (
                     <div key={cat.slug} className="relative group">
                       <button
                         type="button"
@@ -182,7 +182,7 @@ export function ScrollNavbar() {
                         </svg>
                       </button>
                       {/* Submenu dropdown */}
-                      <ul className="pointer-events-none absolute left-0 top-full z-50 mt-0 min-w-[200px] max-h-[60vh] overflow-y-auto rounded-lg border border-[var(--border-subtle)] bg-[var(--background)] p-1 opacity-0 shadow-lg transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <ul className={`pointer-events-none absolute top-full z-50 mt-0 min-w-[200px] max-h-[60vh] overflow-y-auto rounded-lg border border-[var(--border-subtle)] bg-[var(--background)] p-1 opacity-0 shadow-lg transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 ${idx === JOTAKP_CATEGORIES.length - 1 ? 'right-0' : 'left-0'}`}>
                         {cat.subcategories.map((sub) => (
                           <li key={sub.slug}>
                             <Link
@@ -239,7 +239,7 @@ export function ScrollNavbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed right-0 top-0 h-dvh w-[85%] max-w-[320px] bg-[var(--background)] z-[100] overflow-y-auto border-l border-[var(--border-subtle)] [&>*]:oversc-contain"
+              className="fixed right-0 top-0 h-dvh w-[85%] max-w-[320px] bg-[var(--background)] z-[100] overflow-y-auto border-l border-[var(--border-subtle)] pb-[max(env(safe-area-inset-bottom),1.5rem)] [&>*]:oversc-contain"
             >
               <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--background)] px-5 py-4">
                 <span className="text-lg font-bold text-[var(--foreground)]">Menú</span>

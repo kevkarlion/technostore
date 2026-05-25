@@ -99,17 +99,6 @@ export default function MainLayout({
                 ))}
               </div>
               
-              <p className="text-xs text-[var(--foreground-muted)] pt-2">
-                Desarrollada por{" "}
-                <a 
-                  href="https://devwebpatagonia.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-[var(--accent)] hover:underline"
-                >
-                  devweb gestión y presencia digital
-                </a>
-              </p>
             </div>
 
             {/* Products Navigation */}
@@ -173,16 +162,26 @@ export default function MainLayout({
           </div>
 
           {/* Bottom bar */}
-          <div className="border-t border-[var(--border-subtle)] py-4 flex flex-col gap-4 text-xs text-[var(--foreground-muted)] sm:flex-row sm:items-center sm:justify-between">
-            <p>© {new Date().getFullYear()} TechnoStore. Todos los derechos reservados.</p>
-            <div className="flex gap-4">
-              <Link href="/terminos-y-condiciones" className="hover:text-[var(--foreground)] transition-colors">
-                Términos y Condiciones
-              </Link>
-              <a href="https://devwebpatagonia.com" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--foreground)] transition-colors">
-                devweb
-              </a>
+          <div className="border-t border-[var(--border-subtle)] py-4 flex flex-col gap-2 text-xs text-[var(--foreground-muted)]">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <p>© {new Date().getFullYear()} TechnoStore. Todos los derechos reservados.</p>
+              <div className="flex gap-4">
+                <Link href="/terminos-y-condiciones" className="hover:text-[var(--foreground)] transition-colors">
+                  Términos y Condiciones
+                </Link>
+              </div>
             </div>
+            <p className="text-center pt-1">
+              Desarrollada por{" "}
+              <a 
+                href="https://devwebpatagonia.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[var(--accent)] hover:underline"
+              >
+                devweb gestión y presencia digital
+              </a>
+            </p>
           </div>
         </div>
       </footer>

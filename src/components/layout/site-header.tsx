@@ -275,7 +275,7 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
         <nav className="hidden pb-3 lg:flex flex-wrap content-center items-center gap-x-1.5 gap-y-1">
           {/* Categories - langsung tanpa Home */}
           <div className="flex flex-wrap content-center items-center gap-x-1 text-sm font-medium">
-            {JOTAKP_CATEGORIES.map((cat) => (
+            {JOTAKP_CATEGORIES.map((cat, idx) => (
               <div key={cat.slug} className="relative group">
                 <button
                   type="button"
@@ -296,7 +296,7 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
                   </svg>
                 </button>
                 {/* Submenu dropdown */}
-                <ul className="pointer-events-none absolute left-0 top-full z-50 mt-0 min-w-[200px] max-h-[60vh] overflow-y-auto rounded-lg border border-[var(--border-subtle)] bg-[var(--background)] p-1 opacity-0 shadow-lg transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                <ul className={`pointer-events-none absolute top-full z-50 mt-0 min-w-[200px] max-h-[60vh] overflow-y-auto rounded-lg border border-[var(--border-subtle)] bg-[var(--background)] p-1 opacity-0 shadow-lg transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 ${idx === JOTAKP_CATEGORIES.length - 1 ? 'right-0' : 'left-0'}`}>
                   {cat.subcategories.map((sub) => (
                     <li key={sub.slug}>
                       <Link
@@ -343,7 +343,7 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed right-0 top-0 h-screen w-[85%] max-w-[320px] bg-[var(--background)] z-[100] flex flex-col border-l border-[var(--border-subtle)]"
+            className="fixed right-0 top-0 h-dvh w-[85%] max-w-[320px] bg-[var(--background)] z-[100] flex flex-col border-l border-[var(--border-subtle)]"
           >
             {/* Header - Fijo en la parte superior */}
             <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-5 py-4 shrink-0">
@@ -359,7 +359,7 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
             </div>
             
             {/* Contenido scrolleable */}
-            <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: "touch" }}>
+            <div className="flex-1 overflow-y-auto overscroll-contain pb-[max(env(safe-area-inset-bottom),1.5rem)]" style={{ WebkitOverflowScrolling: "touch" }}>
               {/* Main Links - Premium styled */}
               <div className="border-b border-[var(--border-subtle)]">
                 {mainNav.map((navItem) => (

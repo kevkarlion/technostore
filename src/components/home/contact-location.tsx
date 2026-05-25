@@ -209,20 +209,20 @@ export function ContactLocation({ className }: ContactLocationProps) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3, duration: TRANSITION.medium }}
-            className="flex items-center gap-3 pt-2"
+            className="flex flex-col sm:flex-row items-center gap-3 pt-2"
           >
-            <span className="text-xs text-[var(--foreground-muted)]">Seguinos:</span>
-            <div className="flex gap-2">
+            <span className="text-base sm:text-sm text-[var(--foreground-muted)] font-semibold sm:font-medium">Seguinos:</span>
+            <div className="flex gap-4 sm:gap-3">
               {socialLinks.map((social) => (
                 <a
                   key={social.name}
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center w-9 h-9 rounded-lg border border-zinc-700/50 bg-zinc-800/50 text-[var(--foreground-muted)] hover:bg-[var(--accent)] hover:text-zinc-900 hover:border-[var(--accent)]/50 transition-all duration-200"
+                  className="flex items-center justify-center w-16 h-16 sm:w-11 sm:h-11 rounded-2xl sm:rounded-xl border-2 sm:border border-zinc-600/60 sm:border-zinc-700/50 bg-zinc-800/80 sm:bg-zinc-800/50 text-[var(--foreground-muted)] hover:bg-[var(--accent)] hover:text-zinc-900 hover:border-[var(--accent)]/50 transition-all duration-200 active:scale-95"
                   aria-label={social.name}
                 >
-                  <social.icon className="w-4 h-4" />
+                  <social.icon className="w-8 h-8 sm:w-5 sm:h-5" />
                 </a>
               ))}
             </div>

@@ -261,7 +261,7 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
           <span className="font-semibold text-lg">Pagar</span>
         </div>
         <div className="text-white/80 text-sm">Total a pagar</div>
-        <div className="text-2xl font-bold"><Price amount={totalAmount} /></div>
+        <div className="text-2xl font-bold"><Price amount={totalAmount} convertToArs /></div>
       </div>
 
       {/* Payment Method Selection - MP Tabs */}

@@ -5,13 +5,17 @@ const getSecret = () => new TextEncoder().encode(AUTH_CONFIG.jwtSecret);
 
 export interface TokenPayload extends JWTPayload {
   email: string;
-  role: "admin";
+  role: "user" | "admin";
+  userId?: string;
+  name?: string;
 }
 
 /** Create a signed JWT for the given admin user */
 export async function signToken(payload: {
   email: string;
-  role: "admin";
+  role: "user" | "admin";
+  userId?: string;
+  name?: string;
 }): Promise<string> {
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })

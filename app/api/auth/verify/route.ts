@@ -26,5 +26,8 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     authenticated: true,
     email: payload.email,
+    name: payload.name ?? "Admin",
+    role: payload.role,
+    userId: payload.userId ?? null,
   });
 }

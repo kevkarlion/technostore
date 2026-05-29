@@ -1,35 +1,56 @@
-import type * as React from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import { clsx } from "clsx";
+import { getExchangeRate, formatARS } from "@/lib/exchange-rate";
 
 interface PriceProps {
   amount: number;
   currency?: string;
   originalAmount?: number;
   className?: string;
+  /** Si es true, convierte el monto (asumido USD) a ARS usando la cotización del día */
+  convertToArs?: boolean;
 }
-
-const formatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
 
 export function Price({
   amount,
   currency,
   originalAmount,
   className,
+  convertToArs,
 }: PriceProps) {
-  const currentLabel = currency
-    ? `${currency} ${amount.toLocaleString("en-US")}`
-    : formatter.format(amount);
+  const [rate, setRate] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!convertToArs) return;
+    getExchangeRate().then((data) => setRate(data?.venta ?? null));
+  }, [convertToArs]);
+
+  // Si convertToArs está activo, convertir USD → ARS
+  const effectiveRate = convertToArs ? rate : null;
+  const arsAmount =
+    effectiveRate && effectiveRate > 0 ? amount * effectiveRate : amount;
+  const arsOriginal =
+    originalAmount && effectiveRate && effectiveRate > 0
+      ? originalAmount * effectiveRate
+      : originalAmount;
+
+  const hasDiscount = arsOriginal !== undefined && arsOriginal > arsAmount;
+
+  const currentLabel = convertToArs
+    ? formatARS(arsAmount)
+    : currency
+      ? `${currency} ${amount.toLocaleString("en-US")}`
+      : `$${amount.toLocaleString("en-US")}`;
 
   const originalLabel =
-    originalAmount && originalAmount > amount
-      ? currency
-        ? `${currency} ${originalAmount.toLocaleString("en-US")}`
-        : formatter.format(originalAmount)
+    hasDiscount && arsOriginal !== undefined
+      ? convertToArs
+        ? formatARS(arsOriginal)
+        : currency
+          ? `${currency} ${arsOriginal.toLocaleString("en-US")}`
+          : `$${arsOriginal.toLocaleString("en-US")}`
       : undefined;
 
   return (
@@ -45,4 +66,3 @@ export function Price({
     </div>
   );
 }
-

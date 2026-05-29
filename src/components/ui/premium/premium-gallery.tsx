@@ -11,6 +11,7 @@ import { GlassContainer } from "@/components/ui/premium/glass-container";
 import { AnimatedBadge } from "@/components/ui/premium/animated-badge";
 import { useMotionPreferences } from "@/lib/motion-config";
 import { AddToCartButton } from "../../../../app/(main)/productos/[slug]/add-to-cart-button";
+import { getExchangeRate, formatARS } from "@/lib/exchange-rate";
 
 interface PremiumGalleryProps {
   product: Product;
@@ -32,6 +33,11 @@ export function PremiumGallery({ product }: PremiumGalleryProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<ProductImage | null>(null);
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
+  const [rate, setRate] = useState<number | null>(null);
+
+  useEffect(() => {
+    getExchangeRate().then((data) => setRate(data?.venta ?? null));
+  }, []);
 
   // Swipe gesture state
   const touchStartX = useRef<number>(0);
@@ -219,10 +225,13 @@ export function PremiumGallery({ product }: PremiumGalleryProps) {
                     amount={product.price}
                     originalAmount={product.originalPrice}
                     className="text-3xl sm:text-4xl"
+                    convertToArs
                   />
                   {product.originalPrice && product.originalPrice > product.price && (
                     <p className="text-xs text-emerald-400 font-medium">
-                      Ahorrá ${(product.originalPrice - product.price).toLocaleString("en-US")}
+                      Ahorrá {formatARS(
+                        (product.originalPrice - product.price) * (rate && rate > 0 ? rate : 1)
+                      )}
                     </p>
                   )}
                 </div>

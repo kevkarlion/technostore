@@ -21,6 +21,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@mercadopago/sdk-js": "^0.0.3",
     "@mercadopago/sdk-react": "^1.0.7",
+    "bcryptjs": "^3.0.3",
     "cheerio": "^1.2.0",
     "cloudinary": "^2.9.0",
     "clsx": "^2.1.1",
@@ -43,6 +44,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/nodemailer": "^8.0.0",
     "@types/react": "^19",

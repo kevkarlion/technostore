@@ -17,10 +17,18 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   email: string | null;
+  name: string | null;
+  role: "user" | "admin" | null;
+  userId: string | null;
   login: (
     email: string,
     password: string
-  ) => Promise<{ success: boolean; error?: string }>;
+  ) => Promise<{
+    success: boolean;
+    error?: string;
+    name?: string;
+    role?: string;
+  }>;
   logout: () => Promise<void>;
 }
 
@@ -38,6 +46,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(null);
+  const [name, setName] = useState<string | null>(null);
+  const [role, setRole] = useState<"user" | "admin" | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const router = useRouter();
 
   /** Check with the server whether the current session token is valid */
@@ -48,13 +59,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const data = await res.json();
         setIsAuthenticated(true);
         setEmail(data.email ?? null);
+        setName(data.name ?? null);
+        setRole(data.role ?? null);
+        setUserId(data.userId ?? null);
       } else {
         setIsAuthenticated(false);
         setEmail(null);
+        setName(null);
+        setRole(null);
+        setUserId(null);
       }
     } catch {
       setIsAuthenticated(false);
       setEmail(null);
+      setName(null);
+      setRole(null);
+      setUserId(null);
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +102,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setIsAuthenticated(true);
       setEmail(email);
-      return { success: true };
+      setName(data.name ?? null);
+      setRole(data.role ?? null);
+      setUserId(data.userId ?? null);
+      return { success: true, name: data.name, role: data.role };
     } catch {
       return { success: false, error: "Error de conexión con el servidor" };
     }
@@ -97,12 +120,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setIsAuthenticated(false);
     setEmail(null);
+    setName(null);
+    setRole(null);
+    setUserId(null);
     router.push("/admin/login");
   };
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, isLoading, email, login, logout }}
+      value={{ isAuthenticated, isLoading, email, name, role, userId, login, logout }}
     >
       {children}
     </AuthContext.Provider>

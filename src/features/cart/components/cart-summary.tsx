@@ -91,7 +91,7 @@ export function CartSummary({
           <span className="text-[var(--foreground-muted)]">
             Subtotal ({itemCount} {itemCount === 1 ? 'producto' : 'productos'})
           </span>
-          <Price amount={subtotal} />
+          <Price amount={subtotal} convertToArs />
         </div>
 
         {/* Envío */}
@@ -100,7 +100,7 @@ export function CartSummary({
           {isEmpty ? (
             <span className="text-[var(--foreground-muted)]">—</span>
           ) : (
-            <Price amount={shipping} />
+            <Price amount={shipping} convertToArs />
           )}
         </div>
 
@@ -110,7 +110,7 @@ export function CartSummary({
           {isEmpty ? (
             <span className="text-[var(--foreground-muted)]">—</span>
           ) : (
-            <Price amount={tax} />
+            <Price amount={tax} convertToArs />
           )}
         </div>
       </div>
@@ -121,7 +121,7 @@ export function CartSummary({
         {isEmpty ? (
           <span className="text-lg font-bold text-[var(--foreground)]">—</span>
         ) : (
-          <Price amount={total} className="text-lg" />
+          <Price amount={total} className="text-lg" convertToArs />
         )}
       </div>
 

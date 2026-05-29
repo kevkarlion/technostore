@@ -9,6 +9,7 @@ const sections: Record<AdminSection, () => Promise<{ default: ComponentType }>> 
   products: () => import("./sections/AdminProducts"),
   orders: () => import("./sections/AdminOrders"),
   customers: () => import("./sections/AdminCustomers"),
+  users: () => import("./sections/AdminUsers"),
 };
 
 // Loading skeleton for sections

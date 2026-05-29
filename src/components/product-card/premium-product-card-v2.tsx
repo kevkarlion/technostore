@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { clsx } from "clsx";
 import { 
   ShoppingCart, Heart, Star, Truck, 
@@ -13,6 +13,7 @@ import type { Product } from "@/types/domain";
 import { useCartStore } from "@/features/cart/store/cart-store";
 import { useFavoritesStore } from "@/features/favorites/store/favorites-store";
 import { toast } from "sonner";
+import { getExchangeRate, usdToArs, formatARS } from "@/lib/exchange-rate";
 
 // ============================================================================
 // CONFIGURATION
@@ -256,18 +257,30 @@ interface ProductCardPriceProps {
 }
 
 function ProductCardPrice({ price, originalPrice }: ProductCardPriceProps) {
-  const hasDiscount = originalPrice && originalPrice > price;
-  const discountPercent = hasDiscount 
-    ? Math.round((1 - price / originalPrice) * 100) 
+  const [rate, setRate] = useState<number | null>(null);
+
+  useEffect(() => {
+    getExchangeRate().then((data) => setRate(data?.venta ?? null));
+  }, []);
+
+  // Convertir USD → ARS
+  const arsPrice = rate && rate > 0 ? usdToArs(price, rate) : price;
+  const arsOriginal =
+    originalPrice && rate && rate > 0
+      ? usdToArs(originalPrice, rate)
+      : originalPrice;
+
+  const hasDiscount = arsOriginal && arsOriginal > arsPrice;
+  const discountPercent = hasDiscount
+    ? Math.round((1 - arsPrice / arsOriginal) * 100)
     : 0;
-  const installmentAmount = price / 6;
 
   return (
     <div className="space-y-1">
-      {/* Main price with optional discount badge */}
+      {/* Main price in ARS */}
       <div className="flex items-baseline gap-2">
         <span className="text-xl font-bold tracking-tight text-[var(--foreground)]">
-          ${price.toLocaleString("es-AR")}
+          {formatARS(arsPrice)}
         </span>
         {hasDiscount && discountPercent > 0 && (
           <span className="rounded bg-[var(--accent)]/20 px-1.5 py-0.5 text-[10px] font-bold text-[var(--accent)]">
@@ -275,15 +288,13 @@ function ProductCardPrice({ price, originalPrice }: ProductCardPriceProps) {
           </span>
         )}
       </div>
-      
+
       {/* Original price */}
       {hasDiscount && (
         <span className="text-sm text-[var(--foreground-muted)] line-through decoration-[var(--foreground-muted)]/50">
-          ${originalPrice.toLocaleString("es-AR")}
+          {formatARS(arsOriginal!)}
         </span>
       )}
-      
-
     </div>
   );
 }

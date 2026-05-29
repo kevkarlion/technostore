@@ -171,14 +171,14 @@ export function CartItemRow({ item, onUpdateQuantity, onRemove }: CartItemRowPro
         </div>
 
         <div className="text-xs text-[var(--foreground-muted)]">
-          <Price amount={product.price} />
+          <Price amount={product.price} convertToArs />
         </div>
 
         {/* Controls */}
         <div className="flex items-center justify-between">
           <QuantityControls quantity={quantity} productId={productId} stock={product.stock} onUpdateQuantity={onUpdateQuantity} />
           <div className="text-sm font-semibold text-[var(--foreground)]">
-            <Price amount={subtotal} />
+            <Price amount={subtotal} convertToArs />
           </div>
         </div>
       </div>
@@ -244,7 +244,7 @@ export function CartItemRowMobile({ item, onUpdateQuantity, onRemove }: CartItem
         </div>
         
         <div className="text-xs text-[var(--foreground-muted)]">
-          <Price amount={product.price} />
+          <Price amount={product.price} convertToArs />
         </div>
 
         {/* Controls grandes para touch */}
@@ -273,7 +273,7 @@ export function CartItemRowMobile({ item, onUpdateQuantity, onRemove }: CartItem
           </div>
           
           <div className="text-sm font-bold text-[var(--foreground)]">
-            <Price amount={subtotal} />
+            <Price amount={subtotal} convertToArs />
           </div>
         </div>
       </div>

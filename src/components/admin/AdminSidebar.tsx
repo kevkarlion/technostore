@@ -6,6 +6,7 @@ import {
   Package,
   ShoppingCart,
   Users,
+  Shield,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -18,6 +19,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Package,
   ShoppingCart,
   Users,
+  Shield,
 };
 
 export function AdminSidebar() {
@@ -30,7 +32,7 @@ export function AdminSidebar() {
     setSidebarOpen,
   } = useAdminStore();
 
-  const { logout } = useAuth();
+  const { name: userName, email: userEmail, logout } = useAuth();
 
   const sidebarWidth = sidebarCollapsed ? "w-16" : "w-64";
 
@@ -61,7 +63,7 @@ export function AdminSidebar() {
                   TechnoStore
                 </span>
                 <span className="text-xs text-[var(--foreground-muted)]">
-                  Admin
+                  {userName || userEmail || "Admin"}
                 </span>
               </div>
             )}
@@ -143,7 +145,7 @@ export function AdminSidebar() {
                 TechnoStore
               </span>
               <span className="text-xs text-[var(--foreground-muted)]">
-                Admin
+                {userName || userEmail || "Admin"}
               </span>
             </div>
           </div>

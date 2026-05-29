@@ -6,7 +6,8 @@ import { persist } from "zustand/middleware";
 export type AdminSection =
   | "products"
   | "orders"
-  | "customers";
+  | "customers"
+  | "users";
 
 interface AdminState {
   // Navigation state
@@ -60,4 +61,5 @@ export const adminNavItems: {
   { section: "products", label: "Productos", icon: "Package" },
   { section: "orders", label: "Pedidos", icon: "ShoppingCart" },
   { section: "customers", label: "Clientes", icon: "Users" },
+  { section: "users", label: "Usuarios", icon: "Shield" },
 ];

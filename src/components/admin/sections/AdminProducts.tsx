@@ -45,6 +45,7 @@ export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "discontinued">("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -70,14 +71,18 @@ export default function AdminProducts() {
   const [pendingToggle, setPendingToggle] = useState<Product | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const fetchProducts = useCallback(async (search: string, page: number) => {
+  const fetchProducts = useCallback(async (search: string, page: number, status: string) => {
     setLoading(true);
     setError(null);
     try {
       const params = new URLSearchParams();
       params.set("limit", String(ITEMS_PER_PAGE));
       params.set("page", String(page));
-      params.set("allStatuses", "true");
+      if (status === "all") {
+        params.set("allStatuses", "true");
+      } else {
+        params.set("status", status);
+      }
       if (search.trim()) params.set("search", search.trim());
 
       const res = await fetch(`/api/products?${params.toString()}`);
@@ -118,10 +123,10 @@ export default function AdminProducts() {
     }, 350);
   };
 
-  // Fetch cuando cambia searchQuery o currentPage
+  // Fetch cuando cambia searchQuery, currentPage o statusFilter
   useEffect(() => {
-    fetchProducts(searchQuery, currentPage);
-  }, [searchQuery, currentPage, fetchProducts]);
+    fetchProducts(searchQuery, currentPage, statusFilter);
+  }, [searchQuery, currentPage, statusFilter, fetchProducts]);
 
   // Cleanup del debounce
   useEffect(() => {
@@ -200,7 +205,7 @@ export default function AdminProducts() {
         <div className="flex flex-col items-center justify-center rounded-xl border border-rose-800/50 bg-rose-950/20 py-16">
           <AlertTriangle className="h-12 w-12 text-rose-400" />
           <p className="mt-4 text-sm text-rose-400">{error}</p>
-          <Button onClick={() => fetchProducts(searchQuery, currentPage)} className="mt-4">
+          <Button onClick={() => fetchProducts(searchQuery, currentPage, statusFilter)} className="mt-4">
             <RefreshCw className="mr-2 h-4 w-4" />
             Reintentar
           </Button>
@@ -244,7 +249,7 @@ export default function AdminProducts() {
             </Button>
             <Button
               variant="outline"
-              onClick={() => fetchProducts(searchQuery, currentPage)}
+              onClick={() => fetchProducts(searchQuery, currentPage, statusFilter)}
               disabled={loading}
               className="px-3 sm:px-4"
             >
@@ -255,6 +260,30 @@ export default function AdminProducts() {
             </Button>
           </div>
         </div>
+      </div>
+
+      {/* Status Filter */}
+      <div className="flex gap-1 rounded-lg border border-slate-800 bg-slate-950/50 p-1 w-fit">
+        {(["all", "active", "discontinued"] as const).map((value) => (
+          <button
+            key={value}
+            onClick={() => {
+              setStatusFilter(value);
+              setCurrentPage(1);
+            }}
+            className={`rounded-md px-3.5 py-1.5 text-sm font-medium transition ${
+              statusFilter === value
+                ? "bg-[var(--accent)] text-zinc-900 shadow-sm"
+                : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
+            }`}
+          >
+            {value === "all"
+              ? "Todos"
+              : value === "active"
+              ? "Activos"
+              : "Descontinuados"}
+          </button>
+        ))}
       </div>
 
       {/* Stats Cards */}
@@ -269,7 +298,11 @@ export default function AdminProducts() {
                 {totalItems}
               </p>
               <p className="text-xs text-[var(--foreground-muted)]">
-                Productos activos
+                {statusFilter === "all"
+                  ? "Total productos"
+                  : statusFilter === "active"
+                  ? "Productos activos"
+                  : "Productos descontinuados"}
               </p>
             </div>
           </div>

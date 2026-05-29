@@ -12,6 +12,7 @@ export interface ListProductsParams {
   limit?: number;
   search?: string;
   allStatuses?: boolean;
+  status?: string;
 }
 
 export interface PaginatedResult<T> {
@@ -35,7 +36,9 @@ export const productRepository = {
     const collection = db.collection(COLLECTION_NAME);
 
     const filter: Record<string, any> = {};
-    if (!params.allStatuses) {
+    if (params.status) {
+      filter.status = params.status;
+    } else if (!params.allStatuses) {
       filter.status = "active";
     }
     if (params.search && params.search.trim()) {

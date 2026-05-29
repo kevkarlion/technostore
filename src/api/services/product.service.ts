@@ -8,6 +8,7 @@ export interface ListProductsInput {
   limit?: number;
   search?: string;
   allStatuses?: boolean;
+  status?: string;
 }
 
 export const productService = {
@@ -17,6 +18,7 @@ export const productService = {
       limit: input.limit,
       search: input.search,
       allStatuses: input.allStatuses,
+      status: input.status,
     });
   },
 

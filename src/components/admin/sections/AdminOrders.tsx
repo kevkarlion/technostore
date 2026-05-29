@@ -17,6 +17,7 @@ import {
   Eye,
 } from "lucide-react";
 import { Toaster, toast } from "sonner";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import type { Order } from "@/domain/models/order";
 
 /** Check if a payment ID looks like a real Mercado Pago order ID */
@@ -56,6 +57,7 @@ export default function AdminOrders() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [pendingCancel, setPendingCancel] = useState<Order | null>(null);
 
   const fetchOrders = useCallback(async (searchTerm = "", pageNum = 1) => {
     setLoading(true);
@@ -145,14 +147,6 @@ export default function AdminOrders() {
   };
 
   const handleCancel = async (order: Order) => {
-    if (
-      !confirm(
-        "¿Estás seguro de cancelar esta reserva? Se liberarán los fondos."
-      )
-    ) {
-      return;
-    }
-
     setActionLoading(order._id?.toString() || order.orderId);
     try {
       const response = await fetch("/api/mercadopago/cancel", {
@@ -427,7 +421,7 @@ export default function AdminOrders() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => handleCancel(order)}
+                                  onClick={() => setPendingCancel(order)}
                                   disabled={isLoading}
                                   className="border-slate-700 text-slate-300 hover:bg-slate-800 whitespace-nowrap"
                                 >
@@ -551,7 +545,7 @@ export default function AdminOrders() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleCancel(order)}
+                            onClick={() => setPendingCancel(order)}
                             disabled={isLoading}
                             className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800"
                           >
@@ -614,6 +608,22 @@ export default function AdminOrders() {
       <OrderDetailModal
         order={selectedOrder}
         onClose={() => setSelectedOrder(null)}
+      />
+
+      {/* Confirm cancel modal */}
+      <ConfirmModal
+        open={!!pendingCancel}
+        title="Cancelar reserva"
+        message="¿Estás seguro de cancelar esta reserva? Se liberarán los fondos."
+        confirmLabel="Cancelar reserva"
+        variant="danger"
+        onConfirm={() => {
+          if (pendingCancel) {
+            handleCancel(pendingCancel);
+            setPendingCancel(null);
+          }
+        }}
+        onCancel={() => setPendingCancel(null)}
       />
     </div>
   );

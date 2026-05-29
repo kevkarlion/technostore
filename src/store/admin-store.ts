@@ -4,15 +4,9 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export type AdminSection =
-  | "metrics"
   | "products"
-  | "categories"
   | "orders"
-  | "customers"
-  | "settings"
-  | "banners"
-  | "media"
-  | "messages";
+  | "customers";
 
 interface AdminState {
   // Navigation state
@@ -33,8 +27,8 @@ interface AdminState {
 export const useAdminStore = create<AdminState>()(
   persist(
     (set) => ({
-      // Default to metrics section
-      activeSection: "metrics",
+      // Default to products section
+      activeSection: "products",
       setActiveSection: (section) => set({ activeSection: section }),
 
       // Sidebar defaults
@@ -63,13 +57,7 @@ export const adminNavItems: {
   label: string;
   icon: string;
 }[] = [
-  { section: "metrics", label: "Métricas", icon: "BarChart3" },
   { section: "products", label: "Productos", icon: "Package" },
-  { section: "categories", label: "Categorías", icon: "Tags" },
   { section: "orders", label: "Pedidos", icon: "ShoppingCart" },
   { section: "customers", label: "Clientes", icon: "Users" },
-  { section: "settings", label: "Ajustes", icon: "Settings" },
-  { section: "banners", label: "Banners", icon: "LayoutTemplate" },
-  { section: "media", label: "Media", icon: "Image" },
-  { section: "messages", label: "Mensajes", icon: "MessageSquare" },
 ];

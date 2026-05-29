@@ -86,6 +86,7 @@ export const productMapper = {
       status: product.status,
       categories: product.categories,
       imageUrls: product.imageUrls,
+      cloudinaryUrls: product.cloudinaryUrls,
       attributes: product.attributes,
       externalId: product.externalId,
       supplier: product.supplier,

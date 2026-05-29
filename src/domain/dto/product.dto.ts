@@ -51,6 +51,7 @@ export interface ProductResponseDTO {
   status: ProductStatus;
   categories: string[];
   imageUrls: string[];
+  cloudinaryUrls?: string[];
   attributes?: Array<{ key: string; value: string }>;
   externalId?: string;
   supplier?: string;

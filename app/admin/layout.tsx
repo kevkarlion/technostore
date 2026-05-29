@@ -1,5 +1,9 @@
-import { AdminDashboard } from "@/components/admin/AdminDashboard";
+import { AuthProvider } from "@/lib/auth/auth-context";
 
-export default function AdminLayout() {
-  return <AdminDashboard />;
+/**
+ * Admin layout — wraps ALL /admin/* routes (login + dashboard)
+ * with the AuthProvider so every page can access auth state.
+ */
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return <AuthProvider>{children}</AuthProvider>;
 }

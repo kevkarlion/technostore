@@ -12,6 +12,7 @@ const listQuerySchema = z.object({
   page: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().positive().optional(),
   search: z.string().optional(),
+  allStatuses: z.coerce.boolean().optional(),
 });
 
 export const productController = {
@@ -21,6 +22,7 @@ export const productController = {
       page: url.searchParams.get("page") ?? undefined,
       limit: url.searchParams.get("limit") ?? undefined,
       search: url.searchParams.get("search") ?? undefined,
+      allStatuses: url.searchParams.get("allStatuses") ?? undefined,
     });
     if (!parsed.success) {
       throw badRequest("Invalid query params", parsed.error.flatten());

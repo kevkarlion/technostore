@@ -14,8 +14,10 @@ import {
   Package,
   AlertTriangle,
   RefreshCw,
+  Power,
 } from "lucide-react";
 import { Toaster, toast } from "sonner";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import ProductFormModal from "../ProductFormModal";
 
 interface Product {
@@ -64,6 +66,8 @@ export default function AdminProducts() {
     imageUrls: string[];
   } | null>(null);
   const [loadingEdit, setLoadingEdit] = useState(false);
+  const [toggleLoading, setToggleLoading] = useState<string | null>(null);
+  const [pendingToggle, setPendingToggle] = useState<Product | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchProducts = useCallback(async (search: string, page: number) => {
@@ -73,6 +77,7 @@ export default function AdminProducts() {
       const params = new URLSearchParams();
       params.set("limit", String(ITEMS_PER_PAGE));
       params.set("page", String(page));
+      params.set("allStatuses", "true");
       if (search.trim()) params.set("search", search.trim());
 
       const res = await fetch(`/api/products?${params.toString()}`);
@@ -87,7 +92,7 @@ export default function AdminProducts() {
         inStock: p.inStock ?? false,
         category: p.categories?.[0] || "Sin categoría",
         status: p.status || "active",
-        imageUrl: p.images?.[0]?.src || p.imageUrls?.[0],
+        imageUrl: p.images?.[0]?.src || p.imageUrls?.[0] || p.cloudinaryUrls?.[0],
       }));
 
       setProducts(mapped);
@@ -151,6 +156,38 @@ export default function AdminProducts() {
     } catch (err) {
       console.error("[AdminProducts] Stock update error:", err);
       toast.error("Error al actualizar stock");
+    }
+  };
+
+  const handleToggleStatus = async (product: Product) => {
+    setToggleLoading(product.id);
+    const newStatus = product.status === "active" ? "discontinued" : "active";
+    try {
+      const res = await fetch(`/api/products/${product.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!res.ok) throw new Error("Error al actualizar producto");
+
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === product.id ? { ...p, status: newStatus } : p
+        )
+      );
+
+      toast.success(
+        newStatus === "discontinued"
+          ? "Producto dado de baja"
+          : "Producto reactivado"
+      );
+    } catch (err) {
+      console.error("[AdminProducts] Toggle status error:", err);
+      toast.error("Error al actualizar producto");
+    } finally {
+      setToggleLoading(null);
+      setPendingToggle(null);
     }
   };
 
@@ -423,6 +460,25 @@ export default function AdminProducts() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        disabled={toggleLoading === product.id}
+                        onClick={() => setPendingToggle(product)}
+                        title={
+                          product.status === "active"
+                            ? "Dar de baja"
+                            : "Reactivar"
+                        }
+                      >
+                        <Power
+                          className={`h-4 w-4 ${
+                            product.status === "active"
+                              ? "text-rose-400"
+                              : "text-emerald-400"
+                          }`}
+                        />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         disabled={loadingEdit}
                         onClick={async () => {
                           setLoadingEdit(true);
@@ -501,6 +557,26 @@ export default function AdminProducts() {
                     {product.category}
                   </p>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="shrink-0 h-9 w-9 p-0"
+                  disabled={toggleLoading === product.id}
+                  onClick={() => setPendingToggle(product)}
+                  title={
+                    product.status === "active"
+                      ? "Dar de baja"
+                      : "Reactivar"
+                  }
+                >
+                  <Power
+                    className={`h-4 w-4 ${
+                      product.status === "active"
+                        ? "text-rose-400"
+                        : "text-emerald-400"
+                    }`}
+                  />
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -662,6 +738,35 @@ export default function AdminProducts() {
         onClose={() => { setShowProductForm(false); setEditProduct(null); }}
         onSuccess={() => fetchProducts(searchQuery, 1)}
         editProduct={editProduct}
+      />
+
+      {/* Confirm toggle status modal */}
+      <ConfirmModal
+        open={!!pendingToggle}
+        title={
+          pendingToggle?.status === "active"
+            ? "Dar de baja producto"
+            : "Reactivar producto"
+        }
+        message={
+          pendingToggle
+            ? `¿Estás seguro de ${
+                pendingToggle.status === "active"
+                  ? "dar de baja"
+                  : "reactivar"
+              } "${pendingToggle.name}"?`
+            : ""
+        }
+        confirmLabel={
+          pendingToggle?.status === "active"
+            ? "Dar de baja"
+            : "Reactivar"
+        }
+        variant={pendingToggle?.status === "active" ? "danger" : "default"}
+        onConfirm={() => {
+          if (pendingToggle) handleToggleStatus(pendingToggle);
+        }}
+        onCancel={() => setPendingToggle(null)}
       />
     </div>
   );

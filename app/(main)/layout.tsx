@@ -4,6 +4,7 @@ import Image from "next/image";
 import { MapPin, Mail } from "lucide-react";
 import { SiteHeaderServer } from "@/components/layout/site-header-server";
 import { ScrollNavbar } from "@/components/layout/scroll-navbar";
+import { WhatsAppButton } from "@/components/ui/whatsapp-button";
 
 // SVG icons para redes sociales
 const InstagramIcon = ({ className }: { className?: string }) => (
@@ -63,6 +64,7 @@ export default function MainLayout({
       <SiteHeaderServer />
       <ScrollNavbar />
       <main className="pb-16">{children}</main>
+      <WhatsAppButton />
       
       <footer className="border-t border-[var(--border-subtle)] bg-[var(--background)]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

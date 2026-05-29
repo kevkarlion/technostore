@@ -11,6 +11,7 @@ export interface ListProductsParams {
   page?: number;
   limit?: number;
   search?: string;
+  allStatuses?: boolean;
 }
 
 export interface PaginatedResult<T> {
@@ -33,7 +34,10 @@ export const productRepository = {
 
     const collection = db.collection(COLLECTION_NAME);
 
-    const filter: Record<string, any> = { status: "active" };
+    const filter: Record<string, any> = {};
+    if (!params.allStatuses) {
+      filter.status = "active";
+    }
     if (params.search && params.search.trim()) {
       const escaped = params.search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       filter.$or = [
@@ -101,9 +105,9 @@ export const productRepository = {
       .toLowerCase()
       .trim();
 
-    // Fetch ALL products (no filter) - no limit before filter!
+    // Fetch active products only (discontinued should not appear in search)
     const docs = await collection
-      .find({})
+      .find({ status: "active" })
       .toArray();
 
     const products = docs.map((doc) => productMapper.toDomain(doc as any));

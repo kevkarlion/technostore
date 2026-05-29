@@ -6,15 +6,9 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // Lazy load all sections for code-splitting
 const sections: Record<AdminSection, () => Promise<{ default: ComponentType }>> = {
-  metrics: () => import("./sections/AdminMetrics"),
   products: () => import("./sections/AdminProducts"),
-  categories: () => import("./sections/AdminCategories"),
   orders: () => import("./sections/AdminOrders"),
   customers: () => import("./sections/AdminCustomers"),
-  settings: () => import("./sections/AdminSettings"),
-  banners: () => import("./sections/AdminBanners"),
-  media: () => import("./sections/AdminMedia"),
-  messages: () => import("./sections/AdminMessages"),
 };
 
 // Loading skeleton for sections

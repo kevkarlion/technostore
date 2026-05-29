@@ -3,7 +3,6 @@ import { Geist_Mono, Exo_2 } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "sonner";
-import { WhatsAppButton } from "@/components/ui/whatsapp-button";
 
 const exo2 = Exo_2({
   variable: "--font-exo2",
@@ -53,7 +52,6 @@ export default function RootLayout({
         <ThemeProvider>
           <Toaster position="bottom-right" richColors closeButton />
           {children}
-          <WhatsAppButton />
         </ThemeProvider>
       </body>
     </html>

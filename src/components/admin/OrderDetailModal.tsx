@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Package, User, Receipt, Clock } from "lucide-react";
+import { X, Package, User, Receipt, Clock, TrendingUp } from "lucide-react";
 import { Price } from "@/components/ui/price";
 import { Badge } from "@/components/ui/badge";
 import type { Order } from "@/domain/models/order";
@@ -27,6 +27,14 @@ const formatDate = (timestamp: string | number | Date) => {
     minute: "2-digit",
   });
 };
+
+function getMarginBadgeTone(
+  margin: number
+): "success" | "warning" | "danger" {
+  if (margin > 30) return "success";
+  if (margin >= 15) return "warning";
+  return "danger";
+}
 
 interface OrderDetailModalProps {
   order: Order | null;
@@ -101,58 +109,122 @@ export function OrderDetailModal({ order, onClose }: OrderDetailModalProps) {
                         P. Unit.
                       </th>
                       <th className="px-4 py-2.5 text-right text-xs font-medium uppercase text-[var(--foreground-muted)]">
+                        Costo U.
+                      </th>
+                      <th className="px-4 py-2.5 text-right text-xs font-medium uppercase text-[var(--foreground-muted)]">
+                        Margen
+                      </th>
+                      <th className="px-4 py-2.5 text-right text-xs font-medium uppercase text-[var(--foreground-muted)]">
                         Subtotal
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/50">
-                    {order.items.map((item) => (
-                      <tr
-                        key={item.productId}
-                        className="transition-colors hover:bg-slate-900/30"
-                      >
-                        <td className="px-4 py-3">
-                          <span className="text-sm text-[var(--foreground)]">
-                            {item.productName}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm text-[var(--foreground-muted)]">
-                          {item.quantity}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <Price amount={item.unitPrice} className="justify-end" />
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <Price
-                            amount={item.unitPrice * item.quantity}
-                            className="justify-end"
-                          />
-                        </td>
-                      </tr>
-                    ))}
+                    {order.items.map((item) => {
+                      const cost = item.costPrice;
+                      const marginPct =
+                        cost != null && cost > 0
+                          ? ((item.unitPrice - cost) / cost) * 100
+                          : null;
+                      const gainPerUnit =
+                        cost != null ? item.unitPrice - cost : null;
+                      return (
+                        <tr
+                          key={item.productId}
+                          className="transition-colors hover:bg-slate-900/30"
+                        >
+                          <td className="px-4 py-3">
+                            <span className="text-sm text-[var(--foreground)]">
+                              {item.productName}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center text-sm text-[var(--foreground-muted)]">
+                            {item.quantity}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <Price amount={item.unitPrice} className="justify-end" />
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            {cost != null ? (
+                              <Price amount={cost} className="justify-end" />
+                            ) : (
+                              <span className="text-sm text-[var(--foreground-muted)]">
+                                —
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            {marginPct != null ? (
+                              <div className="flex flex-col items-end gap-0.5">
+                                <Badge tone={getMarginBadgeTone(marginPct)}>
+                                  {marginPct.toFixed(1)}%
+                                </Badge>
+                                {gainPerUnit != null && (
+                                  <span className="text-xs text-emerald-400">
+                                    +<Price amount={gainPerUnit * item.quantity} />
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-sm text-[var(--foreground-muted)]">
+                                —
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <Price
+                              amount={item.unitPrice * item.quantity}
+                              className="justify-end"
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
               {/* Mobile cards for items */}
               <div className="space-y-2 sm:hidden">
-                {order.items.map((item) => (
-                  <div
-                    key={item.productId}
-                    className="rounded-lg border border-slate-800 bg-slate-900/30 p-3"
-                  >
-                    <p className="text-sm font-medium text-[var(--foreground)]">
-                      {item.productName}
-                    </p>
-                    <div className="mt-2 flex items-center justify-between text-sm">
-                      <span className="text-[var(--foreground-muted)]">
-                        {item.quantity} × <Price amount={item.unitPrice} />
-                      </span>
-                      <span className="font-medium text-[var(--foreground)]">
-                        <Price amount={item.unitPrice * item.quantity} />
-                      </span>
+                {order.items.map((item) => {
+                  const cost = item.costPrice;
+                  const marginPct =
+                    cost != null && cost > 0
+                      ? ((item.unitPrice - cost) / cost) * 100
+                      : null;
+                  const gainPerUnit =
+                    cost != null ? item.unitPrice - cost : null;
+                  return (
+                    <div
+                      key={item.productId}
+                      className="rounded-lg border border-slate-800 bg-slate-900/30 p-3"
+                    >
+                      <p className="text-sm font-medium text-[var(--foreground)]">
+                        {item.productName}
+                      </p>
+                      <div className="mt-2 flex items-center justify-between text-sm">
+                        <span className="text-[var(--foreground-muted)]">
+                          {item.quantity} × <Price amount={item.unitPrice} />
+                        </span>
+                        <span className="font-medium text-[var(--foreground)]">
+                          <Price amount={item.unitPrice * item.quantity} />
+                        </span>
+                      </div>
+                      {cost != null && marginPct != null && (
+                        <div className="mt-1.5 flex items-center justify-between gap-2 rounded-md bg-slate-950/50 px-2.5 py-1.5">
+                          <span className="text-xs text-[var(--foreground-muted)]">
+                            Costo: <Price amount={cost} />
+                          </span>
+                          <Badge tone={getMarginBadgeTone(marginPct)}>
+                            {marginPct.toFixed(1)}%
+                          </Badge>
+                          <span className="text-xs font-medium text-emerald-400">
+                            +<Price amount={gainPerUnit * item.quantity} />
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
 

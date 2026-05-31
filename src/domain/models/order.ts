@@ -14,6 +14,7 @@ export interface OrderItem {
   quantity: number;
   unitPrice: number;
   imageUrl?: string;
+  costPrice?: number; // precio de costo al momento de la venta
 }
 
 export interface OrderCustomer {

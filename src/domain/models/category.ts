@@ -6,6 +6,7 @@ export interface Category {
   parentId?: string;
   supplierId?: string;
   supplierCategoryId?: number;
+  defaultProfitMargin?: number; // Margen de ganancia default para productos de esta categoría (%)
   createdAt?: Date;
   updatedAt?: Date;
 }

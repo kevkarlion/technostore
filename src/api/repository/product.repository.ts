@@ -141,6 +141,8 @@ export const productRepository = {
 
     const result = await collection.insertOne({
       ...data,
+      costPrice: data.costPrice,
+      profitMargin: data.profitMargin,
       createdAt: now,
       updatedAt: now,
     });
@@ -175,7 +177,7 @@ export const productRepository = {
 
     const now = new Date();
 
-    const setFields: Record<string, any> = { ...data, updatedAt: now };
+    const setFields: Record<string, any> = { ...data, costPrice: data.costPrice, profitMargin: data.profitMargin, updatedAt: now };
 
     // Si se están actualizando imageUrls y contienen URLs de Cloudinary,
     // sincronizar también cloudinaryUrls para que el front las muestre

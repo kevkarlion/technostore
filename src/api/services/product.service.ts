@@ -1,6 +1,7 @@
 import type { CreateProductDTO, UpdateProductDTO } from "@/domain/dto/product.dto";
 import type { Product } from "@/domain/models/product";
 import { productRepository } from "../repository/product.repository";
+import { categoryRepository } from "../repository/category.repository";
 import { notFound } from "../errors/http-error";
 
 export interface ListProductsInput {
@@ -35,12 +36,51 @@ export const productService = {
   },
 
   async createProduct(dto: CreateProductDTO): Promise<Product> {
-    // Aquí podrían ir reglas de negocio adicionales (ej. validar categorías)
-    return productRepository.create(dto);
+    let productData = { ...dto };
+
+    // Inherit profitMargin from category if not explicitly provided
+    if (dto.profitMargin === undefined && dto.costPrice !== undefined && dto.categories && dto.categories.length > 0) {
+      try {
+        const category = await categoryRepository.findBySlug(dto.categories[0]);
+        if (category?.defaultProfitMargin != null) {
+          productData.profitMargin = category.defaultProfitMargin;
+        }
+      } catch (err) {
+        console.warn("[ProductService] Could not resolve category margin:", err);
+      }
+    }
+
+    if (dto.price !== undefined) {
+      // Price explicitly provided — use as-is (manual override)
+    } else if (dto.costPrice !== undefined && productData.profitMargin !== undefined) {
+      productData.price = Math.round(dto.costPrice * (1 + productData.profitMargin / 100) * 100) / 100;
+    }
+
+    if ((dto.costPrice === undefined) !== (dto.profitMargin === undefined)) {
+      console.warn(
+        "[ProductService] costPrice and profitMargin should be provided together; partial data may produce unexpected results"
+      );
+    }
+
+    return productRepository.create(productData);
   },
 
   async updateProduct(id: string, dto: UpdateProductDTO): Promise<Product> {
-    const updated = await productRepository.update(id, dto);
+    let updateData = { ...dto };
+
+    if (dto.price !== undefined) {
+      // Price explicitly provided — use as-is (manual override)
+    } else if (dto.costPrice !== undefined && dto.profitMargin !== undefined) {
+      updateData.price = Math.round(dto.costPrice * (1 + dto.profitMargin / 100) * 100) / 100;
+    }
+
+    if ((dto.costPrice === undefined) !== (dto.profitMargin === undefined)) {
+      console.warn(
+        "[ProductService] costPrice and profitMargin should be provided together; partial data may produce unexpected results"
+      );
+    }
+
+    const updated = await productRepository.update(id, updateData);
     if (!updated) {
       throw notFound("Product not found");
     }

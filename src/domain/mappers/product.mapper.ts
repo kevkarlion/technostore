@@ -25,6 +25,8 @@ type ProductDocument = WithId<{
   attributes?: Array<{ key: string; value: string }>;
   externalId?: string;
   supplier?: string;
+  costPrice?: number;
+  profitMargin?: number;
   lastSyncedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -68,6 +70,8 @@ export const productMapper = {
       attributes: doc.attributes,
       externalId: doc.externalId,
       supplier: doc.supplier,
+      costPrice: doc.costPrice ?? undefined,
+      profitMargin: doc.profitMargin ?? undefined,
       lastSyncedAt: doc.lastSyncedAt,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
@@ -90,6 +94,8 @@ export const productMapper = {
       attributes: product.attributes,
       externalId: product.externalId,
       supplier: product.supplier,
+      costPrice: product.costPrice,
+      profitMargin: product.profitMargin,
       lastSyncedAt: product.lastSyncedAt?.toISOString(),
       createdAt: product.createdAt.toISOString(),
       updatedAt: product.updatedAt.toISOString(),

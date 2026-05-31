@@ -28,6 +28,9 @@ export interface Product {
   category: CategorySlug;
   brand: string;
   price: number;
+  priceARS?: number;
+  costPrice?: number;
+  profitMargin?: number;
   priceRaw?: string; // Precio original USD del proveedor (ej: "98,75")
   originalPrice?: number;
   inStock: boolean;

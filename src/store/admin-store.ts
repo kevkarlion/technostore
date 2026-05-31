@@ -7,7 +7,9 @@ export type AdminSection =
   | "products"
   | "orders"
   | "customers"
-  | "users";
+  | "users"
+  | "margins"
+  | "contabilidad";
 
 interface AdminState {
   // Navigation state
@@ -62,4 +64,6 @@ export const adminNavItems: {
   { section: "orders", label: "Pedidos", icon: "ShoppingCart" },
   { section: "customers", label: "Clientes", icon: "Users" },
   { section: "users", label: "Usuarios", icon: "Shield" },
+  { section: "margins", label: "Márgenes", icon: "Percent" },
+  { section: "contabilidad", label: "Contabilidad", icon: "TrendingUp" },
 ];

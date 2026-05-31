@@ -19,6 +19,7 @@ export const categoryRepository = {
       parentId: doc.parentId,
       supplierId: doc.supplierId,
       supplierCategoryId: doc.supplierCategoryId,
+      defaultProfitMargin: doc.defaultProfitMargin ?? undefined,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
     }));
@@ -40,6 +41,7 @@ export const categoryRepository = {
       parentId: doc.parentId,
       supplierId: doc.supplierId,
       supplierCategoryId: doc.supplierCategoryId,
+      defaultProfitMargin: doc.defaultProfitMargin ?? undefined,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
     };
@@ -52,6 +54,7 @@ export const categoryRepository = {
     parentId?: string;
     supplierId?: string;
     supplierCategoryId?: number;
+    defaultProfitMargin?: number;
   }): Promise<Category> {
     const db = await getDb();
     const collection = db.collection(COLLECTION_NAME);
@@ -78,6 +81,7 @@ export const categoryRepository = {
       parentId: inserted.parentId,
       supplierId: inserted.supplierId,
       supplierCategoryId: inserted.supplierCategoryId,
+      defaultProfitMargin: inserted.defaultProfitMargin ?? undefined,
       createdAt: inserted.createdAt,
       updatedAt: inserted.updatedAt,
     };
@@ -98,6 +102,7 @@ export const categoryRepository = {
       description?: string;
       supplierId: string;
       supplierCategoryId: number;
+      defaultProfitMargin?: number;
     }>
   ): Promise<{ inserted: number; updated: number }> {
     const db = await getDb();

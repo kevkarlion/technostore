@@ -7,6 +7,8 @@ import {
   ShoppingCart,
   Users,
   Shield,
+  Percent,
+  TrendingUp,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -20,6 +22,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ShoppingCart,
   Users,
   Shield,
+  Percent,
+  TrendingUp,
 };
 
 export function AdminSidebar() {

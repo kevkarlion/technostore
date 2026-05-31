@@ -19,7 +19,10 @@ export function generateProductSlug(name: string): string {
  * Maps a database Product to the domain Product type expected by UI components.
  * This handles the transformation from the scraped product model to the presentation layer.
  */
-export function toPresentationProduct(dbProduct: DbProduct): DomainProduct {
+export function toPresentationProduct(
+  dbProduct: DbProduct,
+  exchangeRate?: number
+): DomainProduct {
   // Generate slug from cleaned name (consistent with generateStaticParams)
   const slug = generateProductSlug(dbProduct.name);
 
@@ -97,6 +100,18 @@ export function toPresentationProduct(dbProduct: DbProduct): DomainProduct {
     }
   }
 
+  // Compute ARS price if exchange rate is available
+  let priceARS: number | undefined;
+  if (exchangeRate && exchangeRate > 0) {
+    if (dbProduct.costPrice != null && dbProduct.profitMargin != null) {
+      priceARS = Math.round(
+        dbProduct.costPrice * (1 + dbProduct.profitMargin / 100) * exchangeRate * 100
+      ) / 100;
+    } else {
+      priceARS = Math.round(dbProduct.price * exchangeRate * 100) / 100;
+    }
+  }
+
   // Default values for fields that aren't scraped
   return {
     id: dbProduct.id,
@@ -105,6 +120,7 @@ export function toPresentationProduct(dbProduct: DbProduct): DomainProduct {
     category: mainCategory as DomainProduct["category"],
     brand: "General", // Could be extracted from product name in the future
     price: dbProduct.price,
+    priceARS,
     priceRaw: dbProduct.priceRaw, // Precio original USD
     originalPrice: undefined, // Not scraped
     inStock,

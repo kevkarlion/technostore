@@ -3,6 +3,7 @@ import { customerRepository } from "@/api/repository/customer.repository";
 import { notificationRepository } from "@/api/repository/notification.repository";
 import { sendBuyerConfirmation, sendAdminNotification } from "@/lib/email/email.service";
 import { notifyNewOrder, notifyOrderConfirmed } from "@/lib/admin-notifications";
+import { enrichItemsWithCostPrice } from "@/lib/enrich-cost-price";
 import type { CreateOrderDTO, ListOrdersQueryDTO } from "@/domain/dto/order.dto";
 import type { Order } from "@/domain/models/order";
 import { notFound } from "@/api/errors/http-error";
@@ -17,6 +18,9 @@ export const orderService = {
     if (!order) {
       throw notFound("Orden no encontrada");
     }
+
+    order.items = await enrichItemsWithCostPrice(order.items);
+
     return order;
   },
 

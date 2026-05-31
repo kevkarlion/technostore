@@ -23,6 +23,8 @@ interface ProductFormModalProps {
     status: string;
     categories: string[];
     imageUrls: string[];
+    costPrice?: number;
+    profitMargin?: number;
   } | null;
 }
 
@@ -49,6 +51,8 @@ const defaultForm = {
   price: "",
   currency: "USD",
   stock: "0",
+  costPrice: "",
+  profitMargin: "",
   status: "draft" as const,
 };
 
@@ -87,6 +91,8 @@ export default function ProductFormModal({
         price: String(editProduct.price),
         currency: editProduct.currency,
         stock: String(editProduct.stock),
+        costPrice: editProduct.costPrice != null ? String(editProduct.costPrice) : "",
+        profitMargin: editProduct.profitMargin != null ? String(editProduct.profitMargin) : "",
         status: editProduct.status as any,
       });
       setSelectedCategories(new Set(editProduct.categories));
@@ -226,6 +232,8 @@ export default function ProductFormModal({
         status: form.status,
         categories: Array.from(selectedCategories),
         imageUrls,
+        costPrice: form.costPrice ? parseFloat(form.costPrice) : undefined,
+        profitMargin: form.profitMargin ? parseFloat(form.profitMargin) : undefined,
       };
 
       // En edición, no mandar campos vacíos que pisarían valores existentes
@@ -268,6 +276,15 @@ export default function ProductFormModal({
       setSubmitting(false);
     }
   };
+
+  const costPriceNum = parseFloat(form.costPrice);
+  const profitMarginNum = parseFloat(form.profitMargin);
+  const hasCostAndMargin =
+    !isNaN(costPriceNum) && costPriceNum > 0 &&
+    !isNaN(profitMarginNum) && profitMarginNum > 0;
+  const calculatedPrice = hasCostAndMargin
+    ? costPriceNum * (1 + profitMarginNum / 100)
+    : null;
 
   const allUploaded = images.every(
     (img) => !img.uploading || img.cloudinaryUrl
@@ -361,6 +378,49 @@ export default function ProductFormModal({
               </select>
             </div>
           </div>
+
+          {/* Cost Price + Profit Margin */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-[var(--foreground)]">
+                Costo (USD)
+              </label>
+              <Input
+                type="number"
+                value={form.costPrice}
+                onChange={set("costPrice")}
+                step="0.01"
+                min={0}
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-[var(--foreground)]">
+                Margen (%)
+              </label>
+              <Input
+                type="number"
+                value={form.profitMargin}
+                onChange={set("profitMargin")}
+                step="0.1"
+                min={0}
+                max={100}
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          {/* Calculated Price Preview */}
+          {calculatedPrice !== null && (
+            <div className="rounded-lg border border-emerald-800/50 bg-emerald-950/20 px-4 py-3">
+              <p className="text-xs text-[var(--foreground-muted)]">
+                Precio calculado
+              </p>
+              <p className="text-sm font-semibold text-emerald-400">
+                ${calculatedPrice.toFixed(2)}
+              </p>
+            </div>
+          )}
 
           {/* Stock + Estado */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

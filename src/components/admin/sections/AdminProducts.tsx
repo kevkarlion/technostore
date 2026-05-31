@@ -24,6 +24,8 @@ interface Product {
   id: string;
   name: string;
   price: number;
+  costPrice?: number;
+  profitMargin?: number;
   stock: number;
   inStock: boolean;
   category: string;
@@ -65,6 +67,8 @@ export default function AdminProducts() {
     status: string;
     categories: string[];
     imageUrls: string[];
+    costPrice?: number;
+    profitMargin?: number;
   } | null>(null);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [toggleLoading, setToggleLoading] = useState<string | null>(null);
@@ -356,6 +360,9 @@ export default function AdminProducts() {
                 Precio
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+                Margen
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                 Stock
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
@@ -369,13 +376,13 @@ export default function AdminProducts() {
           <tbody className="divide-y divide-slate-800/50">
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-sm text-[var(--foreground-muted)]">
+                <td colSpan={7} className="px-4 py-12 text-center text-sm text-[var(--foreground-muted)]">
                   Cargando productos...
                 </td>
               </tr>
             ) : products.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-sm text-[var(--foreground-muted)]">
+                <td colSpan={7} className="px-4 py-12 text-center text-sm text-[var(--foreground-muted)]">
                   {searchQuery
                     ? `No se encontraron productos para "${searchQuery}"`
                     : "No hay productos cargados. Corré el scraper primero."}
@@ -414,6 +421,25 @@ export default function AdminProducts() {
                     <span className="text-sm font-medium text-[var(--foreground)]">
                       ${product.price.toFixed(2)}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {product.profitMargin != null ? (
+                      <Badge
+                        tone={
+                          product.profitMargin > 30
+                            ? "success"
+                            : product.profitMargin >= 15
+                            ? "warning"
+                            : "danger"
+                        }
+                      >
+                        {product.profitMargin.toFixed(1)}%
+                      </Badge>
+                    ) : (
+                      <span className="text-sm text-[var(--foreground-muted)]">
+                        —
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     {editingStock === product.id ? (
@@ -530,6 +556,8 @@ export default function AdminProducts() {
                               status: data.status || "active",
                               categories: data.categories || [],
                               imageUrls: data.imageUrls || [],
+                              costPrice: data.costPrice,
+                              profitMargin: data.profitMargin,
                             });
                             setShowProductForm(true);
                           } catch (err) {
@@ -632,6 +660,8 @@ export default function AdminProducts() {
                         status: data.status || "active",
                         categories: data.categories || [],
                         imageUrls: data.imageUrls || [],
+                        costPrice: data.costPrice,
+                        profitMargin: data.profitMargin,
                       });
                       setShowProductForm(true);
                     } catch (err) {
@@ -646,8 +676,8 @@ export default function AdminProducts() {
                 </Button>
               </div>
 
-              {/* Info grid: price, stock, status */}
-              <div className="mt-3 grid grid-cols-3 gap-2">
+              {/* Info grid: price, margin, stock, status */}
+              <div className="mt-3 grid grid-cols-4 gap-2">
                 <div className="rounded-lg bg-slate-900/50 p-2.5">
                   <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--foreground-muted)]">
                     Precio
@@ -655,6 +685,30 @@ export default function AdminProducts() {
                   <p className="mt-0.5 text-sm font-semibold text-[var(--foreground)]">
                     ${product.price.toFixed(2)}
                   </p>
+                </div>
+                <div className="rounded-lg bg-slate-900/50 p-2.5">
+                  <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--foreground-muted)]">
+                    Margen
+                  </p>
+                  <div className="mt-1">
+                    {product.profitMargin != null ? (
+                      <Badge
+                        tone={
+                          product.profitMargin > 30
+                            ? "success"
+                            : product.profitMargin >= 15
+                            ? "warning"
+                            : "danger"
+                        }
+                      >
+                        {product.profitMargin.toFixed(1)}%
+                      </Badge>
+                    ) : (
+                      <span className="text-sm text-[var(--foreground-muted)]">
+                        —
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="rounded-lg bg-slate-900/50 p-2.5">
                   <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--foreground-muted)]">

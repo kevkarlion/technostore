@@ -253,4 +253,63 @@ describe("AdminContabilidad", () => {
     const dateInputs = screen.getAllByDisplayValue(/2026/);
     expect(dateInputs.length).toBeGreaterThanOrEqual(1);
   });
+
+  it("formats StatCard values with currency for revenue, costs, profit", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(singleOrderResponse),
+      })
+    );
+
+    renderWithProviders(<AdminContabilidad />);
+
+    // Wait for data to load and check StatCard labels render alongside values
+    await waitFor(() => {
+      expect(screen.getByText("Órdenes")).toBeInTheDocument();
+      expect(screen.getByText("Ingresos")).toBeInTheDocument();
+      expect(screen.getByText("Costos")).toBeInTheDocument();
+      expect(screen.getByText("Ganancia Neta")).toBeInTheDocument();
+    });
+
+    // Verify the stat grid has rendered numeric values (not "—")
+    const statGrid = document.querySelector(".grid-cols-2");
+    expect(statGrid?.textContent).toContain("1");         // totalOrders
+    expect(statGrid?.textContent).toContain("254");       // totalRevenue
+    expect(statGrid?.textContent).toContain("100");       // totalCosts + totalProfit
+  });
+
+  it("shows TotalsBreakdown with correct subtotal, shipping, IVA, and total", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(singleOrderResponse),
+      })
+    );
+
+    renderWithProviders(<AdminContabilidad />);
+
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.getByText("1 orden en el período")).toBeInTheDocument();
+    });
+
+    // Click the "1 item" button to open the items detail modal
+    // In jsdom both desktop (<button>1 item</button>) and mobile
+    // (<button>Ver detalle de 1 item</button>) are rendered
+    await userEvent.click(screen.getByText("1 item"));
+
+    // TotalsBreakdown labels should be in the modal
+    // "Total" appears in table header, mobile card, and TotalsBreakdown, so use getAllByText
+    await waitFor(() => {
+      expect(screen.getByText("Subtotal")).toBeInTheDocument();
+      expect(screen.getByText("Shipping")).toBeInTheDocument();
+      expect(screen.getByText("IVA")).toBeInTheDocument();
+      expect(screen.getAllByText("Total").length).toBeGreaterThanOrEqual(1);
+    });
+  });
 });

@@ -208,6 +208,21 @@ describe("AdminOrders", () => {
     });
   });
 
+  it("shows empty state after fetch error", async () => {
+    const fetch = vi.fn().mockRejectedValue(new Error("Error de conexión"));
+    vi.stubGlobal("fetch", fetch);
+
+    renderWithProviders(<AdminOrders />);
+
+    await waitFor(() => {
+      expect(
+        screen.getAllByText(
+          "No hay pedidos registrados. Completá una compra en la tienda para verlos aquí."
+        ).length
+      ).toBeGreaterThan(0);
+    });
+  });
+
   it("shows empty state when no orders", async () => {
     const fetch = mockFetch({
       items: [],

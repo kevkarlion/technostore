@@ -181,6 +181,28 @@ describe("AdminMargins", () => {
     ).toBeInTheDocument();
   });
 
+  it("shows empty state when no products or categories", async () => {
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () =>
+        Promise.resolve({
+          products: [],
+          categories: [],
+        }),
+    });
+    vi.stubGlobal("fetch", fetch);
+
+    renderWithProviders(<AdminMargins />);
+
+    await waitFor(() => {
+      // Shows "0 productos con precio de costo" in the subtitle
+      expect(
+        screen.getByText(/0 productos con precio de costo/i)
+      ).toBeInTheDocument();
+    });
+  });
+
   it("margin inline edit modal opens, closes, and saves via PATCH", async () => {
     const fetch = createSmartFetch();
     vi.stubGlobal("fetch", fetch);

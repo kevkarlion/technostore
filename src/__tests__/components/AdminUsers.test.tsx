@@ -100,6 +100,15 @@ describe("AdminUsers", () => {
     expect(screen.getAllByText("Inactivo").length).toBeGreaterThan(0);
   });
 
+  it("shows loading state while fetching", () => {
+    const fetch = vi.fn().mockReturnValue(new Promise(() => {}));
+    vi.stubGlobal("fetch", fetch);
+
+    renderWithProviders(<AdminUsers />);
+
+    expect(screen.getByText("Cargando...")).toBeInTheDocument();
+  });
+
   it("shows error state with retry button", async () => {
     const fetch = vi.fn().mockRejectedValue(new Error("Error al cargar datos"));
     vi.stubGlobal("fetch", fetch);

@@ -25,6 +25,22 @@ console.log("[Scraper] Initialized PLAYWRIGHT_BROWSERS_PATH:", BROWSERS_PATH);
 
 const MAX_PARALLEL_PAGES = 2;
 
+/**
+ * Kill orphan Chromium processes that might have been left behind
+ * after a browser crash. Prevents EAGAIN from running out of PIDs/memory.
+ */
+function killOrphanChromium(): void {
+  try {
+    const { execSync } = require("child_process");
+    execSync('pkill -f "chromium" 2>/dev/null; pkill -f "chrome" 2>/dev/null; true', {
+      stdio: "ignore",
+      timeout: 3000,
+    });
+  } catch {
+    // pkill failing is fine — means nothing to kill
+  }
+}
+
 // Find playwright chromium executable in various locations
 async function getChromiumExecutable(): Promise<string | undefined> {
   const fs = require("fs");
@@ -189,7 +205,10 @@ export async function preCheckCategories(categories: { id: string; idsubrubro1: 
   }
   
   console.log("[Scraper] Using chromium path:", chromiumPath || "default");
-  
+
+  // Kill orphaned chromium processes before launching a new one
+  killOrphanChromium();
+
   const browser = await chromium.launch({
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],

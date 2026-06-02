@@ -10,6 +10,22 @@ import { ScraperError } from "./types";
 import path from "path";
 import os from "os";
 
+/**
+ * Kill orphan Chromium processes that might have been left behind
+ * after a browser crash. Prevents EAGAIN from running out of PIDs/memory.
+ */
+function killOrphanChromium(): void {
+  try {
+    const { execSync } = require("child_process");
+    execSync('pkill -f "chromium" 2>/dev/null; pkill -f "chrome" 2>/dev/null; true', {
+      stdio: "ignore",
+      timeout: 3000,
+    });
+  } catch {
+    // pkill failing is fine — means nothing to kill
+  }
+}
+
 // Find playwright chromium executable in various locations
 async function getChromiumExecutable(): Promise<string | undefined> {
   const fs = require("fs");
@@ -236,6 +252,9 @@ export class ScraperService {
         console.log("[Scraper] Error getting chromium:", e);
       }
       
+      // Kill orphaned chromium processes before launching a new one
+      killOrphanChromium();
+
       this.browser = await chromium.launch({
         headless: true,
         args: [

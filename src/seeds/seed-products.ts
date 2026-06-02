@@ -1,3 +1,12 @@
+/**
+ * ⚠️ OBSOLETO — Los productos reales se cargan vía scraper (supplier: "jotakp").
+ * Este archivo se mantiene como referencia del formato, pero los productos
+ * mockeados de acá fueron eliminados de la DB.
+ *
+ * Para poblar la DB de productos reales, correr:
+ *   npx tsx run-scraper.ts
+ */
+
 import "dotenv/config";
 import { getDb } from "@/config/db";
 

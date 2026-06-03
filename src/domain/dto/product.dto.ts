@@ -1,21 +1,34 @@
 import { z } from "zod";
 import type { ProductStatus } from "../models/product";
 
-export const createProductSchema = z.object({
-  name: z.string().min(3),
+// Create schema WITHOUT defaults - used for validation to avoid overwriting existing fields
+const baseProductSchema = z.object({
+  name: z.string().min(3).optional(),
   description: z.string().optional(),
-  price: z.number().nonnegative(),
+  price: z.number().nonnegative().optional(),
   costPrice: z.number().optional(),
   profitMargin: z.number().optional(),
+  currency: z.string().min(1).optional(),
+  stock: z.number().int().nonnegative().optional(),
+  inStock: z.boolean().optional(),
+  status: z.custom<ProductStatus>().optional(),
+  categories: z.array(z.string()).optional(),
+  imageUrls: z.array(z.string()).optional(),
+});
+
+export const createProductSchema = baseProductSchema.extend({
+  name: z.string().min(3),
+  price: z.number().nonnegative(),
   currency: z.string().min(1).default("USD"),
   stock: z.number().int().nonnegative().default(0),
-  inStock: z.boolean().default(false), // New field for stock availability
+  inStock: z.boolean().default(false),
   status: z.custom<ProductStatus>().default("draft"),
   categories: z.array(z.string()).default([]),
   imageUrls: z.array(z.string()).default([]),
 });
 
-export const updateProductSchema = createProductSchema.partial();
+// Update schema uses the base WITHOUT defaults to avoid overwriting existing fields
+export const updateProductSchema = baseProductSchema;
 
 export type CreateProductDTO = z.infer<typeof createProductSchema>;
 export type UpdateProductDTO = z.infer<typeof updateProductSchema>;

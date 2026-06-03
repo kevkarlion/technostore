@@ -182,7 +182,20 @@ export const productRepository = {
 
     const now = new Date();
 
-    const setFields: Record<string, any> = { ...data, costPrice: data.costPrice, profitMargin: data.profitMargin, updatedAt: now };
+    // Build $set only with fields that are actually provided (avoid overwriting with undefined)
+    const setFields: Record<string, any> = { updatedAt: now };
+
+    if (data.name !== undefined) setFields.name = data.name;
+    if (data.description !== undefined) setFields.description = data.description;
+    if (data.price !== undefined) setFields.price = data.price;
+    if (data.costPrice !== undefined) setFields.costPrice = data.costPrice;
+    if (data.profitMargin !== undefined) setFields.profitMargin = data.profitMargin;
+    if (data.currency !== undefined) setFields.currency = data.currency;
+    if (data.stock !== undefined) setFields.stock = data.stock;
+    if (data.inStock !== undefined) setFields.inStock = data.inStock;
+    if (data.status !== undefined) setFields.status = data.status;
+    if (data.categories !== undefined) setFields.categories = data.categories;
+    if (data.imageUrls !== undefined) setFields.imageUrls = data.imageUrls;
 
     // Si se están actualizando imageUrls y contienen URLs de Cloudinary,
     // sincronizar también cloudinaryUrls para que el front las muestre

@@ -78,13 +78,22 @@ export const productMapper = {
     };
   },
 
-  toResponse(product: Product): ProductResponseDTO {
+  toResponse(product: Product, exchangeRate?: number): ProductResponseDTO {
+    // Convert price to ARS if exchangeRate is provided
+    let priceInArs = product.price;
+    if (exchangeRate && exchangeRate > 0 && product.price) {
+      // If price appears to be in USD (less than 10000), convert to ARS
+      if (product.price < 10000) {
+        priceInArs = Math.round(product.price * exchangeRate * 100) / 100;
+      }
+    }
+    
     return {
       id: product.id,
       name: product.name,
       description: product.description,
-      price: product.price,
-      currency: product.currency,
+      price: priceInArs,
+      currency: exchangeRate && exchangeRate > 0 ? "ARS" : product.currency,
       stock: product.stock,
       inStock: product.inStock,
       status: product.status,

@@ -206,7 +206,6 @@ export function PremiumFeaturedProducts({
                     <Price
                       amount={product.price}
                       originalAmount={product.originalPrice}
-                      convertToArs
                     />
                   </div>
                   <div className="mt-0.5 flex items-center gap-1 text-xs text-[var(--foreground-muted)]">

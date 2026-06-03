@@ -5,7 +5,7 @@ import { loadMercadoPago } from "@mercadopago/sdk-js";
 import { Price } from "@/components/ui/price";
 import { formatAndTranslateError } from "@/lib/mp-errors";
 
-type PaymentMethodType = "card" | "rapipago" | "pagofacil";
+type PaymentMethodType = "card";
 
 interface MercadoPagoFormProps {
   onPaymentSubmit: (data: {
@@ -261,7 +261,7 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
           <span className="font-semibold text-lg">Pagar</span>
         </div>
         <div className="text-white/80 text-sm">Total a pagar</div>
-        <div className="text-2xl font-bold"><Price amount={totalAmount} convertToArs /></div>
+        <div className="text-2xl font-bold"><Price amount={totalAmount} /></div>
       </div>
 
       {/* Payment Method Selection - MP Tabs */}
@@ -277,28 +277,6 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
             }`}
           >
             💳 Tarjeta
-          </button>
-          <button
-            type="button"
-            onClick={() => setPaymentMethodType("rapipago")}
-            className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
-              paymentMethodType === "rapipago"
-                ? "border-[#009EE3] text-[#009EE3]"
-                : "border-transparent text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            📄 Rapipago
-          </button>
-          <button
-            type="button"
-            onClick={() => setPaymentMethodType("pagofacil")}
-            className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
-              paymentMethodType === "pagofacil"
-                ? "border-[#009EE3] text-[#009EE3]"
-                : "border-transparent text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            📄 Pago Fácil
           </button>
         </div>
       </div>
@@ -490,36 +468,6 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
             </svg>
             <span>Tus datos están protegidos con seguridad de Mercado Pago</span>
           </div>
-        </form>
-      )}
-
-      {/* Ticket Form - MP Style */}
-      {(paymentMethodType === "rapipago" || paymentMethodType === "pagofacil") && (
-        <form onSubmit={handleTicketSubmit} className="space-y-4">
-          <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-700">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-[#009EE3]/20 rounded-full flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-[#009EE3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm text-slate-200 font-medium">
-                  {paymentMethodType === "rapipago" ? "Generar ticket Rapipago" : "Generar ticket Pago Fácil"}
-                </p>
-                <p className="text-xs text-slate-400 mt-1">
-                  El ticket tiene validez de 3 días. El pago se acreditará en 2 horas hábiles.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-[#009EE3] hover:bg-[#00B3F0] text-white font-semibold py-4 rounded-xl transition-colors shadow-lg shadow-[#009EE3]/20"
-          >
-            Continuar
-          </button>
         </form>
       )}
     </div>

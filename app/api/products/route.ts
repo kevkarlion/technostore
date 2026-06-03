@@ -8,13 +8,27 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q");
 
+  // Get exchange rate for price conversion (use venta for selling price)
+  let exchangeRate: number | undefined;
+  try {
+    const res = await fetch(new URL("/api/exchange-rate", req.url).toString(), { 
+      cache: "no-store" 
+    });
+    if (res.ok) {
+      const data = await res.json();
+      exchangeRate = data?.venta ?? undefined;  // Use venta (sell price) not compra
+    }
+  } catch (err) {
+    console.error("[Products] Failed to get exchange rate:", err);
+  }
+
   // Endpoint de búsqueda
   if (q) {
     try {
       const page = parseInt(searchParams.get("page") || "1", 10);
       const limit = parseInt(searchParams.get("limit") || "20", 10);
       const result = await productRepository.searchByName(q, { page, limit });
-      const presentationProducts = result.items.map(toPresentationProduct);
+      const presentationProducts = result.items.map(p => toPresentationProduct(p, exchangeRate ?? undefined));
       return NextResponse.json({
         products: presentationProducts,
         total: result.total,
@@ -31,7 +45,7 @@ export async function GET(req: NextRequest) {
     try {
       const limit = parseInt(searchParams.get("limit") || "20", 10);
       const products = await productRepository.findFeatured(limit);
-      const presentationProducts = products.map(toPresentationProduct);
+      const presentationProducts = products.map(p => toPresentationProduct(p, exchangeRate ?? undefined));
       return NextResponse.json({
         products: presentationProducts,
         total: products.length,

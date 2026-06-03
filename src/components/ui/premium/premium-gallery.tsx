@@ -225,7 +225,6 @@ export function PremiumGallery({ product }: PremiumGalleryProps) {
                     amount={product.price}
                     originalAmount={product.originalPrice}
                     className="text-3xl sm:text-4xl"
-                    convertToArs
                   />
                   {product.originalPrice && product.originalPrice > product.price && (
                     <p className="text-xs text-emerald-400 font-medium">

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { categoryRepository } from "@/api/repository/category.repository";
 import { productRepository } from "@/api/repository/product.repository";
 import { toPresentationProduct } from "@/domain/mappers/product-to-presentation";
+import { getExchangeRate } from "@/lib/exchange-rate";
 import type { CategorySlug } from "@/types/domain";
 import { PremiumProductCardV2 } from "@/components/product-card/premium-product-card-v2";
 import { CategoryProductsClient } from "./category-products-client";
@@ -101,10 +102,13 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   }
 
   // Get filter metadata (price range and brands)
-  const [priceRange, availableBrands] = await Promise.all([
+  const [priceRange, availableBrands, exchangeRateData] = await Promise.all([
     productRepository.getPriceRangeByCategory(category.slug),
     productRepository.getBrandsByCategory(category.slug),
+    getExchangeRate(),
   ]);
+  
+  const exchangeRate = exchangeRateData?.venta ?? null;
 
   // If no filters, use regular pagination, otherwise use filtered query
   let result;
@@ -124,7 +128,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   }
   
   // Convert database products to presentation format for UI components
-  const products = result.items.map(toPresentationProduct);
+  const products = result.items.map(p => toPresentationProduct(p, exchangeRate ?? undefined));
 
   return (
     <CategoryProductsClient

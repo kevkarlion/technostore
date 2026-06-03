@@ -81,10 +81,9 @@ export const orderService = {
       throw notFound("Orden no encontrada");
     }
 
-    // ── Trigger emails when purchase is fully confirmed ────────────────
-    // Both conditions met: webhook confirmed (status was "reserved")
-    // AND admin captured (status becomes "captured")
-    if (currentOrder.status === "reserved" && status === "captured") {
+    // ── Trigger emails when payment is approved (reserved) ────────────────
+    // When webhook confirms payment approved → status becomes "reserved"
+    if (currentOrder.status !== "reserved" && status === "reserved") {
       // Send buyer confirmation + admin notification (non-blocking)
       Promise.all([
         sendBuyerConfirmation(order),
@@ -97,6 +96,14 @@ export const orderService = {
 
       // Create admin panel notification
       notifyOrderConfirmed(order);
+    }
+
+    // ── Additional emails when admin captures the payment ────────────────
+    // Both conditions met: webhook confirmed (status was "reserved")
+    // AND admin captured (status becomes "captured")
+    if (currentOrder.status === "reserved" && status === "captured") {
+      // Optional: send another email or update notification
+      console.log(`[OrderService] Order ${order.orderId} captured by admin`);
     }
 
     return order;

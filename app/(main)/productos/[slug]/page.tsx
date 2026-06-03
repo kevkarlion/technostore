@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+
+// Force dynamic rendering to ensure fresh data on each request
+export const dynamic = "force-dynamic";
 import { productRepository } from "@/api/repository/product.repository";
 import { toPresentationProduct, generateProductSlug } from "@/domain/mappers/product-to-presentation";
 import { PremiumGallery } from "@/components/ui/premium/premium-gallery";

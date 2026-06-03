@@ -6,6 +6,7 @@
  */
 
 import type { Product } from "@/domain/models/product";
+import { generateProductSlug } from "@/domain/mappers/product-to-presentation";
 
 /**
  * Producto reducido para el carrito.
@@ -15,6 +16,7 @@ import type { Product } from "@/domain/models/product";
 export interface CartProduct {
   id: string;
   name: string;
+  slug: string;
   price: number;
   imageUrl?: string;
   stock?: number;
@@ -40,6 +42,7 @@ export function mapProductToCartProduct(product: Product): CartProduct {
   return {
     id: product.id,
     name: product.name,
+    slug: generateProductSlug(product.name),
     price: product.price,
     imageUrl: product.imageUrls?.[0] || product.cloudinaryUrls?.[0],
     stock: product.stock,

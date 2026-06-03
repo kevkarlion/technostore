@@ -11,6 +11,7 @@ import { Price } from "@/components/ui/price";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import type { ProductResponseDTO } from "@/domain/dto/product.dto";
+import { cleanProductName } from "@/domain/mappers/product-to-presentation";
 import { formatAndTranslateError } from "@/lib/mp-errors";
 import { MercadoPagoForm } from "@/components/checkout/mercado-pago-form";
 import { CheckoutForm, OrderSummary, type CheckoutFormData } from "@/components/checkout/checkout-form";
@@ -170,7 +171,7 @@ export default function CheckoutPage() {
         const product = products[item.productId];
         return {
           id: item.productId,
-          title: product?.name || "Producto",
+          title: product?.name ? cleanProductName(product.name) : "Producto",
           quantity: item.quantity,
           unit_price: product?.price || 0,
           currency_id: "ARS",
@@ -280,7 +281,7 @@ export default function CheckoutPage() {
           const product = products[item.productId];
           return {
             productId: item.productId,
-            productName: product?.name || "Producto",
+            productName: product?.name ? cleanProductName(product.name) : "Producto",
             quantity: item.quantity,
             unitPrice: product?.price || 0,
             imageUrl: product?.imageUrls?.[0],
@@ -464,7 +465,7 @@ export default function CheckoutPage() {
                     {item.product?.imageUrls?.[0] ? (
                       <Image
                         src={String(item.product.imageUrls[0])}
-                        alt={item.product.name || ""}
+                        alt={item.product.name ? cleanProductName(item.product.name) : ""}
                         fill
                         className="object-cover"
                         unoptimized
@@ -478,7 +479,7 @@ export default function CheckoutPage() {
                   {/* Name & Price */}
                   <div className="flex-1 min-w-0">
                     <span className="block truncate text-slate-200">
-                      {item.product?.name}
+                      {item.product?.name ? cleanProductName(item.product.name) : ""}
                     </span>
                     <span className="text-slate-500">
                       Cant: {item.quantity}

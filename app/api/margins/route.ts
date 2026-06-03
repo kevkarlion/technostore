@@ -7,9 +7,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get("category");
 
-    const filter: Record<string, unknown> = {
-      costPrice: { $exists: true, $ne: null },
-    };
+    const filter: Record<string, unknown> = {};
 
     if (category) {
       filter.categories = category;
@@ -46,7 +44,6 @@ export async function GET(req: NextRequest) {
             from: "products",
             let: { catSlug: "$slug" },
             pipeline: [
-              { $match: { costPrice: { $exists: true, $ne: null } } },
               { $match: { $expr: { $in: ["$$catSlug", "$categories"] } } },
             ],
             as: "matched",

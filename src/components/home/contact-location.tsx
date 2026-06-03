@@ -15,12 +15,6 @@ const InstagramIcon = ({ className }: { className?: string }): ReactNode => (
   </svg>
 );
 
-const FacebookIcon = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-  </svg>
-);
-
 const WhatsAppIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
@@ -59,8 +53,7 @@ interface SocialLink {
 }
 
 const socialLinks: SocialLink[] = [
-  { name: "Instagram", icon: InstagramIcon, url: "https://instagram.com/technostore" },
-  { name: "Facebook", icon: FacebookIcon, url: "https://facebook.com/technostore" },
+  { name: "Instagram", icon: InstagramIcon, url: "https://www.instagram.com/technostore.gr?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" },
   { name: "WhatsApp", icon: WhatsAppIcon, url: "https://wa.me/5492984130230" },
 ];
 

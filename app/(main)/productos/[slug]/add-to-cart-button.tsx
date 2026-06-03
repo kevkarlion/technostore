@@ -8,6 +8,7 @@ import { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/features/cart/store/cart-store";
 import { toast } from "sonner";
+import { generateProductSlug } from "@/domain/mappers/product-to-presentation";
 import type { CartProduct } from "@/features/cart/types/cart";
 
 interface AddToCartButtonProps {
@@ -35,6 +36,7 @@ export function AddToCartButton({
   const cartProduct: CartProduct = useMemo(() => ({
     id: productId,
     name: productName,
+    slug: generateProductSlug(productName),
     price: productPrice,
     imageUrl: productImageUrl,
     stock: stockQuantity,

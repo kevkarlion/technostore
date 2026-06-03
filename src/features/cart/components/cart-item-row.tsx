@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useCallback, useState, useEffect } from "react";
 import { Price } from "@/components/ui/price";
 import { Input } from "@/components/ui/input";
+import { generateProductSlug } from "@/domain/mappers/product-to-presentation";
 import type { CartItem, CartProduct } from "../types/cart";
 
 interface CartItemRowProps {
@@ -24,12 +25,20 @@ interface CartItemRowProps {
  * Carga datos del producto desde la API si no están embebidos
  */
 function useProductData(productId: string, embeddedProduct?: CartProduct) {
-  const [product, setProduct] = useState<CartProduct | null>(embeddedProduct || null);
+  // Ensure slug exists even for legacy cart data (pre-slug migration)
+  const initialProduct = embeddedProduct
+    ? { ...embeddedProduct, slug: embeddedProduct.slug || generateProductSlug(embeddedProduct.name) }
+    : null;
+  const [product, setProduct] = useState<CartProduct | null>(initialProduct);
   const [isLoading, setIsLoading] = useState(!embeddedProduct);
 
   useEffect(() => {
     if (embeddedProduct) {
-      setProduct(embeddedProduct);
+      // Ensure slug exists even for legacy cart data (pre-slug migration)
+      setProduct({
+        ...embeddedProduct,
+        slug: embeddedProduct.slug || generateProductSlug(embeddedProduct.name),
+      });
       setIsLoading(false);
       return;
     }
@@ -42,6 +51,7 @@ function useProductData(productId: string, embeddedProduct?: CartProduct) {
           setProduct({
             id: data.id,
             name: data.name,
+            slug: generateProductSlug(data.name),
             price: data.price,
             imageUrl: String(data.imageUrls?.[0] || data.cloudinaryUrls?.[0] || ""),
             stock: data.stock,
@@ -162,7 +172,7 @@ export function CartItemRow({ item, onUpdateQuantity, onRemove }: CartItemRowPro
       {/* Info */}
       <div className="flex flex-1 flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
-          <Link href={`/productos/${product.id}`} className="text-sm font-semibold text-[var(--foreground)] hover:text-[var(--accent)] line-clamp-2">
+          <Link href={`/productos/${product.slug}`} className="text-sm font-semibold text-[var(--foreground)] hover:text-[var(--accent)] line-clamp-2">
             {product.name}
           </Link>
           <button type="button" onClick={() => onRemove(productId)} className="text-xs font-medium text-rose-400 hover:text-rose-300">

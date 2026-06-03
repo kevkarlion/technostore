@@ -71,7 +71,14 @@ export const productService = {
     if (dto.price !== undefined) {
       // Price explicitly provided — use as-is (manual override)
     } else if (dto.costPrice !== undefined && dto.profitMargin !== undefined) {
+      // Both provided — calculate price
       updateData.price = Math.round(dto.costPrice * (1 + dto.profitMargin / 100) * 100) / 100;
+    } else if (dto.profitMargin !== undefined && dto.costPrice === undefined) {
+      // Only margin changed — use existing costPrice from DB
+      const existing = await productRepository.findById(id);
+      if (existing?.costPrice) {
+        updateData.price = Math.round(existing.costPrice * (1 + dto.profitMargin / 100) * 100) / 100;
+      }
     }
 
     if ((dto.costPrice === undefined) !== (dto.profitMargin === undefined)) {

@@ -316,9 +316,8 @@ function ProductCardBenefits({
 }: ProductCardBenefitsProps) {
   // Auto-detect benefits from badges
   const showFreeShipping = badges?.includes("sale");
-  const showOutOfStock = !inStock;
   
-  if (!showFreeShipping && !showOutOfStock) return null;
+  if (!showFreeShipping) return null;
 
   return (
     <div className="mt-3 flex flex-wrap gap-1.5">
@@ -326,12 +325,6 @@ function ProductCardBenefits({
         <span className="flex items-center gap-1 rounded-full bg-[var(--accent)]/10 px-2 py-0.5 text-[10px] font-medium text-[var(--accent)]">
           <Truck className="h-3 w-3" />
           Envío gratis
-        </span>
-      )}
-      {showOutOfStock && (
-        <span className="flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-medium text-red-400">
-          <Package className="h-3 w-3" />
-          Sin stock
         </span>
       )}
     </div>

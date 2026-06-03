@@ -19,8 +19,8 @@ import { CATEGORY_GROUPS } from "./category-groups";
 interface MarginProduct {
   id: string;
   name: string;
-  costPrice: number;
-  price: number;
+  costPrice?: number;
+  price?: number;
   profitMargin?: number;
   category: string;
 }
@@ -258,7 +258,9 @@ export default function AdminMargins() {
             ? {
                 ...p,
                 profitMargin: marginValue,
-                price: p.costPrice * (1 + marginValue / 100),
+                ...(p.costPrice != null
+                  ? { price: p.costPrice * (1 + marginValue / 100) }
+                  : {}),
               }
             : p
         )
@@ -350,7 +352,7 @@ export default function AdminMargins() {
           <p className="mt-1 text-sm text-[var(--foreground-muted)]">
             {productsLoading || categoriesLoading
               ? "Cargando..."
-              : `${products.length} productos con precio de costo`}
+              : `${products.length} productos`}
           </p>
         </div>
         <Button variant="outline" onClick={() => { setProductsLoading(true); fetchMargins(); }} disabled={productsLoading}>
@@ -633,8 +635,7 @@ export default function AdminMargins() {
                     colSpan={6}
                     className="px-4 py-12 text-center text-sm text-[var(--foreground-muted)]"
                   >
-                    No hay productos con precio de costo. Configurá el costo
-                    primero.
+                    No hay productos en esta categoría.
                   </td>
                 </tr>
               ) : (
@@ -655,12 +656,17 @@ export default function AdminMargins() {
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-sm text-[var(--foreground)]">
-                        ${product.costPrice.toFixed(2)}
+                        {product.costPrice != null ? `$${product.costPrice.toFixed(2)}` : "—"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-sm font-medium text-[var(--foreground)]">
-                        ${product.price.toFixed(2)}
+                        {product.price != null ? `$${product.price.toFixed(2)}` : "—"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm font-medium text-[var(--foreground)]">
+                        {product.price != null ? `$${product.price.toFixed(2)}` : "—"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -707,7 +713,7 @@ export default function AdminMargins() {
             <SkeletonCards />
           ) : products.length === 0 ? (
             <div className="rounded-xl border border-slate-800 bg-slate-950/50 py-12 text-center text-sm text-[var(--foreground-muted)]">
-              No hay productos con precio de costo.
+              No hay productos en esta categoría.
             </div>
           ) : (
             products.map((product) => (
@@ -748,7 +754,7 @@ export default function AdminMargins() {
                       Costo
                     </p>
                     <p className="mt-0.5 text-sm font-semibold text-[var(--foreground)]">
-                      ${product.costPrice.toFixed(2)}
+                      {product.costPrice != null ? `$${product.costPrice.toFixed(2)}` : "—"}
                     </p>
                   </div>
                   <div className="rounded-lg bg-slate-900/50 p-2.5">
@@ -756,7 +762,15 @@ export default function AdminMargins() {
                       Precio
                     </p>
                     <p className="mt-0.5 text-sm font-semibold text-[var(--foreground)]">
-                      ${product.price.toFixed(2)}
+                      {product.price != null ? `$${product.price.toFixed(2)}` : "—"}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-slate-900/50 p-2.5">
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--foreground-muted)]">
+                      Precio
+                    </p>
+                    <p className="mt-0.5 text-sm font-semibold text-[var(--foreground)]">
+                      {product.price != null ? `$${product.price.toFixed(2)}` : "—"}
                     </p>
                   </div>
                   <div className="rounded-lg bg-slate-900/50 p-2.5">
@@ -830,7 +844,9 @@ export default function AdminMargins() {
                       Costo actual
                     </p>
                     <p className="mt-1 text-lg font-semibold text-[var(--foreground)]">
-                      ${marginModalProduct.costPrice.toFixed(2)}
+                      {marginModalProduct.costPrice != null
+                        ? `$${marginModalProduct.costPrice.toFixed(2)}`
+                        : "—"}
                     </p>
                   </div>
                   <div>
@@ -838,7 +854,9 @@ export default function AdminMargins() {
                       Precio actual
                     </p>
                     <p className="mt-1 text-lg font-semibold text-[var(--foreground)]">
-                      ${marginModalProduct.price.toFixed(2)}
+                      {marginModalProduct.price != null
+                        ? `$${marginModalProduct.price.toFixed(2)}`
+                        : "—"}
                     </p>
                   </div>
                 </div>
@@ -867,19 +885,30 @@ export default function AdminMargins() {
                 </div>
 
                 {/* Price preview */}
-                <div className="rounded-xl border border-emerald-800/30 bg-emerald-500/5 p-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-[var(--foreground-muted)]">
-                      Nuevo precio estimado
-                    </p>
-                    <p className="text-xl font-bold text-emerald-400">
-                      ${(marginModalProduct.costPrice * (1 + marginValue / 100)).toFixed(2)}
+                {marginModalProduct.costPrice != null ? (
+                  <div className="rounded-xl border border-emerald-800/30 bg-emerald-500/5 p-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-[var(--foreground-muted)]">
+                        Nuevo precio estimado
+                      </p>
+                      <p className="text-xl font-bold text-emerald-400">
+                        ${(marginModalProduct.costPrice * (1 + marginValue / 100)).toFixed(2)}
+                      </p>
+                    </div>
+                    <p className="mt-1 text-xs text-[var(--foreground-muted)]">
+                      {marginModalProduct.costPrice.toFixed(2)} × {marginValue}% de margen
                     </p>
                   </div>
-                  <p className="mt-1 text-xs text-[var(--foreground-muted)]">
-                    {marginModalProduct.costPrice.toFixed(2)} × {marginValue}% de margen
-                  </p>
-                </div>
+                ) : (
+                  <div className="rounded-xl border border-amber-800/30 bg-amber-500/5 p-4">
+                    <p className="text-sm text-amber-400">
+                      Sin precio de costo
+                    </p>
+                    <p className="mt-1 text-xs text-[var(--foreground-muted)]">
+                      Configurá el costo primero para calcular el precio
+                    </p>
+                  </div>
+                )}
 
                 {/* Actions */}
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">

@@ -115,6 +115,10 @@ export const productRepository = {
 
     const products = docs.map((doc) => productMapper.toDomain(doc as any));
 
+    // Split query into words for partial/fuzzy matching
+    // e.g. "silla oficina" matches "Silla de Oficina" (both words appear)
+    const words = normalizedQuery.split(/\s+/).filter(Boolean);
+
     // Filter by normalized name (accent and case insensitive)
     const filtered = products.filter((p) => {
       if (!p.name) return false;
@@ -122,7 +126,8 @@ export const productRepository = {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase();
-      return normalizedName.includes(normalizedQuery);
+      // All words must appear in the name (order-independent)
+      return words.every((word) => normalizedName.includes(word));
     });
 
     // Apply pagination
@@ -242,13 +247,16 @@ export const productRepository = {
 
     if (!existing) {
       // Producto nuevo - crear
-      const result = await collection.insertOne({
+      // Set costPrice from scraper price, selling price starts equal to cost (0% margin)
+      const insertData = {
         ...data,
+        costPrice: data.price,
         lastSyncedAt: now,
         status: "active",
         createdAt: now,
         updatedAt: now,
-      });
+      };
+      const result = await collection.insertOne(insertData);
 
       const inserted = await collection.findOne({ _id: result.insertedId });
       return {
@@ -266,10 +274,11 @@ export const productRepository = {
     };
 
     // Comparar cada campo
+    // NOTE: "price" is NOT in this list — the scraper updates costPrice, not selling price.
+    // Selling price is managed via admin margins (costPrice * (1 + margin/100)).
     const fieldsToCompare = [
       { key: "name", newVal: data.name },
       { key: "description", newVal: data.description },
-      { key: "price", newVal: data.price },
       { key: "priceRaw", newVal: data.priceRaw },
       { key: "currency", newVal: data.currency },
       { key: "stock", newVal: data.stock },
@@ -277,6 +286,24 @@ export const productRepository = {
       { key: "categories", newVal: data.categories },
       { key: "attributes", newVal: data.attributes || [] },
     ];
+
+    // Update costPrice from scraper data (the supplier price)
+    // This is separate from the selling price field
+    if (data.price !== undefined) {
+      const existingCost = (existing as any).costPrice;
+      if (JSON.stringify(existingCost) !== JSON.stringify(data.price)) {
+        updateOperations.costPrice = data.price;
+        changes.push("costPrice");
+
+        // Recalculate selling price if product has a margin set
+        const existingMargin = (existing as any).profitMargin;
+        if (existingMargin != null && existingMargin > 0) {
+          const newPrice = Math.round(data.price * (1 + existingMargin / 100) * 100) / 100;
+          updateOperations.price = newPrice;
+          changes.push("price");
+        }
+      }
+    }
 
     for (const field of fieldsToCompare) {
       const existingVal = (existing as any)[field.key];

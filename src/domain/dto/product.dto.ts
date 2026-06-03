@@ -5,7 +5,7 @@ import type { ProductStatus } from "../models/product";
 const baseProductSchema = z.object({
   name: z.string().min(3).optional(),
   description: z.string().optional(),
-  price: z.number().nonnegative().optional(),
+  price: z.number().nonnegative().optional(), // Optional - can be calculated from costPrice + profitMargin
   costPrice: z.number().optional(),
   profitMargin: z.number().optional(),
   currency: z.string().min(1).optional(),
@@ -18,7 +18,7 @@ const baseProductSchema = z.object({
 
 export const createProductSchema = baseProductSchema.extend({
   name: z.string().min(3),
-  price: z.number().nonnegative(),
+  // price is optional - if not provided, it will be calculated from costPrice + profitMargin
   currency: z.string().min(1).default("USD"),
   stock: z.number().int().nonnegative().default(0),
   inStock: z.boolean().default(false),

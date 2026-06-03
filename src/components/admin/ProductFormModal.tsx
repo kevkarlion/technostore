@@ -48,11 +48,10 @@ interface UploadedImage {
 const defaultForm = {
   name: "",
   description: "",
-  price: "",
-  currency: "USD",
-  stock: "0",
   costPrice: "",
   profitMargin: "",
+  currency: "USD",
+  stock: "0",
   status: "draft" as const,
 };
 
@@ -88,7 +87,6 @@ export default function ProductFormModal({
       setForm({
         name: editProduct.name,
         description: editProduct.description || "",
-        price: String(editProduct.price),
         currency: editProduct.currency,
         stock: String(editProduct.stock),
         costPrice: editProduct.costPrice != null ? String(editProduct.costPrice) : "",
@@ -203,9 +201,12 @@ export default function ProductFormModal({
     const errs: FormErrors = {};
     if (!form.name.trim() || form.name.trim().length < 3)
       errs.name = "Mínimo 3 caracteres";
-    const price = parseFloat(form.price);
-    if (!form.price.trim() || isNaN(price) || price < 0)
-      errs.price = "Precio inválido";
+    const costPrice = parseFloat(form.costPrice);
+    if (!form.costPrice.trim() || isNaN(costPrice) || costPrice < 0)
+      errs.costPrice = "Costo inválido";
+    const profitMargin = parseFloat(form.profitMargin);
+    if (form.profitMargin.trim() && (isNaN(profitMargin) || profitMargin < 0 || profitMargin > 100))
+      errs.profitMargin = "Margen debe ser 0-100";
     const stock = parseInt(form.stock, 10);
     if (isNaN(stock) || stock < 0) errs.stock = "Stock inválido";
     setErrors(errs);
@@ -222,18 +223,22 @@ export default function ProductFormModal({
         .map((img) => img.cloudinaryUrl)
         .filter(Boolean) as string[];
 
+      const costPrice = parseFloat(form.costPrice);
+      const profitMargin = parseFloat(form.profitMargin) || 0;
+      const price = Math.round(costPrice * (1 + profitMargin / 100) * 100) / 100;
+
       const body: Record<string, any> = {
         name: form.name.trim(),
         description: form.description.trim() || undefined,
-        price: parseFloat(form.price),
+        costPrice,
+        profitMargin,
+        price,
         currency: form.currency,
         stock: parseInt(form.stock, 10),
         inStock: parseInt(form.stock, 10) > 0,
         status: form.status,
         categories: Array.from(selectedCategories),
         imageUrls,
-        costPrice: form.costPrice ? parseFloat(form.costPrice) : undefined,
-        profitMargin: form.profitMargin ? parseFloat(form.profitMargin) : undefined,
       };
 
       // En edición, no mandar campos vacíos que pisarían valores existentes
@@ -281,7 +286,7 @@ export default function ProductFormModal({
   const profitMarginNum = parseFloat(form.profitMargin);
   const hasCostAndMargin =
     !isNaN(costPriceNum) && costPriceNum > 0 &&
-    !isNaN(profitMarginNum) && profitMarginNum > 0;
+    !isNaN(profitMarginNum) && profitMarginNum >= 0;
   const calculatedPrice = hasCostAndMargin
     ? costPriceNum * (1 + profitMarginNum / 100)
     : null;
@@ -346,44 +351,11 @@ export default function ProductFormModal({
             />
           </div>
 
-          {/* Precio + Moneda */}
+          {/* Costo + Margen */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="mb-1 block text-sm font-medium text-[var(--foreground)]">
-                Precio *
-              </label>
-              <Input
-                type="number"
-                value={form.price}
-                onChange={set("price")}
-                step="0.01"
-                placeholder="0.00"
-                className={errors.price ? "border-rose-500" : ""}
-              />
-              {errors.price && (
-                <p className="mt-1 text-xs text-rose-400">{errors.price}</p>
-              )}
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-[var(--foreground)]">
-                Moneda
-              </label>
-              <select
-                value={form.currency}
-                onChange={set("currency")}
-                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-[var(--foreground)] focus:border-emerald-500 focus:outline-none"
-              >
-                <option value="USD">USD</option>
-                <option value="ARS">ARS</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Cost Price + Profit Margin */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-[var(--foreground)]">
-                Costo (USD)
+                Costo (USD) *
               </label>
               <Input
                 type="number"
@@ -392,7 +364,11 @@ export default function ProductFormModal({
                 step="0.01"
                 min={0}
                 placeholder="0.00"
+                className={errors.costPrice ? "border-rose-500" : ""}
               />
+              {errors.costPrice && (
+                <p className="mt-1 text-xs text-rose-400">{errors.costPrice}</p>
+              )}
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-[var(--foreground)]">
@@ -406,7 +382,11 @@ export default function ProductFormModal({
                 min={0}
                 max={100}
                 placeholder="0"
+                className={errors.profitMargin ? "border-rose-500" : ""}
               />
+              {errors.profitMargin && (
+                <p className="mt-1 text-xs text-rose-400">{errors.profitMargin}</p>
+              )}
             </div>
           </div>
 
@@ -414,10 +394,13 @@ export default function ProductFormModal({
           {calculatedPrice !== null && (
             <div className="rounded-lg border border-emerald-800/50 bg-emerald-950/20 px-4 py-3">
               <p className="text-xs text-[var(--foreground-muted)]">
-                Precio calculado
+                Precio de venta (calculado)
               </p>
-              <p className="text-sm font-semibold text-emerald-400">
-                ${calculatedPrice.toFixed(2)}
+              <p className="text-xl font-bold text-emerald-400">
+                ${calculatedPrice.toFixed(2)} USD
+              </p>
+              <p className="text-xs text-[var(--foreground-muted)]">
+                {form.costPrice} × (1 + {(parseFloat(form.profitMargin) || 0) / 100}) = ${calculatedPrice.toFixed(2)}
               </p>
             </div>
           )}

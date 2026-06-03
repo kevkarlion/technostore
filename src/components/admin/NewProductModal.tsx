@@ -35,7 +35,8 @@ interface UploadedImage {
 const defaultForm = {
   name: "",
   description: "",
-  price: "",
+  costPrice: "",
+  profitMargin: "",
   currency: "USD",
   stock: "0",
   status: "draft" as const,
@@ -58,6 +59,16 @@ export default function NewProductModal({
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Calculate price preview
+  const calculatedPrice = (() => {
+    const cost = parseFloat(form.costPrice) || 0;
+    const margin = parseFloat(form.profitMargin) || 0;
+    if (cost > 0 && margin >= 0) {
+      return Math.round(cost * (1 + margin / 100) * 100) / 100;
+    }
+    return null;
+  })();
 
   // Cargar categorías al abrir el modal
   useEffect(() => {
@@ -162,9 +173,12 @@ export default function NewProductModal({
     const errs: FormErrors = {};
     if (!form.name.trim() || form.name.trim().length < 3)
       errs.name = "Mínimo 3 caracteres";
-    const price = parseFloat(form.price);
-    if (!form.price.trim() || isNaN(price) || price < 0)
-      errs.price = "Precio inválido";
+    const costPrice = parseFloat(form.costPrice);
+    if (!form.costPrice.trim() || isNaN(costPrice) || costPrice < 0)
+      errs.costPrice = "Costo inválido";
+    const profitMargin = parseFloat(form.profitMargin);
+    if (form.profitMargin.trim() && (isNaN(profitMargin) || profitMargin < 0 || profitMargin > 100))
+      errs.profitMargin = "Margen debe ser 0-100";
     const stock = parseInt(form.stock, 10);
     if (isNaN(stock) || stock < 0) errs.stock = "Stock inválido";
     setErrors(errs);
@@ -181,10 +195,16 @@ export default function NewProductModal({
         .map((img) => img.cloudinaryUrl)
         .filter(Boolean) as string[];
 
+      const costPrice = parseFloat(form.costPrice);
+      const profitMargin = parseFloat(form.profitMargin) || 0;
+      const price = Math.round(costPrice * (1 + profitMargin / 100) * 100) / 100;
+
       const body = {
         name: form.name.trim(),
         description: form.description.trim() || undefined,
-        price: parseFloat(form.price),
+        costPrice,
+        profitMargin,
+        price,
         currency: form.currency,
         stock: parseInt(form.stock, 10),
         inStock: parseInt(form.stock, 10) > 0,
@@ -277,37 +297,58 @@ export default function NewProductModal({
             />
           </div>
 
-          {/* Precio + Moneda */}
+          {/* Costo + Margen */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="mb-1 block text-sm font-medium text-[var(--foreground)]">
-                Precio *
+                Costo (USD) *
               </label>
               <Input
                 type="number"
-                value={form.price}
-                onChange={set("price")}
+                value={form.costPrice}
+                onChange={set("costPrice")}
                 placeholder="0.00"
-                className={errors.price ? "border-rose-500" : ""}
+                step="0.01"
+                className={errors.costPrice ? "border-rose-500" : ""}
               />
-              {errors.price && (
-                <p className="mt-1 text-xs text-rose-400">{errors.price}</p>
+              {errors.costPrice && (
+                <p className="mt-1 text-xs text-rose-400">{errors.costPrice}</p>
               )}
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-[var(--foreground)]">
-                Moneda
+                Margen (%)
               </label>
-              <select
-                value={form.currency}
-                onChange={set("currency")}
-                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-[var(--foreground)] focus:border-emerald-500 focus:outline-none"
-              >
-                <option value="USD">USD</option>
-                <option value="ARS">ARS</option>
-              </select>
+              <Input
+                type="number"
+                value={form.profitMargin}
+                onChange={set("profitMargin")}
+                placeholder="0"
+                step="0.1"
+                min="0"
+                max="100"
+                className={errors.profitMargin ? "border-rose-500" : ""}
+              />
+              {errors.profitMargin && (
+                <p className="mt-1 text-xs text-rose-400">{errors.profitMargin}</p>
+              )}
             </div>
           </div>
+
+          {/* Precio calculado */}
+          {calculatedPrice !== null && (
+            <div className="rounded-lg border border-emerald-800/30 bg-emerald-500/5 p-3">
+              <p className="text-sm text-[var(--foreground-muted)]">
+                Precio de venta (calculado)
+              </p>
+              <p className="text-xl font-bold text-emerald-400">
+                ${calculatedPrice.toFixed(2)} USD
+              </p>
+              <p className="text-xs text-[var(--foreground-muted)]">
+                {form.costPrice} × (1 + {(parseFloat(form.profitMargin) || 0) / 100}) = ${calculatedPrice.toFixed(2)}
+              </p>
+            </div>
+          )}
 
           {/* Stock + Estado */}
           <div className="grid grid-cols-2 gap-4">

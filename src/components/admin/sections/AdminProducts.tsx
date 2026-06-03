@@ -74,8 +74,19 @@ export default function AdminProducts() {
   const [toggleLoading, setToggleLoading] = useState<string | null>(null);
   const [pendingToggle, setPendingToggle] = useState<Product | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const fetchProducts = useCallback(async (search: string, page: number, status: string) => {
+    // Cancel any in-flight request
+    if (abortRef.current) {
+      try {
+        abortRef.current.abort();
+      } catch {
+        // Already aborted, ignore
+      }
+    }
+    abortRef.current = new AbortController();
+    
     setLoading(true);
     setError(null);
     try {
@@ -84,13 +95,19 @@ export default function AdminProducts() {
       params.set("page", String(page));
       if (status === "all") {
         params.set("allStatuses", "true");
-      } else {
+      } else if (status && (status === "active" || status === "discontinued" || status === "draft" || status === "inactive")) {
         params.set("status", status);
       }
       if (search.trim()) params.set("search", search.trim());
 
-      const res = await fetch(`/api/products?${params.toString()}`);
-      if (!res.ok) throw new Error("Error al cargar productos");
+      const res = await fetch(`/api/products?${params.toString()}`, {
+        signal: abortRef.current.signal,
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("[AdminProducts] API error:", res.status, text);
+        throw new Error(`Error al cargar productos (${res.status})`);
+      }
       const data: FetchResponse = await res.json();
 
       const mapped: Product[] = (data.items || []).map((p: any) => ({
@@ -108,6 +125,11 @@ export default function AdminProducts() {
       setTotalItems(data.total);
       setTotalPages(data.totalPages);
     } catch (err) {
+      // Ignore abort errors - they're expected when cancelling requests
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.log("[AdminProducts] Request cancelled");
+        return;
+      }
       console.error("[AdminProducts] Error:", err);
       setError(
         err instanceof Error ? err.message : "Error al cargar productos"
@@ -132,10 +154,13 @@ export default function AdminProducts() {
     fetchProducts(searchQuery, currentPage, statusFilter);
   }, [searchQuery, currentPage, statusFilter, fetchProducts]);
 
-  // Cleanup del debounce
+  // Cleanup del debounce y abort controller
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      // Mark abort controller as done - don't actually abort on unmount
+      // to avoid "signal is aborted without reason" error
+      abortRef.current = null;
     };
   }, []);
 

@@ -488,6 +488,7 @@ export default function CheckoutPage() {
                   <Price
                     amount={(item.product?.price || 0) * item.quantity}
                     className="text-slate-200"
+                    currency="ARS"
                   />
                 </div>
               ))}
@@ -495,20 +496,20 @@ export default function CheckoutPage() {
             <div className="mt-3 space-y-1 border-t border-slate-700 pt-3 text-xs">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <Price amount={subtotal} />
+                <Price amount={subtotal} currency="ARS" />
               </div>
               <div className="flex justify-between">
                 <span>Envío</span>
-                <Price amount={shipping} />
+                <Price amount={shipping} currency="ARS" />
               </div>
               <div className="flex justify-between">
                 <span>IVA (21%)</span>
-                <Price amount={taxes} />
+                <Price amount={taxes} currency="ARS" />
               </div>
             </div>
             <div className="mt-3 flex justify-between border-t border-slate-700 pt-3 text-sm font-semibold text-slate-50">
               <span>Total</span>
-              <Price amount={total} />
+              <Price amount={total} currency="ARS" />
             </div>
           </div>
         </aside>

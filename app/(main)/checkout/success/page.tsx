@@ -307,11 +307,12 @@ function SuccessContent() {
                     {item.productName}
                   </p>
                   <p className="text-xs text-slate-500">
-                    Cant: {item.quantity} × <Price amount={item.unitPrice} />
+                    Cant: {item.quantity} × <Price amount={item.unitPrice} currency="ARS" />
                   </p>
                 </div>
                 <Price
                   amount={item.unitPrice * item.quantity}
+                  currency="ARS"
                   className="text-sm font-semibold text-slate-200"
                 />
               </div>
@@ -322,19 +323,19 @@ function SuccessContent() {
           <div className="mt-4 space-y-1.5 border-t border-slate-800 pt-4">
             <div className="flex justify-between text-sm">
               <span className="text-slate-500">Subtotal</span>
-              <Price amount={order!.totals.subtotal} className="text-slate-300" />
+              <Price amount={order!.totals.subtotal} currency="ARS" className="text-slate-300" />
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-500">Envío</span>
-              <Price amount={order!.totals.shipping} className="text-slate-300" />
+              <Price amount={order!.totals.shipping} currency="ARS" className="text-slate-300" />
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-slate-500">Impuestos</span>
-              <Price amount={order!.totals.taxes} className="text-slate-300" />
+              <Price amount={order!.totals.taxes} currency="ARS" className="text-slate-300" />
             </div>
             <div className="flex justify-between border-t border-slate-700 pt-2 text-base font-semibold">
               <span className="text-slate-200">Total</span>
-              <Price amount={order!.totals.total} className="text-emerald-400" />
+              <Price amount={order!.totals.total} currency="ARS" className="text-emerald-400" />
             </div>
           </div>
         </div>

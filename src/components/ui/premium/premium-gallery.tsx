@@ -222,8 +222,9 @@ export function PremiumGallery({ product }: PremiumGalleryProps) {
               <div className="flex items-end justify-between gap-3">
                 <div className="space-y-1">
                   <Price
-                    amount={product.price}
+                    amount={product.priceARS ?? product.price}
                     originalAmount={product.originalPrice}
+                    currency="ARS"
                     className="text-3xl sm:text-4xl"
                   />
                   {product.originalPrice && product.originalPrice > product.price && (
@@ -246,7 +247,7 @@ export function PremiumGallery({ product }: PremiumGalleryProps) {
               <AddToCartButton
                 productId={product.id}
                 productName={product.name}
-                productPrice={product.price}
+                productPrice={product.priceARS ?? product.price}
                 productImageUrl={product.images[0]?.src}
                 inStock={product.inStock}
                 stockQuantity={product.stockQuantity}

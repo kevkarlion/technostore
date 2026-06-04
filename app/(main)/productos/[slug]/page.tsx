@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 export const dynamic = "force-dynamic";
 import { productRepository } from "@/api/repository/product.repository";
 import { toPresentationProduct, generateProductSlug } from "@/domain/mappers/product-to-presentation";
-import { getExchangeRate } from "@/lib/exchange-rate";
+import { getExchangeRateServer } from "@/lib/exchange-rate-server";
 import { PremiumGallery } from "@/components/ui/premium/premium-gallery";
 import { PageTransition } from "@/components/ui/premium/page-transition";
 
@@ -31,7 +31,7 @@ export async function generateMetadata({
   }
 
   // Get exchange rate to calculate ARS price (use venta for selling price)
-  const exchangeRateData = await getExchangeRate();
+  const exchangeRateData = await getExchangeRateServer();
   const exchangeRate = exchangeRateData?.venta ?? null;
   
   const presentationProduct = toPresentationProduct(product, exchangeRate ?? undefined);
@@ -49,7 +49,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product) return notFound();
 
   // Get exchange rate to calculate ARS price (use venta for selling price)
-  const exchangeRateData = await getExchangeRate();
+  const exchangeRateData = await getExchangeRateServer();
   const exchangeRate = exchangeRateData?.venta ?? null;
   
   const presentationProduct = toPresentationProduct(product, exchangeRate ?? undefined);

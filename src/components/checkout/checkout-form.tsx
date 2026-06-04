@@ -337,7 +337,7 @@ export function OrderSummary({
             {items.length} {items.length === 1 ? "producto" : "productos"}
           </span>
           <span className="text-sm font-semibold text-white ml-2">
-              <Price amount={total} />
+              <Price amount={total} currency="ARS" />
           </span>
         </div>
         <svg
@@ -355,7 +355,7 @@ export function OrderSummary({
             return product ? (
               <div key={item.productId} className="flex gap-2 text-sm">
                 <span className="text-slate-400 break-words min-w-0">{cleanProductName(product.name)} x{item.quantity}</span>
-                <span className="text-slate-200 shrink-0 whitespace-nowrap"><Price amount={product.price * item.quantity} /></span>
+                <span className="text-slate-200 shrink-0 whitespace-nowrap"><Price amount={product.price * item.quantity} currency="ARS" /></span>
               </div>
             ) : null;
           })}

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/config/db";
-import { enrichItemsWithCostPrice } from "@/lib/enrich-cost-price";
+import { enrichItemsWithCostPrice, type EnrichedOrderItem } from "@/lib/enrich-cost-price";
 import { contabilidadQuerySchema } from "@/domain/dto/contabilidad.dto";
 import type {
   ContabilidadOrder,
@@ -14,49 +14,52 @@ const COLLECTION = "orders";
 
 /**
  * Compute per-item profit fields given unitPrice, costPrice, and quantity.
+ * Now uses the enriched data with USD and ARS values.
  */
 function computeItemProfit(
-  unitPrice: number,
-  costPrice: number | undefined,
-  quantity: number
-): { costPrice: number | null; gain: number | null; marginPct: number | null } {
-  if (costPrice == null) {
-    return { costPrice: null, gain: null, marginPct: null };
-  }
-  const gain = (unitPrice - costPrice) * quantity;
-  const marginPct =
-    costPrice > 0 ? ((unitPrice - costPrice) / costPrice) * 100 : null;
-  return { costPrice, gain, marginPct };
+  item: EnrichedOrderItem
+): { 
+  costPriceUsd: number | null; 
+  costPriceArs: number | null; 
+  gainUsd: number | null; 
+  gainArs: number | null; 
+  marginPct: number | null 
+} {
+  return {
+    costPriceUsd: item.costPriceUsd,
+    costPriceArs: item.costPriceArs,
+    gainUsd: item.gainUsd,
+    gainArs: item.gainArs,
+    marginPct: item.marginPct,
+  };
+}
+
+/**
+ * Build ContabilidadItem from EnrichedOrderItem
+ */
+function toContabilidadItem(item: EnrichedOrderItem): ContabilidadItem {
+  const profit = computeItemProfit(item);
+  return {
+    productId: item.productId,
+    productName: item.productName,
+    quantity: item.quantity,
+    unitPrice: item.unitPriceArs ?? item.unitPrice ?? 0,  // Sale price in ARS
+    unitPriceUsd: item.unitPriceUsd ?? null,               // Sale price in USD
+    costPrice: profit.costPriceArs,                        // Cost in ARS
+    costPriceUsd: profit.costPriceUsd,                     // Cost in USD
+    gain: profit.gainArs,                                  // Gain in ARS
+    gainUsd: profit.gainUsd,                               // Gain in USD
+    marginPct: profit.marginPct,                           // Margin % (on USD)
+  };
 }
 
 /**
  * Enrich raw order items with profit calculations.
  */
 function buildContabilidadItems(
-  items: Array<{
-    productId: string;
-    productName: string;
-    quantity: number;
-    unitPrice: number;
-    costPrice?: number;
-  }>
+  items: EnrichedOrderItem[]
 ): ContabilidadItem[] {
-  return items.map((item) => {
-    const profit = computeItemProfit(
-      item.unitPrice,
-      item.costPrice,
-      item.quantity
-    );
-    return {
-      productId: item.productId,
-      productName: item.productName,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      costPrice: profit.costPrice,
-      gain: profit.gain,
-      marginPct: profit.marginPct,
-    };
-  });
+  return items.map(toContabilidadItem);
 }
 
 /**
@@ -65,16 +68,20 @@ function buildContabilidadItems(
 function toContabilidadOrder(doc: any): ContabilidadOrder {
   const items = buildContabilidadItems(doc.items ?? []);
 
+  // Use ARS values for totals display
   const pricedItems = items.filter((i) => i.costPrice != null);
   const totalCost = pricedItems.reduce(
     (sum, i) => sum + (i.costPrice ?? 0) * i.quantity,
     0
   );
   const totalGain = pricedItems.reduce((sum, i) => sum + (i.gain ?? 0), 0);
+  
+  // Calculate average margin from USD values
+  const pricedItemsWithMargin = items.filter((i) => i.marginPct != null);
   const avgMargin =
-    pricedItems.length > 0
-      ? pricedItems.reduce((sum, i) => sum + (i.marginPct ?? 0), 0) /
-        pricedItems.length
+    pricedItemsWithMargin.length > 0
+      ? pricedItemsWithMargin.reduce((sum, i) => sum + (i.marginPct ?? 0), 0) /
+        pricedItemsWithMargin.length
       : null;
 
   return {

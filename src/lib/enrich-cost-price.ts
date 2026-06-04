@@ -14,69 +14,88 @@ async function getExchangeRate(): Promise<number> {
     );
     if (res.ok) {
       const data = await res.json();
-      return data?.venta ?? 1400; // Default to 1400 if not found
+      return data?.venta ?? 1400;
     }
   } catch (err) {
     console.error("[enrich-cost-price] Failed to fetch exchange rate:", err);
   }
-  return 1400; // Fallback default
+  return 1400;
 }
 
 /**
- * Enriches order items with current costPrice from the products collection.
- * Also converts costPrice from USD to ARS using the current exchange rate.
- *
- * Batch-lookup strategy:
- * 1. Collect all unique productIds from items
- * 2. Fetch current costPrice for all of them in one query
- * 3. Merge back: item.costPrice takes priority (historical value), fallback to live costPrice
- * 4. Convert costPrice from USD to ARS
- *
- * Items whose costPrice is null/undefined after lookup stay as-is (unpriced).
- * This is non-critical — if the product lookup fails, items keep their original costPrice.
+ * Enriched order item with both USD and ARS values for accounting
+ */
+export interface EnrichedOrderItem extends OrderItem {
+  costPriceUsd: number | null;
+  costPriceArs: number | null;
+  unitPriceUsd: number | null;
+  unitPriceArs: number | null;
+  gainUsd: number | null;
+  gainArs: number | null;
+  marginPct: number | null;
+}
+
+/**
+ * Enriches order items with cost price and calculates profit in both currencies.
  */
 export async function enrichItemsWithCostPrice(
   items: OrderItem[]
-): Promise<OrderItem[]> {
+): Promise<EnrichedOrderItem[]> {
   const productIds = items
     .map((item) => item.productId)
     .filter((id): id is string => !!id);
 
-  if (productIds.length === 0) return items;
+  if (productIds.length === 0) return items as EnrichedOrderItem[];
 
   try {
     const db = await getDb();
     const products = await db
       .collection("products")
       .find({ _id: { $in: productIds.map((id) => new ObjectId(id)) } })
-      .project({ costPrice: 1 })
+      .project({ costPrice: 1, profitMargin: 1 })
       .toArray();
 
-    // Get exchange rate to convert USD to ARS
     const exchangeRate = await getExchangeRate();
 
-    const costMap = new Map(
-      products.map((p: any) => [p._id.toString(), p.costPrice])
+    const productMap = new Map(
+      products.map((p: any) => [
+        p._id.toString(), 
+        { costPrice: p.costPrice, profitMargin: p.profitMargin }
+      ])
     );
 
     return items.map((item) => {
-      // Get cost price from DB (in USD) or use historical value
-      const costPriceUsd = item.costPrice ?? costMap.get(item.productId) ?? undefined;
+      const costPriceUsd = item.costPrice ?? productMap.get(item.productId)?.costPrice ?? null;
+      const unitPriceArs = item.unitPrice ?? 0;
+      const unitPriceUsd = unitPriceArs > 0 ? unitPriceArs / exchangeRate : 0;
       
-      // Convert cost price from USD to ARS
-      let costPriceArs: number | undefined;
-      if (costPriceUsd != null && costPriceUsd > 0) {
-        costPriceArs = Math.round(costPriceUsd * exchangeRate * 100) / 100;
+      const costPriceArs = costPriceUsd != null 
+        ? Math.round(costPriceUsd * exchangeRate * 100) / 100 
+        : null;
+      
+      let gainUsd: number | null = null;
+      let gainArs: number | null = null;
+      let marginPct: number | null = null;
+      
+      if (costPriceUsd != null && costPriceUsd > 0 && unitPriceUsd > 0) {
+        gainUsd = Math.round((unitPriceUsd - costPriceUsd) * 100) / 100;
+        gainArs = Math.round((unitPriceArs - costPriceArs) * 100) / 100;
+        marginPct = Math.round(((unitPriceUsd - costPriceUsd) / costPriceUsd) * 10000) / 100;
       }
 
       return {
         ...item,
-        costPrice: costPriceArs, // Store as ARS
+        costPriceUsd,
+        costPriceArs,
+        unitPriceUsd,
+        unitPriceArs,
+        gainUsd,
+        gainArs,
+        marginPct,
       };
     });
   } catch (err) {
-    // Non-critical: if lookup fails, return items with whatever costPrice they have
     console.error("[enrich-cost-price] Failed to fetch cost prices:", err);
-    return items;
+    return items as EnrichedOrderItem[];
   }
 }

@@ -40,17 +40,21 @@ export function Price({
 
   const currentLabel = convertToArs
     ? formatARS(arsAmount)
-    : currency
-      ? `${currency} ${amount.toLocaleString("en-US")}`
-      : `$${amount.toLocaleString("en-US")}`;
+    : currency === "ARS"
+      ? formatARS(amount)
+      : currency
+        ? `${currency} ${amount.toLocaleString("en-US")}`
+        : `$${amount.toLocaleString("en-US")}`;
 
   const originalLabel =
     hasDiscount && arsOriginal !== undefined
       ? convertToArs
         ? formatARS(arsOriginal)
-        : currency
-          ? `${currency} ${arsOriginal.toLocaleString("en-US")}`
-          : `$${arsOriginal.toLocaleString("en-US")}`
+        : currency === "ARS"
+          ? formatARS(arsOriginal)
+          : currency
+            ? `${currency} ${arsOriginal.toLocaleString("en-US")}`
+            : `$${arsOriginal.toLocaleString("en-US")}`
       : undefined;
 
   return (

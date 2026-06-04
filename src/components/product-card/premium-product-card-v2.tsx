@@ -409,8 +409,10 @@ export function PremiumProductCardV2({
 const cartProduct = {
       id: product.id,
       name: product.name,
-      price: product.price,
+      slug: product.slug,
+      price: product.priceARS ?? product.price,
       imageUrl: product.images?.[0]?.src || "",
+      stock: product.stockQuantity,
       inStock: product.inStock ?? true,
     };
     

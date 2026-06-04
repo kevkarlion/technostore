@@ -16,57 +16,43 @@ import {
 } from "@/features/cart/components";
 import type { CartItem, CartProduct } from "@/features/cart/types/cart";
 
-// ============= FUNCIONES DE MIGRACIÓN =============
+// ============= REFRESH DE PRECIOS =============
+// La API /api/products/[id] ya devuelve precios en ARS (convertidos con exchange rate).
+// Refetcheamos todos los items al cargar la página para asegurar precios frescos en ARS,
+// independientemente de si se agregaron antes o después del fix.
 
 /**
- * Item del old store (compatibilidad)
+ * Refresca un item del carrito desde la API, obteniendo precio ARS fresco.
  */
-interface LegacyCartItem {
-  productId: string;
-  quantity: number;
-  product?: never;
-}
-
-/**
- * Verifica si un item es del formato antiguo (sin datos embebidos)
- */
-function isLegacyItem(item: any): item is LegacyCartItem {
-  return !item.product || !item.product.id;
-}
-
-/**
- * Migra un item del formato viejo al nuevo, cargando datos desde API
- */
-async function migrateLegacyItem(item: LegacyCartItem): Promise<CartItem | null> {
+async function refreshCartItem(item: CartItem): Promise<CartItem | null> {
   try {
-    const response = await fetch(`/api/products/${item.productId}`);
-    
-    if (!response.ok) {
-      console.warn(`[Cart] Could not fetch product ${item.productId}`);
+    const res = await fetch(`/api/products/${item.productId}`);
+    if (!res.ok) {
+      console.warn(`[Cart] Could not refresh product ${item.productId}`);
       return null;
     }
-    
-    const productData = await response.json();
-    
-    const cartProduct: CartProduct = {
-      id: productData.id,
-      name: productData.name,
-      price: productData.price,
-      imageUrl: String(productData.imageUrls?.[0] || productData.cloudinaryUrls?.[0] || ""),
-      stock: productData.stock,
-      inStock: productData.inStock,
-    };
-    
+    const productData = await res.json();
+    // productData.price ya está en ARS (convertido por productMapper.toResponse)
     return {
       productId: item.productId,
       quantity: item.quantity,
-      product: cartProduct,
+      product: {
+        id: productData.id,
+        name: productData.name,
+        slug: productData.slug || "",
+        price: productData.price,
+        imageUrl: String(productData.imageUrls?.[0] || productData.cloudinaryUrls?.[0] || ""),
+        stock: productData.stock,
+        inStock: productData.inStock,
+      },
     };
   } catch (error) {
-    console.error(`[Cart] Error migrating item ${item.productId}:`, error);
+    console.error(`[Cart] Error refreshing ${item.productId}:`, error);
     return null;
   }
 }
+
+
 
 // ============= COMPONENTES =============
 
@@ -116,6 +102,29 @@ export function CartClient() {
     }, 100);
     return () => clearTimeout(timer);
   }, []);
+  
+  // Refrescar precios desde la API al cargar la página
+  // La API /api/products/[id] devuelve precios en ARS, así que esto asegura
+  // que el carrito siempre muestre ARS sin importar cuándo se agregaron los items.
+  useEffect(() => {
+    if (!isReady) return;
+    
+    const refreshPrices = async () => {
+      const currentItems = store.items;
+      if (currentItems.length === 0) return;
+      
+      const refreshedItems = await Promise.all(
+        currentItems.map((item) => refreshCartItem(item))
+      );
+      
+      const validItems = refreshedItems.filter(Boolean) as CartItem[];
+      if (validItems.length > 0) {
+        useCartStore.setState({ items: validItems });
+      }
+    };
+    
+    refreshPrices();
+  }, [isReady]);
   
   // Mientras está cargando, mostrar skeleton
   if (isLoading || !isReady) {

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Price } from "@/components/ui/price";
+import { cleanProductName } from "@/domain/mappers/product-to-presentation";
 import {
   DollarSign,
   RefreshCw,
@@ -110,31 +111,32 @@ function TotalsBreakdown({ totals }: { totals: ContabilidadOrder["totals"] }) {
 }
 
 function ItemRow({ item }: { item: ContabilidadItem }) {
-  const hasCost = item.costPrice != null;
+  const hasCost = item.costPriceUsd != null;
+  const cleanName = cleanProductName(item.productName);
   return (
     <div className="rounded-lg bg-slate-900/30 px-3 py-2 text-xs">
       {/* Product name + quantity */}
       <div className="flex items-center justify-between gap-2">
         <p className="truncate font-medium text-[var(--foreground)]">
-          {item.productName}
+          {cleanName}
         </p>
         <p className="shrink-0 text-[var(--foreground-muted)]">
           x{item.quantity}
         </p>
       </div>
-      {/* Labeled values grid */}
+      {/* Labeled values grid - USD values */}
       <div className="mt-1.5 grid grid-cols-4 gap-2">
         <div>
-          <p className="text-[10px] text-[var(--foreground-muted)]">Vendido a</p>
+          <p className="text-[10px] text-[var(--foreground-muted)]">Vendido (USD)</p>
           <p className="font-medium text-[var(--foreground)]">
-            ${item.unitPrice.toFixed(2)}
+            ${item.unitPriceUsd?.toFixed(2) ?? "—"}
           </p>
         </div>
         <div>
-          <p className="text-[10px] text-[var(--foreground-muted)]">Costo</p>
+          <p className="text-[10px] text-[var(--foreground-muted)]">Costo (USD)</p>
           {hasCost ? (
             <p className="font-medium text-[var(--foreground)]">
-              ${item.costPrice!.toFixed(2)}
+              ${item.costPriceUsd?.toFixed(2) ?? "—"}
             </p>
           ) : (
             <Badge tone="warning" className="text-[10px] px-1.5 py-0">
@@ -143,10 +145,10 @@ function ItemRow({ item }: { item: ContabilidadItem }) {
           )}
         </div>
         <div>
-          <p className="text-[10px] text-[var(--foreground-muted)]">Ganancia</p>
+          <p className="text-[10px] text-[var(--foreground-muted)]">Ganancia (USD)</p>
           {hasCost ? (
             <p className="font-medium text-emerald-400">
-              +${item.gain?.toFixed(2)}
+              +${item.gainUsd?.toFixed(2) ?? "—"}
             </p>
           ) : (
             <span className="text-[var(--foreground-muted)]">—</span>
@@ -163,6 +165,14 @@ function ItemRow({ item }: { item: ContabilidadItem }) {
           )}
         </div>
       </div>
+      {/* Ganancia en ARS */}
+      {hasCost && item.gain != null && (
+        <div className="mt-1 pt-1 border-t border-slate-700/50">
+          <p className="text-[10px] text-[var(--foreground-muted)]">
+            Ganancia en pesos: <span className="text-emerald-400 font-medium">+${item.gain.toFixed(2)} ARS</span>
+          </p>
+        </div>
+      )}
     </div>
   );
 }

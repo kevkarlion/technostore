@@ -17,10 +17,21 @@ export interface ContabilidadItem {
   productId: string;
   productName: string;
   quantity: number;
-  unitPrice: number;
-  costPrice: number | null;
-  gain: number | null;       // (unitPrice - costPrice) * quantity
-  marginPct: number | null;  // ((unitPrice - costPrice) / costPrice) * 100
+  
+  // Sale price
+  unitPrice: number;          // Sale price in ARS
+  unitPriceUsd: number | null; // Sale price in USD
+  
+  // Cost
+  costPrice: number | null;   // Cost in ARS
+  costPriceUsd: number | null; // Cost in USD
+  
+  // Profit
+  gain: number | null;        // Gain in ARS (unitPrice - costPrice) * quantity
+  gainUsd: number | null;     // Gain in USD
+  
+  // Margin
+  marginPct: number | null;   // ((unitPriceUsd - costPriceUsd) / costPriceUsd) * 100 (on USD)
 }
 
 /* ── Enriched order ───────────────────────────────────────── */

@@ -9,6 +9,7 @@ import { TrustBadges } from "@/components/home/trust-badges";
 import { ServiceDifferentials } from "@/components/home/service-differentials";
 import { ContactLocation } from "@/components/home/contact-location";
 import { ScrollRevealSection } from "@/components/home/scroll-reveal-section";
+import { getExchangeRateServer } from "@/lib/exchange-rate-server";
 
 // Assign badges dynamically based on position
 const badgeSequence: FeaturedBadge[] = ["featured", "new", "sale", "hot", "featured", "new", "sale", "hot"];
@@ -21,10 +22,16 @@ function mapToFeaturedProducts(products: CatalogProduct[]): FeaturedProduct[] {
 }
 
 export default async function Home() {
-  // Fetch featured products from DB
-  const featuredBackendProducts = await productService.listFeaturedProducts(8);
+  // Fetch exchange rate and featured products
+  const exchangeRateResponse = getExchangeRateServer();
+  const [exchangeRateData, featuredBackendProducts] = await Promise.all([
+    exchangeRateResponse,
+    productService.listFeaturedProducts(8),
+  ]);
+  const exchangeRate = exchangeRateData?.venta ?? undefined;
+
   const featuredProducts: CatalogProduct[] = featuredBackendProducts.map(
-    toPresentationProduct
+    (p) => toPresentationProduct(p, exchangeRate)
   );
   const featuredProductsWithBadges = mapToFeaturedProducts(featuredProducts);
 

@@ -1,26 +1,7 @@
 import { getDb } from "@/config/db";
 import { ObjectId } from "mongodb";
 import type { OrderItem } from "@/domain/models/order";
-
-/**
- * Fetch the current USD to ARS exchange rate (venta price for selling)
- */
-async function getExchangeRate(): Promise<number> {
-  try {
-    const res = await fetch(process.env.NEXT_PUBLIC_SITE_URL 
-      ? `${process.env.NEXT_PUBLIC_SITE_URL}/api/exchange-rate`
-      : "http://localhost:3000/api/exchange-rate", 
-      { cache: "no-store" }
-    );
-    if (res.ok) {
-      const data = await res.json();
-      return data?.venta ?? 1400;
-    }
-  } catch (err) {
-    console.error("[enrich-cost-price] Failed to fetch exchange rate:", err);
-  }
-  return 1400;
-}
+import { getExchangeRateServer } from "@/lib/exchange-rate-server";
 
 /**
  * Enriched order item with both USD and ARS values for accounting
@@ -55,7 +36,8 @@ export async function enrichItemsWithCostPrice(
       .project({ costPrice: 1, profitMargin: 1 })
       .toArray();
 
-    const exchangeRate = await getExchangeRate();
+    const rateData = await getExchangeRateServer();
+    const exchangeRate = rateData?.venta ?? 1400;
 
     const productMap = new Map(
       products.map((p: any) => [
@@ -80,6 +62,9 @@ export async function enrichItemsWithCostPrice(
       if (costPriceUsd != null && costPriceUsd > 0 && unitPriceUsd > 0) {
         gainUsd = Math.round((unitPriceUsd - costPriceUsd) * 100) / 100;
         gainArs = Math.round((unitPriceArs - costPriceArs) * 100) / 100;
+        // Markup sobre costo (no margen sobre venta):
+        // markup% = (venta - costo) / costo * 100
+        // El profitMargin del producto es markup target, pero acá se muestra el realizado
         marginPct = Math.round(((unitPriceUsd - costPriceUsd) / costPriceUsd) * 10000) / 100;
       }
 

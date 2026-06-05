@@ -64,12 +64,15 @@ export function ArmaTuPcClient({ categories }: Props) {
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
 
   const handleScroll = useCallback(() => {
-    const offset = 140; // navbar + some breathing room
+    const offset = 10; // tolerancia mínima para el borde
     let current: string | null = null;
     for (const cat of categories) {
       const el = document.getElementById(sectionId(cat.slug));
       if (!el) continue;
       const rect = el.getBoundingClientRect();
+      // El padding del section (140px) cubre la barra sticky,
+      // el título queda justo debajo. Detectar activo cuando el
+      // section top está cerca o por arriba del viewport.
       if (rect.top - offset <= 0) {
         current = cat.slug;
       } else {
@@ -103,7 +106,9 @@ export function ArmaTuPcClient({ categories }: Props) {
   const scrollToSection = useCallback((slug: string) => {
     const el = document.getElementById(sectionId(slug));
     if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      // El padding del section (140px) ya cubre navbar + dropdown sticky
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top, behavior: "smooth" });
     }
   }, []);
 
@@ -159,11 +164,11 @@ export function ArmaTuPcClient({ categories }: Props) {
           {/* Desktop sidebar — sticky, visible al scrollear */}
           <aside className="hidden self-start lg:block lg:sticky lg:top-36 lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto">
                 {/* Stats — arriba del nav */}
-                <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
+                <div className="rounded-xl border border-gray-700 bg-gray-900 p-4">
                   <p className="text-xs text-gray-400">
                     {searchQuery.trim() ? "Resultados" : "Productos"}
                   </p>
-                  <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                  <p className="text-lg font-bold text-indigo-400">
                     {totalResults}
                   </p>
                   <p className="text-xs text-gray-400">
@@ -171,7 +176,7 @@ export function ArmaTuPcClient({ categories }: Props) {
                   </p>
                 </div>
 
-                <nav className="mt-4 rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                <nav className="mt-4 rounded-xl border border-gray-700 bg-gray-900 p-3">
                   <p className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
                     Componentes
                   </p>
@@ -185,8 +190,8 @@ export function ArmaTuPcClient({ categories }: Props) {
                           onClick={() => scrollToSection(cat.slug)}
                           className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors ${
                             isActive
-                              ? "bg-indigo-50 font-medium text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
-                              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+                              ? "bg-indigo-950 font-medium text-indigo-300"
+                              : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
                           }`}
                         >
                           <Icon className="h-4 w-4 shrink-0" />
@@ -204,13 +209,13 @@ export function ArmaTuPcClient({ categories }: Props) {
           {/* Main content */}
           <main className="min-w-0">
           {/* ── Mobile sticky dropdown ── */}
-          <div className="sticky top-[4.5rem] z-30 -mx-4 border-b border-gray-200 bg-white px-4 pb-3 pt-3 shadow-sm dark:border-gray-700 dark:bg-gray-900 lg:hidden mb-3">
+          <div className="sticky top-[4.5rem] z-30 -mx-4 border-b border-gray-700 bg-gray-900 px-4 pb-3 pt-3 shadow-sm lg:hidden mb-3">
             <select
               value={activeSlug ?? ""}
               onChange={(e) => {
                 if (e.target.value) scrollToSection(e.target.value);
               }}
-              className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+              className="w-full appearance-none rounded-lg border border-gray-600 bg-gray-800 px-3 py-2.5 text-sm font-medium text-gray-200"
               style={{
                 backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
                 backgroundPosition: "right 0.5rem center",
@@ -244,15 +249,15 @@ export function ArmaTuPcClient({ categories }: Props) {
 
           {/* ── Category sections ── */}
           <div className="space-y-10 sm:space-y-12">
-            {filtered.map((cat) => (
+            {filtered.map((cat, idx) => (
               <section
                 key={cat.slug}
                 id={sectionId(cat.slug)}
-                className="scroll-mt-28"
+                className={`scroll-mt-[140px] ${idx === 0 ? "pt-0" : "pt-[140px]"}`}
               >
                 <div className="mb-3 flex items-center justify-between sm:mb-4">
-                  <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900 sm:text-xl dark:text-gray-100">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 sm:h-8 sm:w-8 dark:bg-indigo-900 dark:text-indigo-300">
+                  <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-100 sm:text-xl">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-900/60 text-indigo-300 sm:h-8 sm:w-8">
                       {(() => {
                         const Icon = ICON_MAP[cat.slug] ?? Cpu;
                         return <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />;
@@ -265,7 +270,7 @@ export function ArmaTuPcClient({ categories }: Props) {
                   </h2>
                   <Link
                     href={categoryHref(cat.slug)}
-                    className="group flex shrink-0 items-center gap-1 text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                    className="group flex shrink-0 items-center gap-1 text-sm font-medium text-indigo-400 transition-colors hover:text-indigo-300"
                   >
                     Ver todos
                     <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

@@ -98,6 +98,15 @@ export function ScrollNavbar() {
                     <Search className="h-5 w-5" />
                   </button>
 
+                  {/* Armá tu PC — junto a la lupa */}
+                  <Link
+                    href="/arma-tu-pc"
+                    className="flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 py-1.5 text-sm font-semibold text-[var(--background)] transition-all hover:scale-[1.04] hover:shadow-lg hover:shadow-[var(--accent)]/30"
+                  >
+                    <Cpu className="h-4 w-4" />
+                    Armá tu PC
+                  </Link>
+
                   {/* Redes Sociales */}
                   <div className="flex items-center gap-1">
                     <a href="https://www.instagram.com/technostore.gr?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer" className="text-[var(--foreground-muted)] transition-colors hover:text-[#E4405F] p-2">
@@ -197,15 +206,6 @@ export function ScrollNavbar() {
                     </div>
                   ))}
                 </div>
-
-                {/* Armá tu PC — destacado */}
-                <Link
-                  href="/arma-tu-pc"
-                  className="flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 py-1.5 text-sm font-semibold text-[var(--background)] transition-all hover:scale-[1.04] hover:shadow-lg hover:shadow-[var(--accent)]/30"
-                >
-                  <Cpu className="h-4 w-4" />
-                  Armá tu PC
-                </Link>
               </nav>
 
               {/* Search Bar - desplegable */}

@@ -13,14 +13,14 @@ const SKELETON_CATEGORIES = [
 function SkeletonPulse({ className }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded bg-gray-200 dark:bg-gray-700 ${className ?? ""}`}
+      className={`animate-pulse rounded bg-gray-700 ${className ?? ""}`}
     />
   );
 }
 
 function CardSkeleton() {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+    <div className="rounded-xl border border-gray-700 bg-gray-900 p-3">
       {/* Imagen */}
       <SkeletonPulse className="mb-3 aspect-square w-full rounded-lg" />
       {/* Título */}
@@ -62,7 +62,7 @@ export default function ArmaTuPcLoading() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[14rem_1fr]">
           {/* Sidebar skeleton */}
           <aside className="hidden self-start lg:block lg:sticky lg:top-36">
-            <nav className="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+            <nav className="rounded-xl border border-gray-700 bg-gray-900 p-3">
               <div className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
                 Componentes
               </div>
@@ -72,8 +72,8 @@ export default function ArmaTuPcLoading() {
                     key={name}
                     className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm"
                   >
-                    <Icon className="h-4 w-4 shrink-0 text-gray-300 dark:text-gray-600" />
-                    <span className="truncate text-gray-400 dark:text-gray-500">
+                    <Icon className="h-4 w-4 shrink-0 text-gray-600" />
+                    <span className="truncate text-gray-500">
                       {name}
                     </span>
                     <SkeletonPulse className="ml-auto h-3 w-5" />
@@ -91,7 +91,7 @@ export default function ArmaTuPcLoading() {
                 {SKELETON_CATEGORIES.slice(0, 3).map(({ name }) => (
                   <div
                     key={name}
-                    className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs dark:border-gray-700 dark:bg-gray-900"
+                    className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs"
                   >
                     <SkeletonPulse className="h-3 w-3" />
                     <SkeletonPulse className="h-3 w-16" />

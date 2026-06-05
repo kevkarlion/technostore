@@ -537,60 +537,59 @@ const cartProduct = {
         </div>
       </Link>
         
-        {/* Quantity Controls + CTA - fuera del Link */}
-        <div className="px-4 pb-4">
-          <div className="mt-3 flex items-center gap-2">
-            {/* Quantity Controls */}
-            <div className="flex items-center rounded-xl border border-[var(--border-subtle)] bg-[var(--background)]">
+        {/* Quantity + CTA - fuera del Link */}
+        <div className="mt-2 space-y-2 px-4 pb-4">
+          {/* Quantity Controls */}
+          <div className="flex justify-center">
+            <div className="flex items-center rounded-lg border border-[var(--border-subtle)] bg-[var(--background)]">
               <button
                 onClick={() => handleQuantityChange(quantity - 1)}
                 disabled={quantity <= 1}
-                className="flex h-10 w-10 items-center justify-center text-[var(--foreground-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)] disabled:opacity-50"
+                className="flex h-9 w-9 items-center justify-center text-[var(--foreground-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)] disabled:opacity-50"
               >
-                <Minus className="h-4 w-4" />
+                <Minus className="h-3.5 w-3.5" />
               </button>
-              <span className="w-10 text-center text-sm font-semibold text-[var(--foreground)]">
+              <span className="w-9 text-center text-sm font-semibold text-[var(--foreground)]">
                 {quantity}
               </span>
               <button
                 onClick={() => handleQuantityChange(quantity + 1)}
                 disabled={quantity >= (product.stockQuantity || 99)}
-                className="flex h-10 w-10 items-center justify-center text-[var(--foreground-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)] disabled:opacity-50"
+                className="flex h-9 w-9 items-center justify-center text-[var(--foreground-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)] disabled:opacity-50"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3.5 w-3.5" />
               </button>
             </div>
-
-            {/* Add to Cart Button */}
-            <motion.div
-              whileTap={{ scale: 0.98 }}
-              whileHover={{ scale: 1.02 }}
-              onClick={handleAddToCart}
-              className={clsx(
-                "flex flex-1 h-11 cursor-pointer items-center justify-center gap-2 rounded-xl text-sm font-semibold uppercase tracking-wide transition-all",
-                isAdding 
-                  ? "bg-emerald-500 text-white" 
-                  : "bg-[var(--accent)] text-[var(--background)] hover:bg-[#00c9a7] hover:shadow-[0_0_20px_rgba(0,225,186,0.3)]"
-              )}
-            >
-              {isAdding ? (
-                <>
-                  <Check className="h-4 w-4" />
-                  <span>Agregado</span>
-                </>
-              ) : (
-                <>
-                  <ShoppingCart className="h-4 w-4" />
-                  <span>Agregar</span>
-                </>
-              )}
-            </motion.div>
           </div>
+
+          {/* Add to Cart Button — full width */}
+          <motion.div
+            whileTap={{ scale: 0.98 }}
+            onClick={handleAddToCart}
+            className={clsx(
+              "flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl text-sm font-semibold uppercase tracking-wide transition-all",
+              isAdding 
+                ? "bg-emerald-500 text-white" 
+                : "bg-[var(--accent)] text-[var(--background)] hover:bg-[#00c9a7] hover:shadow-[0_0_20px_rgba(0,225,186,0.3)]"
+            )}
+          >
+            {isAdding ? (
+              <>
+                <Check className="h-4 w-4" />
+                <span>Agregado</span>
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="h-4 w-4" />
+                <span>Agregar</span>
+              </>
+            )}
+          </motion.div>
 
           {/* Ver detalles */}
           <Link
             href={`/productos/${product.slug}`}
-            className="mt-2 flex h-9 w-full items-center justify-center rounded-xl border border-[var(--border-subtle)] text-xs font-medium text-[var(--foreground-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+            className="flex h-9 w-full items-center justify-center rounded-lg border border-[var(--border-subtle)] text-xs font-medium text-[var(--foreground-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
           >
             Ver detalles
           </Link>

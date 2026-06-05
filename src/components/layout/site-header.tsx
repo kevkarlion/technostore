@@ -209,6 +209,15 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
             <SearchBar className="w-full" />
           </div>
 
+          {/* Armá tu PC — junto a la búsqueda, desktop */}
+          <Link
+            href="/arma-tu-pc"
+            className="hidden lg:flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 py-1.5 text-sm font-semibold text-[var(--background)] shrink-0 transition-all hover:scale-[1.04] hover:shadow-lg hover:shadow-[var(--accent)]/30"
+          >
+            <Cpu className="h-4 w-4" />
+            Armá tu PC
+          </Link>
+
           {/* Cart + Favorites desktop */}
           <div className="ml-auto hidden lg:flex items-center gap-3 shrink-0">
             <FavoritesLink
@@ -306,15 +315,6 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
               </div>
             ))}
           </div>
-
-          {/* Armá tu PC — destacado */}
-          <Link
-            href="/arma-tu-pc"
-            className="flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 py-1.5 text-sm font-semibold text-[var(--background)] transition-all hover:scale-[1.04] hover:shadow-lg hover:shadow-[var(--accent)]/30"
-          >
-            <Cpu className="h-4 w-4" />
-            Armá tu PC
-          </Link>
         </nav>
 
         {/* Mobile Search Expanded */}

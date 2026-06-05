@@ -58,15 +58,6 @@ const defaultSlides: HeroSlide[] = [
     gradient: "from-blue-600/40 to-purple-600/40",
   },
   {
-    id: "2",
-    title: "Precisión Milimétrica",
-    subtitle: "Equipamiento que responde antes de pensar",
-    image: "/perifericos.png",
-    cta: { label: "Ver periféricos", href: "/categorias/perifericos" },
-    badge: "HOT",
-    gradient: "from-cyan-600/40 to-green-600/40",
-  },
-  {
     id: "3",
     title: "Cada Frame Cuenta",
     subtitle: "144Hz+ para respuesta instantánea",
@@ -300,7 +291,6 @@ export function HeroCarousel({
   }, []);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
     const target = e.target as HTMLElement;
     const touchStart = target.dataset.touchStart;
     if (!touchStart) return;
@@ -309,10 +299,14 @@ export function HeroCarousel({
     const distance = parseFloat(touchStart) - touchEnd.clientX;
     const minSwipeDistance = 50;
     
-    if (distance > minSwipeDistance) {
-      goToNext();
-    } else if (distance < -minSwipeDistance) {
-      goToPrevious();
+    // Solo prevenir default cuando hay swipe, no en taps (para que los links funcionen en iOS)
+    if (Math.abs(distance) > minSwipeDistance) {
+      e.preventDefault();
+      if (distance > minSwipeDistance) {
+        goToNext();
+      } else {
+        goToPrevious();
+      }
     }
     
     delete target.dataset.touchStart;

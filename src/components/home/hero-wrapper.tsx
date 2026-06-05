@@ -36,14 +36,6 @@ const heroSlides: HeroSlide[] = [
     badge: "TOP",
   },
   {
-    id: "2",
-    title: "Precisión Milimétrica",
-    subtitle: "Equipamiento que responde antes de pensar",
-    image: "/perifericos.png",
-    cta: { label: "Ver periféricos", href: "/categorias/perifericos" },
-    badge: "HOT",
-  },
-  {
     id: "3",
     title: "Cada Frame Cuenta",
     subtitle: "144Hz+ para respuesta instantánea",

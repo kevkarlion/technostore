@@ -254,19 +254,22 @@ function WishlistButton({ isFavorite, onToggle }: WishlistButtonProps) {
 interface ProductCardPriceProps {
   price: number;
   originalPrice?: number;
+  alreadyInArs?: boolean;
 }
 
-function ProductCardPrice({ price, originalPrice }: ProductCardPriceProps) {
+function ProductCardPrice({ price, originalPrice, alreadyInArs }: ProductCardPriceProps) {
   const [rate, setRate] = useState<number | null>(null);
 
   useEffect(() => {
+    if (alreadyInArs) return; // no necesita tasa, ya está en ARS
     getExchangeRate().then((data) => setRate(data?.venta ?? null));
-  }, []);
+  }, [alreadyInArs]);
 
-  // Convertir USD → ARS
-  const arsPrice = rate && rate > 0 ? usdToArs(price, rate) : price;
+  // Si ya está en ARS (priceARS del servidor), usarlo directo.
+  // Si no, convertir USD → ARS con la tasa client-side.
+  const arsPrice = alreadyInArs ? price : (rate && rate > 0 ? usdToArs(price, rate) : price);
   const arsOriginal =
-    originalPrice && rate && rate > 0
+    originalPrice && !alreadyInArs && rate && rate > 0
       ? usdToArs(originalPrice, rate)
       : originalPrice;
 
@@ -519,8 +522,9 @@ const cartProduct = {
           {/* Price */}
           <div className="mt-3">
             <ProductCardPrice
-              price={product.price}
+              price={product.priceARS ?? product.price}
               originalPrice={product.originalPrice}
+              alreadyInArs={!!product.priceARS}
             />
           </div>
           

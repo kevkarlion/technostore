@@ -101,14 +101,16 @@ export function toPresentationProduct(
   }
 
   // Compute ARS price if exchange rate is available
+  // Priority: dbProduct.price (stored selling price) > costPrice * (1 + profitMargin/100)
   let priceARS: number | undefined;
   if (exchangeRate && exchangeRate > 0) {
-    if (dbProduct.costPrice != null && dbProduct.profitMargin != null) {
-      priceARS = Math.round(
-        dbProduct.costPrice * (1 + dbProduct.profitMargin / 100) * exchangeRate * 100
-      ) / 100;
-    } else {
-      priceARS = Math.round(dbProduct.price * exchangeRate * 100) / 100;
+    let usdPrice = dbProduct.price;
+    if ((!usdPrice || usdPrice <= 0) && dbProduct.costPrice != null && dbProduct.profitMargin != null) {
+      // Fallback: calculate selling price from cost + margin when price is not set
+      usdPrice = dbProduct.costPrice * (1 + dbProduct.profitMargin / 100);
+    }
+    if (usdPrice && usdPrice > 0) {
+      priceARS = Math.round(usdPrice * exchangeRate * 100) / 100;
     }
   }
 

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { categoryRepository } from "@/api/repository/category.repository";
 import { productRepository } from "@/api/repository/product.repository";
 import { toPresentationProduct } from "@/domain/mappers/product-to-presentation";
-import { getExchangeRate } from "@/lib/exchange-rate";
+import { getExchangeRateServer } from "@/lib/exchange-rate-server";
 import type { CategorySlug } from "@/types/domain";
 import { PremiumProductCardV2 } from "@/components/product-card/premium-product-card-v2";
 import { CategoryProductsClient } from "./category-products-client";
@@ -105,7 +105,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const [priceRange, availableBrands, exchangeRateData] = await Promise.all([
     productRepository.getPriceRangeByCategory(category.slug),
     productRepository.getBrandsByCategory(category.slug),
-    getExchangeRate(),
+    getExchangeRateServer(),
   ]);
   
   const exchangeRate = exchangeRateData?.venta ?? null;

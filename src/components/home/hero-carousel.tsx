@@ -51,9 +51,9 @@ const defaultSlides: HeroSlide[] = [
   {
     id: "1",
     title: "Rendimiento Extremo",
-    subtitle: "PCs configuradas para dominar cualquier género",
-    image: "/pc-gamer.png",
-    cta: { label: "Ver PCs", href: "/categorias/computadoras" },
+    subtitle: "Componentes para armar tu PC",
+    image: "/componentes-gamer.png",
+    cta: { label: "Armá tu PC", href: "/arma-tu-pc" },
     badge: "TOP",
     gradient: "from-blue-600/40 to-purple-600/40",
   },

@@ -11,7 +11,7 @@ import { CartLink } from "@/components/ui/cart-link";
 import { FavoritesLink } from "@/components/ui/favorites-link";
 import { JOTAKP_CATEGORIES } from "@/components/ui/category-dropdown";
 import type { Category } from "@/domain/models/category";
-import { Menu, Search } from "lucide-react";
+import { Cpu, Menu, Search } from "lucide-react";
 
 interface SiteHeaderProps {
   categories?: Category[];
@@ -145,7 +145,7 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
 
   return (
     <header 
-      className="sticky top-0 z-[60] w-full border-b border-[var(--border-subtle)]/50 backdrop-blur-xl"
+      className="w-full border-b border-[var(--border-subtle)]/50"
       style={headerWithShadowStyles}
     >
       <div className="w-full px-4 sm:px-6 lg:px-8">
@@ -306,6 +306,15 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
               </div>
             ))}
           </div>
+
+          {/* Armá tu PC — destacado */}
+          <Link
+            href="/arma-tu-pc"
+            className="flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 py-1.5 text-sm font-semibold text-[var(--background)] transition-all hover:scale-[1.04] hover:shadow-lg hover:shadow-[var(--accent)]/30"
+          >
+            <Cpu className="h-4 w-4" />
+            Armá tu PC
+          </Link>
         </nav>
 
         {/* Mobile Search Expanded */}
@@ -370,6 +379,18 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
                 </Link>
                 <Link href="/carrito" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
                   Mi carrito
+                </Link>
+              </div>
+
+              {/* Armá tu PC — destacado mobile */}
+              <div className="px-4 py-3">
+                <Link
+                  href="/arma-tu-pc"
+                  onClick={handleNavigate}
+                  className="flex items-center justify-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-3 text-sm font-bold text-[var(--background)] shadow-lg shadow-[var(--accent)]/30"
+                >
+                  <Cpu className="h-4 w-4" />
+                  Armá tu PC
                 </Link>
               </div>
 

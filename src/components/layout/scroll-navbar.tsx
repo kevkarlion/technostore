@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -10,13 +10,13 @@ import { SearchBar } from "@/components/ui/search-bar";
 import { CartLink } from "@/components/ui/cart-link";
 import { FavoritesLink } from "@/components/ui/favorites-link";
 import { JOTAKP_CATEGORIES } from "@/components/ui/category-dropdown";
-import { Menu, Search } from "lucide-react";
+import { Cpu, Menu, Search } from "lucide-react";
 
 const SCROLL_THRESHOLD = 80;
 
 export function ScrollNavbar() {
   const [isVisible, setIsVisible] = useState(false);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const lastScrollYRef = useRef(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -26,19 +26,19 @@ export function ScrollNavbar() {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       
-      if (currentScrollY > SCROLL_THRESHOLD && currentScrollY > lastScrollY) {
+      if (currentScrollY > SCROLL_THRESHOLD && currentScrollY > lastScrollYRef.current) {
         setIsVisible(true);
       } 
-      else if (currentScrollY < SCROLL_THRESHOLD || currentScrollY < lastScrollY) {
+      else if (currentScrollY < SCROLL_THRESHOLD || currentScrollY < lastScrollYRef.current) {
         setIsVisible(false);
       }
       
-      setLastScrollY(currentScrollY);
+      lastScrollYRef.current = currentScrollY;
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
+  }, []);
 
   const handleNavigate = () => {
     setIsMobileMenuOpen(false);
@@ -197,6 +197,15 @@ export function ScrollNavbar() {
                     </div>
                   ))}
                 </div>
+
+                {/* Armá tu PC — destacado */}
+                <Link
+                  href="/arma-tu-pc"
+                  className="flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 py-1.5 text-sm font-semibold text-[var(--background)] transition-all hover:scale-[1.04] hover:shadow-lg hover:shadow-[var(--accent)]/30"
+                >
+                  <Cpu className="h-4 w-4" />
+                  Armá tu PC
+                </Link>
               </nav>
 
               {/* Search Bar - desplegable */}
@@ -257,6 +266,18 @@ export function ScrollNavbar() {
                 </Link>
                 <Link href="/carrito" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
                   Mi carrito
+                </Link>
+              </div>
+
+              {/* Armá tu PC — destacado mobile */}
+              <div className="px-4 py-3">
+                <Link
+                  href="/arma-tu-pc"
+                  onClick={handleNavigate}
+                  className="flex items-center justify-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-3 text-sm font-bold text-[var(--background)] shadow-lg shadow-[var(--accent)]/30"
+                >
+                  <Cpu className="h-4 w-4" />
+                  Armá tu PC
                 </Link>
               </div>
 

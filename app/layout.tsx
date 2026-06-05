@@ -17,11 +17,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "TechnoStore – Premium Electronics & Computers",
+    default: "TechnoStore – Electrónica y PCs de alta gama",
     template: "%s | TechnoStore",
   },
   description:
-    "A modern, high-performance electronics store for laptops, components and peripherals.",
+    "Descubrí laptops, componentes y periféricos seleccionados para creadores y gamers.",
   metadataBase: new URL("https://example.com"),
   keywords: [
     "electronics store",
@@ -29,6 +29,17 @@ export const metadata: Metadata = {
     "computer components",
     "mechanical keyboards",
   ],
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  manifest: "/site.webmanifest",
   openGraph: {
     title: "TechnoStore – Premium Electronics & Computers",
     description:

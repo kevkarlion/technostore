@@ -36,7 +36,6 @@
     color: var(--foreground);
     font-family: var(--font-exo2), system-ui, -apple-system, BlinkMacSystemFont,
       "SF Pro Text", sans-serif;
-    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -48,7 +47,6 @@
   min-height: 100vh;
   background-color: var(--background);
   color: var(--foreground);
-  overflow-x: hidden;
 }
 
 html {

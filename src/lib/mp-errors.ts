@@ -21,12 +21,35 @@ const ERROR_MAP: [RegExp, string][] = [
    "La fecha de vencimiento de la tarjeta no es válida."],
   [/card declined|payment rejected|rejected.*payment/i,
    "La tarjeta fue rechazada. Probá con otra tarjeta o medio de pago."],
-  [/insufficient.*funds|without.*funds/i,
+  [/insufficient.*funds|without.*funds|insufficient.*amount|sin fondos|saldo insuficiente/i,
    "La tarjeta no tiene fondos suficientes. Probá con otra tarjeta."],
+
+  // ── MP rejection codes (status_detail) ──────────────────────────────────
+  [/cc_rejected_insufficient_amount/i,
+   "La tarjeta no tiene fondos suficientes. Probá con otra tarjeta."],
+  [/cc_rejected_bad_filled_card_number/i,
+   "El número de tarjeta ingresado no es válido. Revisalo e intentá de nuevo."],
+  [/cc_rejected_bad_filled_date/i,
+   "La fecha de vencimiento de la tarjeta no es válida."],
+  [/cc_rejected_bad_filled_security_code/i,
+   "El código de seguridad ingresado no es válido."],
+  [/cc_rejected_card_disabled|cc_rejected_blacklist/i,
+   "La tarjeta no está habilitada para pagos online. Comunicate con tu banco."],
+  [/cc_rejected_duplicate_payment/i,
+   "Ya existe un pago en proceso con estos datos. Esperá unos minutos."],
+  [/cc_rejected_high_risk/i,
+   "El pago fue rechazado por medidas de seguridad. Probá con otra tarjeta."],
+  [/cc_rejected_max_attempts/i,
+   "Alcanzaste el límite de intentos. Esperá unos minutos y volvé a intentar."],
+  [/cc_rejected_other_reason/i,
+   "La tarjeta fue rechazada. Probá con otra tarjeta o medio de pago."],
+
   [/card.*not.*support|not.*support.*card/i,
    "Esta tarjeta no está habilitada. Probá con otro medio de pago."],
   [/invalid.*cardholder|cardholder.*invalid|cardholder name/i,
    "El nombre del titular de la tarjeta no es válido."],
+  [/card.*expired|expired.*card|expir.*tarjet/i,
+   "La tarjeta está vencida. Usá otra tarjeta."],
 
   // ── Payment method ────────────────────────────────────────────────────────
   [/payment method not supported|payment_method.*invalid/i,
@@ -47,19 +70,19 @@ const ERROR_MAP: [RegExp, string][] = [
    "Hay datos inválidos en la solicitud. Revisá los campos e intentá de nuevo."],
   [/not found|resource.*not found/i,
    "No se encontró el recurso solicitado. Intentá de nuevo."],
-  [/unauthorized|forbidden/i,
+  [/unauthorized|forbidden|invalid_token/i,
    "No autorizado. Si el problema persiste, contactanos."],
   [/conflict|already exists/i,
    "Ya existe una solicitud en proceso. Esperá unos minutos."],
 
-  // ── Generic fallback ──────────────────────────────────────────────────────
+  // ── Generic fallback (DEBE SER EL ÚLTIMO — atrapa cualquier "error" en inglés) ──
   [/error/i,
    "Ocurrió un error al procesar el pago. Intentá de nuevo."],
 ];
 
 /**
  * Translate an MP error message to Spanish.
- * Returns the original message if no match is found, with a fallback prefix.
+ * Siempre devuelve español — si no hay match, usa el fallback genérico.
  */
 export function translateMpError(message: string): string {
   if (!message) return "Ocurrió un error al procesar el pago.";
@@ -70,8 +93,8 @@ export function translateMpError(message: string): string {
     }
   }
 
-  // Preserve the original but add a generic prefix so it never feels like a raw error
-  return message;
+  // Nunca devolver inglés crudo. Si llegamos acá, es porque algo no está cubierto.
+  return "Ocurrió un error al procesar el pago. Intentá de nuevo.";
 }
 
 /**

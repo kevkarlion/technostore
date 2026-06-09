@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createPreference } from "@/lib/mercadopago/client";
 import type { MercadopagoPreferenceItem, MercadopagoPayer } from "@/types/mercadopago";
+import { translateMpError } from "@/lib/mp-errors";
 
 // ─── Request / Response types ─────────────────────────────────────────────
 
@@ -116,7 +117,7 @@ export async function POST(req: NextRequest) {
         );
       }
       return NextResponse.json<ErrorResponse>(
-        { message: typedError.message },
+        { message: translateMpError(typedError.message) },
         { status: typedError.status }
       );
     }

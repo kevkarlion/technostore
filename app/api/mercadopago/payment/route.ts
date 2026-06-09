@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { translateMpError } from "@/lib/mp-errors";
 
 interface PaymentRequest {
   token: string;
@@ -91,10 +92,11 @@ export async function POST(req: NextRequest) {
     console.log("[MP Payment] Response:", JSON.stringify(paymentResult, null, 2));
 
     if (response.status !== 201 && response.status !== 200) {
-      const errorMessage =
+      const rawError =
         (paymentResult as any).message ||
         (paymentResult as any).error ||
         "Error al procesar el pago";
+      const errorMessage = translateMpError(rawError);
       return NextResponse.json<ErrorResponse>(
         { message: errorMessage, details: paymentResult },
         { status: response.status }

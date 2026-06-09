@@ -24,23 +24,96 @@ interface MercadoPagoFormProps {
   onError: (error: string) => void;
 }
 
-// Card brand logos — ultra-simple, guaranteed to render
-const CardBrands = {
+// ─── Card Brand SVGs ─────────────────────────────────────────────────────────
+// SVGs inline con forma de tarjeta, colores oficiales de cada red
+
+const brandColors = {
+  visa:        { bg: "#1A1F71", fg: "#F7B600" },
+  mastercard:  { bg: "#FFFFFF", fg: "#000000" },
+  amex:        { bg: "#016FD0", fg: "#FFFFFF" },
+  naranja:     { bg: "#FF6B00", fg: "#FFFFFF" },
+  cabal:       { bg: "#006847", fg: "#FFFFFF" },
+  maestro:     { bg: "#FFFFFF", fg: "#0066CB" },
+  diners:      { bg: "#004EA2", fg: "#FFFFFF" },
+  discover:    { bg: "#F48024", fg: "#FFFFFF" },
+};
+
+type BrandKey = keyof typeof brandColors;
+
+const CardBrands: Record<BrandKey, () => React.ReactNode> = {
   visa: () => (
-    <div className="flex items-center justify-center h-6 w-9 rounded bg-[#1A1F71] text-[10px] font-bold text-[#F7B600] leading-none px-1">
-      VISA
-    </div>
+    <svg viewBox="0 0 36 24" className="h-6 w-9 rounded" role="img" aria-label="Visa">
+      <rect width="36" height="24" rx="3" fill="#1A1F71" />
+      <text x="18" y="17" textAnchor="middle" fill="#F7B600"
+            fontFamily="Arial, sans-serif" fontWeight="800" fontSize="11">VISA</text>
+    </svg>
   ),
+
   mastercard: () => (
-    <div className="flex items-center justify-center h-6 w-9 rounded bg-white relative">
-      <span className="absolute left-[6px] top-1/2 -translate-y-1/2 w-[14px] h-[14px] rounded-full bg-[#EB001B]" />
-      <span className="absolute left-[10px] top-1/2 -translate-y-1/2 w-[14px] h-[14px] rounded-full bg-[#FF5F00]" />
-    </div>
+    <svg viewBox="0 0 36 24" className="h-6 w-9" role="img" aria-label="Mastercard">
+      <rect width="36" height="24" rx="3" fill="#FFFFFF" />
+      <circle cx="13" cy="12" r="7.5" fill="#EB001B" />
+      <circle cx="23" cy="12" r="7.5" fill="#F79E1B" opacity="0.9" />
+    </svg>
   ),
+
   amex: () => (
-    <div className="flex items-center justify-center h-6 w-9 rounded bg-[#016FD0] text-[8px] font-bold text-white leading-none px-1">
-      AMEX
-    </div>
+    <svg viewBox="0 0 36 24" className="h-6 w-9" role="img" aria-label="American Express">
+      <rect width="36" height="24" rx="3" fill="#016FD0" />
+      <text x="18" y="16" textAnchor="middle" fill="#FFFFFF"
+            fontFamily="Arial, sans-serif" fontWeight="700" fontSize="7.5"
+            letterSpacing="0.3">AMEX</text>
+    </svg>
+  ),
+
+  naranja: () => (
+    <svg viewBox="0 0 36 24" className="h-6 w-9" role="img" aria-label="Naranja">
+      <rect width="36" height="24" rx="3" fill="#FF6B00" />
+      <circle cx="18" cy="12" r="6.5" fill="#FFFFFF" />
+      <text x="18" y="16" textAnchor="middle" fill="#FF6B00"
+            fontFamily="Arial, sans-serif" fontWeight="800" fontSize="11">N</text>
+    </svg>
+  ),
+
+  cabal: () => (
+    <svg viewBox="0 0 36 24" className="h-6 w-9" role="img" aria-label="Cabal">
+      <rect width="36" height="24" rx="3" fill="#006847" />
+      <text x="18" y="17" textAnchor="middle" fill="#FFFFFF"
+            fontFamily="Arial, sans-serif" fontWeight="700" fontSize="7.5"
+            letterSpacing="0.8">CABAL</text>
+    </svg>
+  ),
+
+  maestro: () => (
+    <svg viewBox="0 0 36 24" className="h-6 w-9" role="img" aria-label="Maestro">
+      <rect width="36" height="24" rx="3" fill="#FFFFFF" />
+      <circle cx="13" cy="12" r="7.5" fill="#0066CB" />
+      <circle cx="23" cy="12" r="7.5" fill="#CC0000" opacity="0.75" />
+    </svg>
+  ),
+
+  diners: () => (
+    <svg viewBox="0 0 36 24" className="h-6 w-9" role="img" aria-label="Diners Club">
+      <rect width="36" height="24" rx="3" fill="#004EA2" />
+      <text x="18" y="16" textAnchor="middle" fill="#FFFFFF"
+            fontFamily="Arial, sans-serif" fontWeight="700" fontSize="6"
+            letterSpacing="0.5">DINERS</text>
+    </svg>
+  ),
+
+  discover: () => (
+    <svg viewBox="0 0 36 24" className="h-6 w-9" role="img" aria-label="Discover">
+      <defs>
+        <linearGradient id="ds-grad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#F48024" />
+          <stop offset="100%" stopColor="#E66316" />
+        </linearGradient>
+      </defs>
+      <rect width="36" height="24" rx="3" fill="url(#ds-grad)" />
+      <text x="18" y="17" textAnchor="middle" fill="#FFFFFF"
+            fontFamily="Arial, sans-serif" fontWeight="700" fontSize="6"
+            letterSpacing="0.3">DISCOVER</text>
+    </svg>
   ),
 };
 
@@ -232,15 +305,30 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
     return v;
   };
 
-  // Determine card brand from number
-  const getCardBrand = () => {
+  // Determine card brand from number — usa el resultado del SDK de MP (BIN real)
+  // cuando está disponible, y cae a detección básica por dígito inicial si no.
+  const cardBrand: BrandKey | null = (() => {
+    // 1. Si MP ya identificó la tarjeta via BIN, usar eso (más preciso)
+    if (selectedPaymentMethodId in brandColors) return selectedPaymentMethodId as BrandKey;
+
+    // 2. Fallback: detección por primer dígito / BIN básico mientras el SDK responde
     const num = cardNumber.replace(/\s/g, "");
-    if (num.startsWith("4")) return "visa";
-    if (num.startsWith("5")) return "mastercard";
-    if (num.startsWith("3")) return "amex";
+    if (!num) return null;
+
+    const bin = num.slice(0, 6);
+
+    // BIN ranges locales + internacionales
+    if (/^4[0-9]{5}/.test(bin) && !/^401425|^434886/.test(bin)) return "visa";
+    if (/^5[1-5]/.test(num) || /^222[1-9]|^22[3-9]|^2[3-6]|^27[01]|^2720/.test(bin)) return "mastercard";
+    if (/^3[47]/.test(num)) return "amex";
+    if (/^401425|^434886|^539461|^542486|^549[0-9]{3}|^589[0-9]{3}/.test(bin)) return "naranja";
+    if (/^589657|^603488|^60420[12]|^6054[0-9]{2}/.test(bin)) return "cabal";
+    if (/^5018|^5020|^5038|^5893|^6304|^6759|^676[1-3]/.test(bin)) return "maestro";
+    if (/^3(?:0[0-5]|[68]|9)/.test(num)) return "diners";
+    if (/^6011|^65|^64[4-9]|^6221[2-9]|^622[2-8]|^6229[0-2]/.test(bin)) return "discover";
+
     return null;
-  };
-  const cardBrand = getCardBrand();
+  })();
 
   if (!isReady) {
     return (
@@ -300,9 +388,9 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
                 className="w-full px-4 py-3 pr-14 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-base placeholder:text-slate-500 focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors"
               />
               {/* Card brand icon */}
-              {cardBrand && CardBrands[cardBrand as keyof typeof CardBrands] && (
+              {cardBrand && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
-                  {CardBrands[cardBrand as keyof typeof CardBrands]()}
+                  {CardBrands[cardBrand]()}
                 </div>
               )}
             </div>

@@ -60,7 +60,7 @@ export function buyerConfirmationHtml(order: Order, storeName: string): string {
             <td style="background:linear-gradient(135deg,#2563eb,#7c3aed);padding:32px 40px;text-align:center;">
               <h1 style="margin:0;font-size:24px;color:#ffffff;font-weight:700;">¡Gracias por tu compra!</h1>
               <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:15px;">
-                Tu pedido fue confirmado exitosamente
+                Tu pedido fue confirmado exitosamente, lo estamos preparando para vos
               </p>
             </td>
           </tr>

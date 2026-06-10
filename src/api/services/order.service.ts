@@ -98,12 +98,22 @@ export const orderService = {
       notifyOrderConfirmed(order);
     }
 
-    // ── Additional emails when admin captures the payment ────────────────
-    // Both conditions met: webhook confirmed (status was "reserved")
-    // AND admin captured (status becomes "captured")
+    // ── Send confirmation emails when admin captures the payment ────────
+    // Webhook reserved the funds (status was "reserved"), admin captured them
+    // This is the real confirmation point for manual-capture payments
     if (currentOrder.status === "reserved" && status === "captured") {
-      // Optional: send another email or update notification
-      console.log(`[OrderService] Order ${order.orderId} captured by admin`);
+      // Send buyer confirmation + admin notification (non-blocking)
+      Promise.all([
+        sendBuyerConfirmation(order),
+        sendAdminNotification(order),
+      ]).then(([buyerSent, adminSent]) => {
+        console.log(
+          `[OrderService] Capture emails for ${order.orderId}: buyer=${buyerSent}, admin=${adminSent}`
+        );
+      });
+
+      // Create admin panel notification
+      notifyOrderConfirmed(order);
     }
 
     return order;

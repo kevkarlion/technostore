@@ -30,6 +30,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   return (
     <SearchClient
+      key={`${query || ""}-${result.page}`}
       initialProducts={initialProducts}
       initialQuery={query || ""}
       initialTotal={result.total}

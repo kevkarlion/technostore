@@ -52,11 +52,28 @@ export default function CheckoutPage() {
   const [showCardForm, setShowCardForm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const cardFormRef = useRef<HTMLDivElement>(null);
+  const panel1Ref = useRef<HTMLDivElement>(null);
+  const panel2Ref = useRef<HTMLDivElement>(null);
+  const [slideHeight, setSlideHeight] = useState<string>("auto");
+
+  // Adapt slide container height to the visible panel
+  useEffect(() => {
+    const el = showCardForm ? panel2Ref.current : panel1Ref.current;
+    if (!el) return;
+    setSlideHeight(`${el.scrollHeight}px`);
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setSlideHeight(`${entry.contentRect.height}px`);
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [showCardForm, products]);
 
   // Scroll to card form when it appears
   useEffect(() => {
     if (showCardForm) {
-      // Use rAF to ensure DOM is painted before scrolling
       requestAnimationFrame(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
@@ -409,47 +426,79 @@ export default function CheckoutPage() {
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr),minmax(0,2fr)]">
-        {showCardForm ? (
-          <div className="space-y-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowCardForm(false)}
+        {/* Slide container: form ←→ card payment */}
+        <div
+          className="overflow-hidden rounded-2xl transition-[height] duration-300 ease-in-out"
+          style={{ height: slideHeight }}
+        >
+          <div
+            className="flex items-start transition-transform duration-300 ease-in-out"
+            style={{ transform: showCardForm ? "translateX(-100%)" : "translateX(0%)" }}
+          >
+            {/* Panel 1: Checkout form */}
+            <div
+              ref={panel1Ref}
+              className="min-w-0 w-full shrink-0"
+              aria-hidden={showCardForm}
+              tabIndex={showCardForm ? -1 : undefined}
             >
-              ← Volver
-            </Button>
-            
-            <div ref={cardFormRef} className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4">
-              <h2 className="text-sm font-semibold text-slate-50 mb-4">
-                Datos de tu tarjeta
-              </h2>
-              {isProcessing ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
-                  <span className="ml-3 text-slate-300">Procesando pago...</span>
-                </div>
-              ) : (
-                <MercadoPagoForm
-                  onPaymentSubmit={handlePaymentSubmit}
-                  customerEmail={customerData?.email || "test@testuser.com"}
-                  totalAmount={total}
-                  onError={handleCardError}
-                />
-              )}
+              <CheckoutForm
+                items={items}
+                products={products}
+                total={total}
+                onSubmit={(data) => onSubmit(data as any)}
+                isLoading={isProcessing}
+              />
+            </div>
+
+            {/* Panel 2: Card payment */}
+            <div
+              ref={panel2Ref}
+              className="w-full shrink-0 self-start"
+              aria-hidden={!showCardForm}
+              tabIndex={!showCardForm ? -1 : undefined}
+            >
+              <div className="mb-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowCardForm(false)}
+                >
+                  ← Volver
+                </Button>
+              </div>
+
+              <div ref={cardFormRef} className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4">
+                <h2 className="text-sm font-semibold text-slate-50 mb-4">
+                  Datos de tu tarjeta
+                </h2>
+                {isProcessing ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+                    <span className="ml-3 text-slate-300">Procesando pago...</span>
+                  </div>
+                ) : (
+                  <MercadoPagoForm
+                    onPaymentSubmit={handlePaymentSubmit}
+                    customerEmail={customerData?.email || "test@testuser.com"}
+                    totalAmount={total}
+                    onError={handleCardError}
+                  />
+                )}
+              </div>
             </div>
           </div>
-        ) : (
-          <div className="min-w-0">
-          <CheckoutForm
-            items={items}
-            products={products}
-            total={total}
-            onSubmit={(data) => onSubmit(data as any)}
-            isLoading={isProcessing}
-          />
-          <OrderSummary items={items} products={products} total={total} />
-          </div>
-        )}
+        </div>
+
+        {/* Mobile order summary — always visible below the slide */}
+        <OrderSummary
+          items={items}
+          products={products}
+          subtotal={subtotal}
+          shipping={shipping}
+          taxes={taxes}
+          total={total}
+        />
 
         {/* Right sidebar - Order Summary (desktop) */}
         <aside className="hidden lg:block space-y-4">

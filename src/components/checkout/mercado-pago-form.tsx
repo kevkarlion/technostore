@@ -339,17 +339,17 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Header - MP Style */}
-      <div className="bg-gradient-to-r from-[#009EE3] to-[#00B3F0] rounded-xl p-4 text-white">
-        <div className="flex items-center gap-2 mb-1">
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+      <div className="bg-gradient-to-r from-[#009EE3] to-[#00B3F0] rounded-xl p-3.5 text-white">
+        <div className="flex items-center gap-2 mb-0.5">
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
           </svg>
-          <span className="font-semibold text-lg">Pagar</span>
+          <span className="font-semibold text-base">Pagar</span>
         </div>
-        <div className="text-white/80 text-sm">Total a pagar</div>
-        <div className="text-2xl font-bold"><Price amount={totalAmount} currency="ARS" /></div>
+        <div className="text-white/80 text-xs">Total a pagar</div>
+        <div className="text-xl font-bold"><Price amount={totalAmount} currency="ARS" /></div>
       </div>
 
       {/* Payment Method Selection - MP Tabs */}
@@ -358,7 +358,7 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
           <button
             type="button"
             onClick={() => setPaymentMethodType("card")}
-            className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
+            className={`flex-1 py-2.5 text-xs font-medium border-b-2 transition-colors ${
               paymentMethodType === "card"
                 ? "border-[#009EE3] text-[#009EE3]"
                 : "border-transparent text-slate-400 hover:text-slate-200"
@@ -371,7 +371,7 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
 
       {/* Card Form - MP Style */}
       {paymentMethodType === "card" && (
-        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
+        <form onSubmit={handleSubmit} className="space-y-3" autoComplete="on">
           {/* Card Number - MP Style with icon */}
           <div className="relative">
             <label className="block text-xs font-medium text-slate-400 mb-1">
@@ -385,7 +385,7 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
                 placeholder="1234 5678 9012 3456"
                 maxLength={19}
                 autoComplete="cc-number"
-                className="w-full px-4 py-3 pr-14 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-base placeholder:text-slate-500 focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors"
+                className="w-full px-3.5 py-2.5 pr-14 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-sm placeholder:text-slate-500 focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors"
               />
               {/* Card brand icon */}
               {cardBrand && (
@@ -406,7 +406,7 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
               type="text"
               placeholder="Como aparece en la tarjeta"
               autoComplete="cc-name"
-              className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-base placeholder:text-slate-500 focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors uppercase"
+              className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-sm placeholder:text-slate-500 focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors uppercase"
             />
           </div>
 
@@ -423,7 +423,7 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
                 placeholder="MM/AA"
                 maxLength={5}
                 autoComplete="cc-exp"
-                className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-base placeholder:text-slate-500 focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors"
+                className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-sm placeholder:text-slate-500 focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors"
               />
             </div>
             <div>
@@ -438,7 +438,7 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
                   placeholder="123"
                   maxLength={4}
                   autoComplete="cc-csc"
-                  className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-base placeholder:text-slate-500 focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors"
+                  className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-sm placeholder:text-slate-500 focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors"
                 />
                 {/* CVV hint icon */}
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">
@@ -468,7 +468,7 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
               <select
                 value={selectedInstallments}
                 onChange={(e) => setSelectedInstallments(Number(e.target.value))}
-                className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-base focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors"
+                className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors"
               >
                 {installmentsList.length > 0 ? (
                   installmentsList.map((inst) => (
@@ -505,7 +505,7 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
               </label>
               <select
                 ref={docTypeRef}
-                className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-base focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors"
+                className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors"
               >
                 {identificationTypes.length > 0 ? (
                   identificationTypes.map((type) => (
@@ -529,14 +529,14 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
                 ref={docNumberRef}
                 type="text"
                 placeholder="12345678"
-                className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-base placeholder:text-slate-500 focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors"
+                className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-sm placeholder:text-slate-500 focus:outline-none focus:border-[#009EE3] focus:ring-1 focus:ring-[#009EE3] transition-colors"
               />
             </div>
           </div>
 
           {/* Error message */}
           {cardError && (
-            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400">
+            <div className="p-2.5 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-400">
               {cardError}
             </div>
           )}
@@ -544,7 +544,7 @@ export function MercadoPagoForm({ onPaymentSubmit, customerEmail, totalAmount, o
           {/* Submit Button - MP Blue */}
           <button
             type="submit"
-            className="w-full bg-[#009EE3] hover:bg-[#00B3F0] text-white font-semibold py-4 rounded-xl transition-colors shadow-lg shadow-[#009EE3]/20"
+            className="w-full bg-[#009EE3] hover:bg-[#00B3F0] text-white font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-[#009EE3]/20"
           >
             Pagar
           </button>

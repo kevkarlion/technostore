@@ -76,7 +76,7 @@ function FormField({
     <div className="group">
       <label
         htmlFor={inputId}
-        className="block text-sm font-medium text-slate-300 mb-1.5"
+        className="block text-xs font-medium text-slate-300 mb-1"
       >
         {label}
         {optional && (
@@ -91,7 +91,7 @@ function FormField({
           autoComplete={autoComplete}
           placeholder={placeholder}
           className={`
-            w-full px-4 py-3 bg-slate-900/60 rounded-xl border text-base text-slate-100
+            w-full px-3.5 py-2.5 bg-slate-900/60 rounded-xl border text-sm text-slate-100
             placeholder:text-slate-500 transition-all duration-200 resize-none
             focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30 focus:border-[var(--accent)]
             ${error
@@ -108,7 +108,7 @@ function FormField({
           autoComplete={autoComplete}
           placeholder={placeholder}
           className={`
-            w-full px-4 py-3 bg-slate-900/60 rounded-xl border text-base text-slate-100
+            w-full px-3.5 py-2.5 bg-slate-900/60 rounded-xl border text-sm text-slate-100
             placeholder:text-slate-500 transition-all duration-200
             focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30 focus:border-[var(--accent)]
             ${error
@@ -151,7 +151,7 @@ function SelectField({
     <div className="group">
       <label
         htmlFor={inputId}
-        className="block text-sm font-medium text-slate-300 mb-1.5"
+        className="block text-xs font-medium text-slate-300 mb-1"
       >
         {label}
       </label>
@@ -159,7 +159,7 @@ function SelectField({
         <select
           id={inputId}
           className={`
-            w-full px-4 py-3 bg-slate-900/60 rounded-xl border text-base text-slate-100
+            w-full px-3.5 py-2.5 bg-slate-900/60 rounded-xl border text-sm text-slate-100
             transition-all duration-200 appearance-none cursor-pointer
             focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30 focus:border-[var(--accent)]
             ${error
@@ -232,11 +232,11 @@ function CheckboxField({
         </svg>
       </div>
       <div>
-        <span className="text-sm text-slate-200 group-hover:text-slate-100 transition-colors">
+        <span className="text-xs text-slate-200 group-hover:text-slate-100 transition-colors">
           {label}
         </span>
         {description && (
-          <p className="text-xs text-slate-500 mt-0.5">{description}</p>
+          <p className="text-[11px] text-slate-500 mt-0.5">{description}</p>
         )}
       </div>
     </label>
@@ -255,14 +255,14 @@ function SectionHeader({
   description?: string;
 }) {
   return (
-    <div className="flex items-start gap-4 mb-5">
-      <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--accent)]/10 text-[var(--accent)] text-sm font-bold shrink-0">
+    <div className="flex items-start gap-3 mb-4">
+      <span className="flex items-center justify-center w-7 h-7 rounded-full bg-[var(--accent)]/10 text-[var(--accent)] text-xs font-bold shrink-0">
         {number}
       </span>
       <div>
-        <h2 className="text-lg font-semibold text-slate-50">{title}</h2>
+        <h2 className="text-base font-semibold text-slate-50">{title}</h2>
         {description && (
-          <p className="text-sm text-slate-400 mt-0.5">{description}</p>
+          <p className="text-xs text-slate-400 mt-0.5">{description}</p>
         )}
       </div>
     </div>
@@ -285,14 +285,14 @@ function ToggleField({
   return (
     <label
       htmlFor={inputId}
-      className="flex items-center justify-between p-4 rounded-xl border border-slate-700/60 bg-slate-900/40 cursor-pointer group hover:border-slate-500/60 transition-all duration-200"
+      className="flex items-center justify-between p-3 rounded-xl border border-slate-700/60 bg-slate-900/40 cursor-pointer group hover:border-slate-500/60 transition-all duration-200"
     >
       <div>
-        <span className="text-sm font-medium text-slate-200 group-hover:text-slate-100 transition-colors">
+        <span className="text-xs font-medium text-slate-200 group-hover:text-slate-100 transition-colors">
           {label}
         </span>
         {description && (
-          <p className="text-xs text-slate-500 mt-0.5">{description}</p>
+          <p className="text-[11px] text-slate-500 mt-0.5">{description}</p>
         )}
       </div>
       <div className="relative">
@@ -309,58 +309,83 @@ function ToggleField({
   );
 }
 
-// ─── Order Summary (Mobile) ───────────────────────────────────────────────────
+// ─── Order Summary (Mobile, desktop-style) ────────────────────────────────────
 
 export function OrderSummary({
   items,
   products,
+  subtotal,
+  shipping,
+  taxes,
   total,
 }: {
   items: any[];
   products: any;
+  subtotal: number;
+  shipping: number;
+  taxes: number;
   total: number;
 }) {
-  const [expanded, setExpanded] = useState(false);
-
   return (
-    <div className="lg:hidden max-w-full">
-      <button
-        type="button"
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between p-4 bg-slate-900/60 rounded-xl border border-slate-700/60 hover:border-slate-500/60 transition-all"
-      >
-        <div className="flex items-center gap-2">
-          <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-          </svg>
-          <span className="text-sm text-slate-300">
-            {items.length} {items.length === 1 ? "producto" : "productos"}
-          </span>
-          <span className="text-sm font-semibold text-white ml-2">
-              <Price amount={total} currency="ARS" />
-          </span>
-        </div>
-        <svg
-          className={`w-5 h-5 text-slate-400 transition-transform ${expanded ? "rotate-180" : ""}`}
-          fill="none" viewBox="0 0 24 24" stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+    <div className="lg:hidden rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4">
+      <h2 className="mb-3 text-sm font-semibold text-slate-50">Tu pedido</h2>
 
-      {expanded && (
-        <div className="mt-2 p-4 bg-slate-900/30 rounded-xl space-y-2 animate-fadeIn border border-slate-700/40 max-h-64 overflow-y-auto">
-          {items.map((item: any) => {
-            const product = products[item.productId];
-            return product ? (
-              <div key={item.productId} className="flex gap-2 text-sm">
-                <span className="text-slate-400 break-words min-w-0">{cleanProductName(product.name)} x{item.quantity}</span>
-                <span className="text-slate-200 shrink-0 whitespace-nowrap"><Price amount={product.price * item.quantity} currency="ARS" /></span>
+      <div className="space-y-3 text-xs text-slate-300">
+        {items.map((item: any) => {
+          const product = products[item.productId];
+          return product ? (
+            <div key={item.productId} className="flex items-center gap-3">
+              {/* Thumbnail */}
+              <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-slate-800">
+                {product.imageUrls?.[0] ? (
+                  <img
+                    src={String(product.imageUrls[0])}
+                    alt={product.name ? cleanProductName(product.name) : ""}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-slate-500 text-xs">
+                    📦
+                  </div>
+                )}
               </div>
-            ) : null;
-          })}
+              {/* Name & Price */}
+              <div className="flex-1 min-w-0">
+                <span className="block truncate text-slate-200">
+                  {product.name ? cleanProductName(product.name) : ""}
+                </span>
+                <span className="text-slate-500">
+                  Cant: {item.quantity}
+                </span>
+              </div>
+              <Price
+                amount={(product.price || 0) * item.quantity}
+                className="text-slate-200 shrink-0"
+                currency="ARS"
+              />
+            </div>
+          ) : null;
+        })}
+      </div>
+
+      <div className="mt-3 space-y-1 border-t border-slate-700 pt-3 text-xs">
+        <div className="flex justify-between">
+          <span>Subtotal</span>
+          <Price amount={subtotal} currency="ARS" />
         </div>
-      )}
+        <div className="flex justify-between">
+          <span>Envío</span>
+          <Price amount={shipping} currency="ARS" />
+        </div>
+        <div className="flex justify-between">
+          <span>IVA (21%)</span>
+          <Price amount={taxes} currency="ARS" />
+        </div>
+      </div>
+      <div className="mt-3 flex justify-between border-t border-slate-700 pt-3 text-sm font-semibold text-slate-50">
+        <span>Total</span>
+        <Price amount={total} currency="ARS" />
+      </div>
     </div>
   );
 }
@@ -369,7 +394,7 @@ export function OrderSummary({
 
 function TrustBadges() {
   return (
-    <div className="flex items-center justify-center gap-4 sm:gap-6 py-4 text-slate-500">
+    <div className="flex items-center justify-center gap-3 sm:gap-5 py-3 text-slate-500">
       <div className="flex items-center gap-1.5">
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -429,7 +454,7 @@ export function CheckoutForm({ items, products, total, onSubmit, isLoading }: Ch
   }, [livesInApartment]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* ═══════════════════════════════════════════════════════════════════
           SECTION 1: Contact Info
          ═══════════════════════════════════════════════════════════════════ */}
@@ -440,9 +465,9 @@ export function CheckoutForm({ items, products, total, onSubmit, isLoading }: Ch
           description="Te vamos a enviar la confirmación acá"
         />
 
-        <div className="space-y-4 pl-0 sm:pl-12">
+        <div className="space-y-3 pl-0 sm:pl-10">
           {/* Name + Last Name */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <FormField
               label="Nombre"
               placeholder="Ej: Juan"
@@ -491,9 +516,9 @@ export function CheckoutForm({ items, products, total, onSubmit, isLoading }: Ch
           description="Donde querés recibir tu pedido"
         />
 
-        <div className="space-y-4 pl-0 sm:pl-12">
+        <div className="space-y-3 pl-0 sm:pl-10">
           {/* Street + Number */}
-          <div className="grid grid-cols-1 sm:grid-cols-[2fr,1fr] gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-[2fr,1fr] gap-3">
             <FormField
               label="Calle"
               placeholder="Ej: Av. San Martín"
@@ -519,7 +544,7 @@ export function CheckoutForm({ items, products, total, onSubmit, isLoading }: Ch
 
           {/* Dynamic apartment fields */}
           <div
-            className={`grid grid-cols-1 sm:grid-cols-3 gap-4 overflow-hidden transition-all duration-300 ${
+            className={`grid grid-cols-1 sm:grid-cols-3 gap-3 overflow-hidden transition-all duration-300 ${
               showApartmentFields
                 ? "max-h-40 opacity-100 mt-0"
                 : "max-h-0 opacity-0 -mt-2 pointer-events-none"
@@ -557,7 +582,7 @@ export function CheckoutForm({ items, products, total, onSubmit, isLoading }: Ch
           />
 
           {/* City + Postal Code */}
-          <div className="grid grid-cols-1 sm:grid-cols-[2fr,1fr] gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-[2fr,1fr] gap-3">
             <FormField
               label="Ciudad"
               placeholder="Ej: General Roca"
@@ -597,7 +622,7 @@ export function CheckoutForm({ items, products, total, onSubmit, isLoading }: Ch
           description="Opciones adicionales para tu compra"
         />
 
-        <div className="space-y-4 pl-0 sm:pl-12">
+        <div className="space-y-3 pl-0 sm:pl-10">
           <CheckboxField
             label="Guardar esta dirección para futuras compras"
             description="No vas a tener que escribirla de nuevo"
@@ -619,7 +644,7 @@ export function CheckoutForm({ items, products, total, onSubmit, isLoading }: Ch
           type="submit"
           size="lg"
           disabled={!isValid || isLoading}
-          className="w-full h-12 text-base font-semibold rounded-xl bg-[var(--accent)] text-[var(--background)] hover:opacity-90 transition-all disabled:opacity-40"
+          className="w-full h-11 text-sm font-semibold rounded-xl bg-[var(--accent)] text-[var(--background)] hover:opacity-90 transition-all disabled:opacity-40"
         >
           {isLoading ? (
             <span className="flex items-center justify-center gap-2">

@@ -1,4 +1,5 @@
 import { orderRepository } from "@/api/repository/order.repository";
+import { productRepository } from "@/api/repository/product.repository";
 import { customerRepository } from "@/api/repository/customer.repository";
 import { notificationRepository } from "@/api/repository/notification.repository";
 import { sendBuyerConfirmation, sendAdminNotification } from "@/lib/email/email.service";
@@ -114,8 +115,51 @@ export const orderService = {
 
       // Create admin panel notification
       notifyOrderConfirmed(order);
+
+      // ── Decrement stock for manually created products ────────────────
+      // Non-blocking — internal control only; the capture is already done
+      this.decrementManualProductStock(order.items).catch((err) => {
+        console.error(
+          `[OrderService] Failed to decrement stock for order ${order.orderId}:`,
+          err
+        );
+      });
     }
 
     return order;
+  },
+
+  /**
+   * Decrement stock for manually created products in an order.
+   * Scraped products (with externalId) are skipped — their stock comes from the supplier.
+   * Non-blocking: runs as fire-and-forget — never fails the order status update.
+   */
+  async decrementManualProductStock(items: Order["items"]) {
+    for (const item of items) {
+      if (!item.productId) continue;
+
+      try {
+        const isManual = await productRepository.isManualProduct(item.productId);
+        if (!isManual) continue; // Skip scraped products
+
+        const result = await productRepository.decrementStock(
+          item.productId,
+          item.quantity
+        );
+
+        if (result) {
+          console.log(
+            `[OrderService] Stock decremented for product ${item.productName} (` +
+            `${item.productId}): stock=${result.stock}, inStock=${result.inStock}`
+          );
+        }
+      } catch (err) {
+        // Non-critical — log and continue with next item
+        console.error(
+          `[OrderService] Failed to decrement stock for item ${item.productId}:`,
+          err
+        );
+      }
+    }
   },
 };

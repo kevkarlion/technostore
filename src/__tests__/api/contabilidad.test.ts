@@ -180,13 +180,28 @@ describe("GET /api/admin/contabilidad", () => {
     const req = makeRequest("/api/admin/contabilidad");
     await GET(req);
 
-    // find should have been called with a createdAt filter
+    // find should have been called with a createdAt filter + only captured status
     expect(mockCollection.find).toHaveBeenCalledWith(
       expect.objectContaining({
+        status: "captured",
         createdAt: expect.objectContaining({
           $gte: expect.any(Date),
         }),
       })
+    );
+  });
+
+  it("only returns captured orders in contabilidad", async () => {
+    mockCollection.toArray.mockResolvedValueOnce([]);
+    mockCollection.countDocuments.mockResolvedValue(0);
+
+    const req = makeRequest("/api/admin/contabilidad");
+    await GET(req);
+
+    // The filter MUST include status: "captured" — non-captured orders
+    // (pending, reserved, failed, etc.) should never appear in accounting
+    expect(mockCollection.find).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "captured" })
     );
   });
 });

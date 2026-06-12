@@ -148,6 +148,7 @@ export async function GET(req: NextRequest) {
     }
 
     const filter: Record<string, unknown> = {
+      status: "captured",
       createdAt: dateFilter,
     };
 

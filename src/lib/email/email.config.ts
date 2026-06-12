@@ -25,7 +25,8 @@ export function getSmtpConfig(): SmtpConfig | null {
   const pass = process.env.SMTP_PASS;
   const fromAddress = process.env.SMTP_FROM_ADDRESS;
   const fromName = process.env.SMTP_FROM_NAME || "TechnoStore";
-  const adminEmail = process.env.ADMIN_EMAIL;
+  // SMTP_ADMIN_EMAIL overrides ADMIN_EMAIL for admin notifications (local dev)
+  const adminEmail = process.env.SMTP_ADMIN_EMAIL || process.env.ADMIN_EMAIL;
 
   if (!host || !user || !pass || !fromAddress || !adminEmail) {
     console.warn("[Email] SMTP not fully configured — emails will be skipped");

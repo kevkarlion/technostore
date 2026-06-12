@@ -688,4 +688,54 @@ export const productRepository = {
       .sort((a, b) => b.count - a.count)
       .slice(0, 20); // Top 20 brands
   },
+
+  /**
+   * Decrement stock for a manually created product (no externalId).
+   * Uses atomic $inc to avoid race conditions.
+   * If stock drops to ≤ 0, sets inStock: false (internal control only — status stays "active").
+   */
+  async decrementStock(
+    productId: string,
+    quantity: number
+  ): Promise<{ stock: number; inStock: boolean } | null> {
+    const db = await getDb();
+    const collection = db.collection(COLLECTION_NAME);
+
+    const doc = await collection.findOneAndUpdate(
+      { _id: new ObjectId(productId) },
+      { $inc: { stock: -quantity } },
+      { returnDocument: "after" }
+    );
+
+    if (!doc) return null;
+
+    const newStock = doc.stock;
+    const shouldDisable = newStock <= 0;
+
+    if (shouldDisable) {
+      await collection.updateOne(
+        { _id: new ObjectId(productId) },
+        { $set: { inStock: false } }
+      );
+    }
+
+    return { stock: newStock, inStock: shouldDisable ? false : doc.inStock ?? true };
+  },
+
+  /**
+   * Check if a product is manually created (not from scraper).
+   * Manual products DON'T have externalId or supplier.
+   */
+  async isManualProduct(productId: string): Promise<boolean> {
+    const db = await getDb();
+    const collection = db.collection(COLLECTION_NAME);
+
+    const doc = await collection.findOne(
+      { _id: new ObjectId(productId) },
+      { projection: { externalId: 1 } }
+    );
+
+    // If the product has no externalId, it's a manually created product
+    return !!doc && !doc.externalId;
+  },
 };

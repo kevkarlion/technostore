@@ -378,22 +378,22 @@ export default function AdminProducts() {
               <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                 Producto
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+              <th className="px-3 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                 Categoría
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+              <th className="px-3 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                 Precio
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+              <th className="px-3 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                 Margen
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+              <th className="px-3 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                 Stock
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+              <th className="px-3 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                 Estado
               </th>
-              <th className="px-4 py-3 text-right text-xs font-medium uppercase text-[var(--foreground-muted)]">
+              <th className="px-4 py-3 text-right text-xs font-medium uppercase text-[var(--foreground-muted)] min-w-[160px]">
                 Acciones
               </th>
             </tr>
@@ -437,17 +437,17 @@ export default function AdminProducts() {
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3">
                     <span className="text-sm text-[var(--foreground-muted)]">
                       {product.category}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3">
                     <span className="text-sm font-medium text-[var(--foreground)]">
                       ${product.price.toFixed(2)}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3">
                     {product.profitMargin != null ? (
                       <Badge
                         tone={
@@ -466,7 +466,7 @@ export default function AdminProducts() {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3">
                     {editingStock === product.id ? (
                       <div className="flex items-center gap-1">
                         <Input
@@ -522,7 +522,7 @@ export default function AdminProducts() {
                       </button>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3">
                     <Badge
                       tone={
                         product.status === "active"

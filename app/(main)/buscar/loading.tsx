@@ -29,9 +29,9 @@ function SearchPageSkeleton() {
         <Skeleton className="h-4 w-48" />
       </div>
 
-      {/* Products grid - coincide con PremiumProductCardV2 */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-        {Array.from({ length: 12 }).map((_, i) => (
+      {/* Products grid - MISMO grid que search-client.tsx para evitar layout shift */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-3 overflow-hidden">
             {/* Image */}
             <div className="relative aspect-square overflow-hidden rounded-xl bg-white/[0.03]">

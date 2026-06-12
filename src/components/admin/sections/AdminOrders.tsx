@@ -295,25 +295,25 @@ export default function AdminOrders() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-slate-800">
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+              <th className="px-3 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                 Orden
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                 Cliente
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+              <th className="px-3 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                 Productos
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+              <th className="px-3 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                 Monto
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+              <th className="px-3 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                 Estado
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+              <th className="px-3 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                 Fecha
               </th>
-              <th className="px-4 py-3 text-right text-xs font-medium uppercase text-[var(--foreground-muted)]">
+              <th className="px-4 py-3 text-right text-xs font-medium uppercase text-[var(--foreground-muted)] min-w-[160px]">
                 Acciones
               </th>
             </tr>
@@ -353,7 +353,7 @@ export default function AdminOrders() {
                     className="transition-colors hover:bg-slate-900/30 cursor-pointer"
                     onClick={() => setSelectedOrder(order)}
                   >
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3">
                       <span className="font-mono text-xs text-[var(--accent)]">
                         {order.orderId.substring(0, 20)}...
                       </span>
@@ -368,21 +368,21 @@ export default function AdminOrders() {
                         </p>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3">
                       <span className="text-xs text-[var(--foreground-muted)]">
                         {order.items.length} item
                         {order.items.length !== 1 && "s"}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3">
                       <Price amount={order.totals.total} />
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3">
                       <Badge tone={statusInfo.tone}>
                         {statusInfo.label}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3">
                       <span className="text-xs text-[var(--foreground-muted)]">
                         {formatDate(order.createdAt)}
                       </span>

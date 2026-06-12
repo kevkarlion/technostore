@@ -38,29 +38,22 @@ interface CartState {
 
 /**
  * Validaciones de stock
+ * 
+ * NOTA: Solo validamos inStock (booleano). El campo numérico stock
+ * es solo para control interno del admin — el front NO debe limitar
+ * la compra basado en cantidad de stock, así los productos manuales
+ * se comportan igual que los scrapeados en la tienda.
  */
 function validateStock(
   quantity: number,
   product: CartProduct
 ): AddToCartResult {
-  // Validar stock disponible
   if (!product.inStock) {
     return { 
       success: false, 
       error: 'OUT_OF_STOCK',
       message: 'Producto sin stock disponible' 
     };
-  }
-
-  // Validar límite de stock si está definido
-  if (product.stock !== undefined && product.stock > 0) {
-    if (quantity > product.stock) {
-      return {
-        success: false,
-        error: 'MAX_STOCK_REACHED',
-        message: `Stock máximo: ${product.stock} unidades`
-      };
-    }
   }
 
   return { success: true };

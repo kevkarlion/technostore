@@ -692,7 +692,11 @@ export const productRepository = {
   /**
    * Decrement stock for a manually created product (no externalId).
    * Uses atomic $inc to avoid race conditions.
-   * If stock drops to ≤ 0, sets inStock: false (internal control only — status stays "active").
+   *
+   * IMPORTANT: Solo modifica el campo stock — NO toca inStock ni status.
+   * El stock es control INTERNO para el admin. El frontend NUNCA debe
+   * verse afectado por el valor de stock. Solo el admin puede desactivar
+   * un producto manualmente (inStock: false, status: "inactive").
    */
   async decrementStock(
     productId: string,
@@ -709,17 +713,9 @@ export const productRepository = {
 
     if (!doc) return null;
 
-    const newStock = doc.stock;
-    const shouldDisable = newStock <= 0;
-
-    if (shouldDisable) {
-      await collection.updateOne(
-        { _id: new ObjectId(productId) },
-        { $set: { inStock: false } }
-      );
-    }
-
-    return { stock: newStock, inStock: shouldDisable ? false : doc.inStock ?? true };
+    // Devolvemos el inStock original del producto — NUNCA se modifica
+    // automáticamente por el decremento de stock
+    return { stock: doc.stock, inStock: doc.inStock ?? true };
   },
 
   /**

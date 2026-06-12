@@ -40,7 +40,7 @@ export function AdminDashboard() {
           sidebarCollapsed ? "lg:pl-16" : "lg:pl-64"
         }`}
       >
-        <div className="p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8">
+        <div className="p-4 sm:p-6 lg:px-6 lg:py-8 pt-16 lg:pt-8">
           <SectionRenderer />
         </div>
       </main>

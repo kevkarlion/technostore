@@ -57,11 +57,7 @@ export function AddToCartButton({
       setAdded(true);
       setTimeout(() => setAdded(false), 1500);
     } else {
-      if (result.error === 'MAX_STOCK_REACHED' && stockQuantity && stockQuantity > 0) {
-        toast.error(`Stock máximo: solo ${stockQuantity} unidades disponibles`);
-      } else {
-        toast.error(result.message || "No hay stock disponible");
-      }
+      toast.error(result.message || "No hay stock disponible");
     }
   }, [addItem, cartProduct, inStock, productId, quantity, stockQuantity]);
 

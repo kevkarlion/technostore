@@ -187,20 +187,12 @@ export function useAddToCart(product: CartProduct) {
 
   const canAdd = useCallback(
     (quantity: number = 1) => {
-      const existingItem = store.items.find(
-        (item) => item.productId === product.id
-      );
-      const totalQuantity = (existingItem?.quantity || 0) + quantity;
-
-      // Verificar stock
-      if (!product.inStock) return { allowed: false, reason: 'SIN_STOCK' };
-      if (product.stock !== undefined && totalQuantity > product.stock) {
-        return { allowed: false, reason: 'STOCK_MAX', max: product.stock };
-      }
+      // Solo validamos inStock (booleano). El stock numérico es control interno.
+      if (!product.inStock) return { allowed: false, reason: 'SIN_STOCK' as const };
 
       return { allowed: true, reason: null };
     },
-    [store.items, product]
+    [product]
   );
 
   const add = useCallback(
@@ -209,10 +201,8 @@ export function useAddToCart(product: CartProduct) {
       if (!check.allowed) {
         return {
           success: false,
-          error: check.reason === 'SIN_STOCK' ? 'OUT_OF_STOCK' : 'MAX_STOCK_REACHED',
-          message: check.reason === 'SIN_STOCK' 
-            ? 'Producto sin stock disponible'
-            : `Stock máximo: ${check.max} unidades`,
+          error: 'OUT_OF_STOCK',
+          message: 'Producto sin stock disponible',
         };
       }
 

@@ -77,35 +77,31 @@ describe("productRepository.decrementStock()", () => {
     expect(result).toEqual({ stock: 3, inStock: true });
   });
 
-  it("sets inStock to false when stock reaches 0", async () => {
-    mockFindOneAndUpdate.mockResolvedValue(makeProductDoc({ stock: 0 }));
+  it("never modifies inStock even when stock reaches 0", async () => {
+    // Product starts with inStock: true, stock goes to 0
+    mockFindOneAndUpdate.mockResolvedValue(makeProductDoc({ stock: 0, inStock: true }));
 
     const result = await productRepository.decrementStock(
       "507f1f77bcf86cd799439011",
       1
     );
 
-    // Should set inStock: false when stock drops to 0
-    expect(mockUpdateOne).toHaveBeenCalledWith(
-      { _id: expect.anything() },
-      { $set: { inStock: false } }
-    );
-    expect(result).toEqual({ stock: 0, inStock: false });
+    // Should NOT update inStock — stock is internal control only
+    expect(mockUpdateOne).not.toHaveBeenCalled();
+    expect(result).toEqual({ stock: 0, inStock: true });
   });
 
-  it("sets inStock to false when stock goes below 0", async () => {
-    mockFindOneAndUpdate.mockResolvedValue(makeProductDoc({ stock: -2 }));
+  it("never modifies inStock when stock goes below 0", async () => {
+    mockFindOneAndUpdate.mockResolvedValue(makeProductDoc({ stock: -2, inStock: true }));
 
     const result = await productRepository.decrementStock(
       "507f1f77bcf86cd799439011",
       7
     );
 
-    expect(mockUpdateOne).toHaveBeenCalledWith(
-      { _id: expect.anything() },
-      { $set: { inStock: false } }
-    );
-    expect(result).toEqual({ stock: -2, inStock: false });
+    // Should NOT update inStock regardless of stock value
+    expect(mockUpdateOne).not.toHaveBeenCalled();
+    expect(result).toEqual({ stock: -2, inStock: true });
   });
 
   it("returns null if product is not found", async () => {

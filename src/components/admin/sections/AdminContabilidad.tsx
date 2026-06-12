@@ -362,25 +362,25 @@ export default function AdminContabilidad() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-800">
-                <th className="sticky top-0 z-10 bg-slate-950 px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+                <th className="sticky top-0 z-10 bg-slate-950 px-3 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                   Orden
                 </th>
                 <th className="sticky top-0 z-10 bg-slate-950 px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                   Cliente
                 </th>
-                <th className="sticky top-0 z-10 bg-slate-950 px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+                <th className="sticky top-0 z-10 bg-slate-950 px-3 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                   Items
                 </th>
-                <th className="sticky top-0 z-10 bg-slate-950 px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+                <th className="sticky top-0 z-10 bg-slate-950 px-3 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                   Total
                 </th>
-                <th className="sticky top-0 z-10 bg-slate-950 px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+                <th className="sticky top-0 z-10 bg-slate-950 px-3 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                   Ganancia
                 </th>
-                <th className="sticky top-0 z-10 bg-slate-950 px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+                <th className="sticky top-0 z-10 bg-slate-950 px-3 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                   Margen
                 </th>
-                <th className="sticky top-0 z-10 bg-slate-950 px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+                <th className="sticky top-0 z-10 bg-slate-950 px-3 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                   Fecha
                 </th>
               </tr>
@@ -413,7 +413,7 @@ export default function AdminContabilidad() {
                       key={order.orderId}
                       className="transition-colors hover:bg-slate-900/30"
                     >
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-3">
                         <div className="flex items-center gap-2">
                           {order.unpricedCount > 0 && (
                             <Badge tone="warning" className="text-[10px] px-1.5 py-0">
@@ -430,7 +430,7 @@ export default function AdminContabilidad() {
                           {order.customer.name} {order.customer.lastName}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-3">
                         <button
                           onClick={() => setModalOrder(order)}
                           className="text-xs text-[var(--foreground-muted)] hover:text-[var(--accent)] transition-colors underline underline-offset-2 decoration-slate-700 hover:decoration-[var(--accent)]"
@@ -439,10 +439,10 @@ export default function AdminContabilidad() {
                           {order.items.length !== 1 && "s"}
                         </button>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-3">
                         <Price amount={order.totals.total} />
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-3">
                         {order.totalGain != null ? (
                           <span className="text-sm font-medium text-emerald-400">
                             +${order.totalGain.toFixed(2)}
@@ -453,7 +453,7 @@ export default function AdminContabilidad() {
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-3">
                         {order.avgMargin != null ? (
                           <Badge
                             tone={
@@ -472,7 +472,7 @@ export default function AdminContabilidad() {
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-3">
                         <span className="text-xs text-[var(--foreground-muted)]">
                           {formatDate(order.createdAt)}
                         </span>

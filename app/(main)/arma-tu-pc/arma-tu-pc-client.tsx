@@ -14,6 +14,7 @@ import {
   Keyboard,
   MousePointer2,
   ChevronRight,
+  ChevronDown,
   Search,
   X,
 } from "lucide-react";
@@ -57,8 +58,13 @@ function sectionId(slug: string) {
   return `cat-${slug}`;
 }
 
+const INITIAL_VISIBLE = 8;
+
 export function ArmaTuPcClient({ categories }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    () => new Set()
+  );
 
   // Track active section for sidebar highlight
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
@@ -110,6 +116,18 @@ export function ArmaTuPcClient({ categories }: Props) {
       const top = el.getBoundingClientRect().top + window.scrollY;
       window.scrollTo({ top, behavior: "smooth" });
     }
+  }, []);
+
+  const toggleExpand = useCallback((slug: string) => {
+    setExpandedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(slug)) {
+        next.delete(slug);
+      } else {
+        next.add(slug);
+      }
+      return next;
+    });
   }, []);
 
   const totalResults = filtered.reduce((s, c) => s + c.products.length, 0);
@@ -277,15 +295,51 @@ export function ArmaTuPcClient({ categories }: Props) {
                   </Link>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
-                  {cat.products.map((product, idx) => (
-                    <PremiumProductCardV2
-                      key={product.id}
-                      product={product}
-                      index={idx}
-                    />
-                  ))}
-                </div>
+                {(() => {
+                  const isExpanded = expandedCategories.has(cat.slug);
+                  const displayProducts = isExpanded
+                    ? cat.products
+                    : cat.products.slice(0, INITIAL_VISIBLE);
+                  const hasMore = cat.products.length > INITIAL_VISIBLE;
+
+                  return (
+                    <>
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
+                        {displayProducts.map((product, idx) => (
+                          <PremiumProductCardV2
+                            key={product.id}
+                            product={product}
+                            index={idx}
+                          />
+                        ))}
+                      </div>
+
+                      {hasMore && !isExpanded && (
+                        <div className="mt-4 text-center">
+                          <button
+                            onClick={() => toggleExpand(cat.slug)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-700/50 bg-indigo-950/40 px-4 py-2 text-sm font-medium text-indigo-300 transition-colors hover:border-indigo-600 hover:bg-indigo-900/60 hover:text-indigo-200"
+                          >
+                            Ver más ({cat.products.length - INITIAL_VISIBLE} productos)
+                            <ChevronDown className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+
+                      {hasMore && isExpanded && (
+                        <div className="mt-4 text-center">
+                          <button
+                            onClick={() => toggleExpand(cat.slug)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-700/50 bg-gray-800/40 px-4 py-2 text-sm font-medium text-gray-400 transition-colors hover:border-gray-600 hover:bg-gray-800 hover:text-gray-300"
+                          >
+                            Ver menos
+                            <ChevronDown className="h-4 w-4 rotate-180 transition-transform" />
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </section>
             ))}
           </div>

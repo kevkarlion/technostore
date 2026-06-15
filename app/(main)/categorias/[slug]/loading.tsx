@@ -37,10 +37,10 @@ function ToolbarSkeleton() {
   );
 }
 
-// Desktop sidebar filters skeleton
+// Desktop sidebar filters skeleton — coincide con CategoryProductsClient
 function SidebarFiltersSkeleton() {
   return (
-    <div className="sticky top-24 hidden space-y-6 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-5 lg:block">
+    <div className="sticky top-32 space-y-6 rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-5">
       <div className="flex items-center gap-2 border-b border-[var(--border-subtle)] pb-4">
         <Skeleton className="h-5 w-5 rounded" />
         <Skeleton className="h-4 w-20" />
@@ -156,8 +156,10 @@ function CategoryPageSkeleton() {
       
       {/* Desktop Layout: Sidebar + Grid */}
       <div className="flex gap-8">
-        {/* Desktop Sidebar */}
-        <SidebarFiltersSkeleton />
+        {/* Desktop Sidebar — hidden w-64 shrink-0 lg:block igual que CategoryProductsClient */}
+        <aside className="hidden w-64 shrink-0 space-y-6 lg:block">
+          <SidebarFiltersSkeleton />
+        </aside>
         
         {/* Products + Pagination */}
         <div className="flex-1 space-y-6">

@@ -116,7 +116,7 @@ export function ArmaTuPcClient({ categories }: Props) {
   const totalCategories = categories.length;
 
   return (
-    <div>
+    <div className="animate-fade-in">
       {/* ───── Hero ───── */}
       <section className="relative bg-gradient-to-br from-indigo-950 via-gray-900 to-purple-950 px-4 py-12 sm:py-16">
         <div className="mx-auto max-w-7xl">

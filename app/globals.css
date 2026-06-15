@@ -193,6 +193,16 @@ html {
   animation: pulse-check 0.3s ease-out;
 }
 
+/* Fade-in for page content (replaces skeleton smoothly) */
+@keyframes fadeInContent {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeInContent 0.15s ease-out forwards;
+}
+
 /* Prevent zoom on iOS inputs */
 @supports (-webkit-touch-callout: none) {
   input, select, textarea {

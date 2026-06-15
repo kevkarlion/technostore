@@ -61,8 +61,15 @@ export default function ArmaTuPcLoading() {
       <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[14rem_1fr]">
           {/* Sidebar skeleton */}
-          <aside className="hidden self-start lg:block lg:sticky lg:top-36">
-            <nav className="rounded-xl border border-gray-700 bg-gray-900 p-3">
+          <aside className="hidden self-start lg:block lg:sticky lg:top-36 lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto">
+            {/* Stats skeleton — evita salto al cargar el cliente */}
+            <div className="rounded-xl border border-gray-700 bg-gray-900 p-4">
+              <SkeletonPulse className="mb-1 h-3 w-16" />
+              <SkeletonPulse className="mb-1 h-7 w-12" />
+              <SkeletonPulse className="h-3 w-28" />
+            </div>
+
+            <nav className="mt-4 rounded-xl border border-gray-700 bg-gray-900 p-3">
               <div className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
                 Componentes
               </div>

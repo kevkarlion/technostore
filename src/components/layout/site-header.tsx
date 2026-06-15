@@ -12,6 +12,7 @@ import { FavoritesLink } from "@/components/ui/favorites-link";
 import { JOTAKP_CATEGORIES } from "@/components/ui/category-dropdown";
 import type { Category } from "@/domain/models/category";
 import { Cpu, Menu, Search } from "lucide-react";
+import { isCatalogMode } from "@/lib/catalog-mode";
 
 interface SiteHeaderProps {
   categories?: Category[];
@@ -97,6 +98,7 @@ function MobileCategoryItem({
 
 export function SiteHeader({ categories = [] }: SiteHeaderProps) {
   const pathname = usePathname();
+  const catalogMode = isCatalogMode();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
@@ -224,9 +226,11 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
               variant="icon"
               className="rounded-full bg-[var(--surface)] p-2.5 ring-1 ring-[var(--border-subtle)] text-[var(--foreground)] hover:text-red-400 hover:ring-red-400/50 transition-all"
             />
-            <CartLink
-              className="relative rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-[var(--background)] shadow-lg shadow-[var(--accent)]/20 transition-all hover:scale-[1.05] hover:shadow-xl"
-            />
+            {!catalogMode && (
+              <CartLink
+                className="relative rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-[var(--background)] shadow-lg shadow-[var(--accent)]/20 transition-all hover:scale-[1.05] hover:shadow-xl"
+              />
+            )}
           </div>
 
           {/* Mobile: favorites + cart + menu */}
@@ -242,10 +246,12 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
               variant="icon"
               className="rounded-full bg-[var(--surface)] p-2.5 ring-1 ring-[var(--border-subtle)] text-[var(--foreground)]"
             />
-            <CartLink
-              variant="icon"
-              className="relative rounded-full bg-[var(--accent)] p-2.5 text-sm font-bold text-[var(--background)] shadow-lg transition-all hover:scale-110"
-            />
+            {!catalogMode && (
+              <CartLink
+                variant="icon"
+                className="relative rounded-full bg-[var(--accent)] p-2.5 text-sm font-bold text-[var(--background)] shadow-lg transition-all hover:scale-110"
+              />
+            )}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="rounded-full bg-[var(--surface)] p-2.5 ring-1 ring-[var(--border-subtle)] transition-all hover:bg-[var(--surface-hover)] hover:ring-[var(--accent)]/50"
@@ -377,9 +383,11 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
                 <Link href="/favoritos" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
                   Mis favoritos
                 </Link>
-                <Link href="/carrito" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
-                  Mi carrito
-                </Link>
+                {!catalogMode && (
+                  <Link href="/carrito" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
+                    Mi carrito
+                  </Link>
+                )}
               </div>
 
               {/* Armá tu PC — destacado mobile */}

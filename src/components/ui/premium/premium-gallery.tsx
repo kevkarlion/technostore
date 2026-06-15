@@ -12,10 +12,45 @@ import { AnimatedBadge } from "@/components/ui/premium/animated-badge";
 import { useMotionPreferences } from "@/lib/motion-config";
 import { AddToCartButton } from "../../../../app/(main)/productos/[slug]/add-to-cart-button";
 import { getExchangeRate, formatARS } from "@/lib/exchange-rate";
+import { isCatalogMode } from "@/lib/catalog-mode";
 
 interface PremiumGalleryProps {
   product: Product;
 }
+
+// ============================================================================
+// WHATSAPP BUTTON (catalog mode)
+// ============================================================================
+
+interface WhatsAppButtonProps {
+  productName: string;
+  productSlug: string;
+}
+
+function WhatsAppButton({ productName, productSlug }: WhatsAppButtonProps) {
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://technostore.vercel.app";
+  const productUrl = `${baseUrl}/productos/${productSlug}`;
+  const message = encodeURIComponent(`Hola! Quiero consultar por ${productName} - ${productUrl}`);
+  const whatsappUrl = `https://wa.me/5492984130230?text=${message}`;
+
+  return (
+    <a
+      href={whatsappUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] text-sm font-semibold uppercase tracking-wide text-white hover:bg-[#1ebe5a] transition-all shadow-lg shadow-[#25D366]/30"
+    >
+      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.162-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+      </svg>
+      <span>Consultar por WhatsApp</span>
+    </a>
+  );
+}
+
+// ============================================================================
+// PREMIUM GALLERY
+// ============================================================================
 
 /**
  * PremiumGallery - Enhanced product gallery with crossfade, swipe gestures, and lightbox
@@ -34,6 +69,7 @@ export function PremiumGallery({ product }: PremiumGalleryProps) {
   const [lightboxImage, setLightboxImage] = useState<ProductImage | null>(null);
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
   const [rate, setRate] = useState<number | null>(null);
+  const catalogMode = isCatalogMode();
 
   useEffect(() => {
     getExchangeRate().then((data) => setRate(data?.venta ?? null));
@@ -219,39 +255,50 @@ export function PremiumGallery({ product }: PremiumGalleryProps) {
 
             {/* Price and CTA */}
             <div className="space-y-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--background)]/50 p-5">
-              <div className="flex items-end justify-between gap-3">
-                <div className="space-y-1">
-                  <Price
-                    amount={product.priceARS ?? product.price}
-                    originalAmount={product.originalPrice}
-                    currency="ARS"
-                    className="text-3xl sm:text-4xl"
-                  />
-                  {product.originalPrice && product.originalPrice > product.price && (
-                    <p className="text-xs text-emerald-400 font-medium">
-                      Ahorrá {formatARS(
-                        (product.originalPrice - product.price) * (rate && rate > 0 ? rate : 1)
+              {catalogMode ? (
+                /* Catalog mode: WhatsApp consult button */
+                <WhatsAppButton
+                  productName={product.name}
+                  productSlug={product.slug}
+                />
+              ) : (
+                /* Normal mode: price + add-to-cart */
+                <>
+                  <div className="flex items-end justify-between gap-3">
+                    <div className="space-y-1">
+                      <Price
+                        amount={product.priceARS ?? product.price}
+                        originalAmount={product.originalPrice}
+                        currency="ARS"
+                        className="text-3xl sm:text-4xl"
+                      />
+                      {product.originalPrice && product.originalPrice > product.price && (
+                        <p className="text-xs text-emerald-400 font-medium">
+                          Ahorrá {formatARS(
+                            (product.originalPrice - product.price) * (rate && rate > 0 ? rate : 1)
+                          )}
+                        </p>
                       )}
-                    </p>
-                  )}
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-[var(--foreground)]">
-                    {product.rating.toFixed(1)} ★
-                  </p>
-                  <p className="text-xs text-[var(--foreground-muted)]">
-                    {product.ratingCount.toLocaleString()} reviews
-                  </p>
-                </div>
-              </div>
-              <AddToCartButton
-                productId={product.id}
-                productName={product.name}
-                productPrice={product.priceARS ?? product.price}
-                productImageUrl={product.images[0]?.src}
-                inStock={product.inStock}
-                stockQuantity={product.stockQuantity}
-              />
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-[var(--foreground)]">
+                        {product.rating.toFixed(1)} ★
+                      </p>
+                      <p className="text-xs text-[var(--foreground-muted)]">
+                        {product.ratingCount.toLocaleString()} reviews
+                      </p>
+                    </div>
+                  </div>
+                  <AddToCartButton
+                    productId={product.id}
+                    productName={product.name}
+                    productPrice={product.priceARS ?? product.price}
+                    productImageUrl={product.images[0]?.src}
+                    inStock={product.inStock}
+                    stockQuantity={product.stockQuantity}
+                  />
+                </>
+              )}
             </div>
           </GlassContainer>
         </section>

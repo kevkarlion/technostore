@@ -11,10 +11,12 @@ import { CartLink } from "@/components/ui/cart-link";
 import { FavoritesLink } from "@/components/ui/favorites-link";
 import { JOTAKP_CATEGORIES } from "@/components/ui/category-dropdown";
 import { Cpu, Menu, Search } from "lucide-react";
+import { isCatalogMode } from "@/lib/catalog-mode";
 
 const SCROLL_THRESHOLD = 80;
 
 export function ScrollNavbar() {
+  const catalogMode = isCatalogMode();
   const [isVisible, setIsVisible] = useState(false);
   const lastScrollYRef = useRef(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -128,10 +130,12 @@ export function ScrollNavbar() {
                   />
 
                   {/* Carrito */}
-                  <CartLink
-                    variant="icon"
-                    className="relative rounded-full bg-[var(--accent)] p-2.5 text-[var(--background)] shadow-lg"
-                  />
+                  {!catalogMode && (
+                    <CartLink
+                      variant="icon"
+                      className="relative rounded-full bg-[var(--accent)] p-2.5 text-[var(--background)] shadow-lg"
+                    />
+                  )}
                 </div>
 
                 {/* Mobile: favorites + cart + menu */}
@@ -147,10 +151,12 @@ export function ScrollNavbar() {
                     variant="icon"
                     className="rounded-full bg-[var(--surface)] p-2.5 text-[var(--foreground)] ring-1 ring-[var(--border-subtle)]"
                   />
-                  <CartLink
-                    variant="icon"
-                    className="relative rounded-full bg-[var(--accent)] p-2.5 text-[var(--background)] shadow-lg"
-                  />
+                  {!catalogMode && (
+                    <CartLink
+                      variant="icon"
+                      className="relative rounded-full bg-[var(--accent)] p-2.5 text-[var(--background)] shadow-lg"
+                    />
+                  )}
                   <button
                     onClick={() => setIsMobileMenuOpen(true)}
                     className="rounded-full bg-[var(--surface)] p-2.5 ring-1 ring-[var(--border-subtle)]"
@@ -264,9 +270,11 @@ export function ScrollNavbar() {
                 <Link href="/buscar" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
                   Buscar productos
                 </Link>
-                <Link href="/carrito" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
-                  Mi carrito
-                </Link>
+                {!catalogMode && (
+                  <Link href="/carrito" onClick={handleNavigate} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface)]">
+                    Mi carrito
+                  </Link>
+                )}
               </div>
 
               {/* Armá tu PC — destacado mobile */}

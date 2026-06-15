@@ -7,13 +7,14 @@ import { useState, useEffect } from "react";
 import { clsx } from "clsx";
 import { 
   ShoppingCart, Heart, Star, Truck, 
-  AlertTriangle, ArrowRight, Package, Check, Plus, Minus
+  AlertTriangle, ArrowRight, Package, Check, Plus, Minus, Eye
 } from "lucide-react";
 import type { Product } from "@/types/domain";
 import { useCartStore } from "@/features/cart/store/cart-store";
 import { useFavoritesStore } from "@/features/favorites/store/favorites-store";
 import { toast } from "sonner";
 import { getExchangeRate, usdToArs, formatARS } from "@/lib/exchange-rate";
+import { isCatalogMode } from "@/lib/catalog-mode";
 
 // ============================================================================
 // CONFIGURATION
@@ -385,6 +386,7 @@ export function PremiumProductCardV2({
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const catalogMode = isCatalogMode();
   
   // Favorites store - estado reactivo
   const isFavorite = useFavoritesStore((state) => 
@@ -519,14 +521,16 @@ const cartProduct = {
             </div>
           )}
           
-          {/* Price */}
-          <div className="mt-3">
-            <ProductCardPrice
-              price={product.priceARS ?? product.price}
-              originalPrice={product.originalPrice}
-              alreadyInArs={!!product.priceARS}
-            />
-          </div>
+          {/* Price — hidden in catalog mode */}
+          {!catalogMode && (
+            <div className="mt-3">
+              <ProductCardPrice
+                price={product.priceARS ?? product.price}
+                originalPrice={product.originalPrice}
+                alreadyInArs={!!product.priceARS}
+              />
+            </div>
+          )}
           
           {/* Benefits */}
           <ProductCardBenefits
@@ -537,62 +541,76 @@ const cartProduct = {
         </div>
       </Link>
         
-        {/* Quantity + CTA - fuera del Link */}
+        {/* CTA section - fuera del Link */}
         <div className="mt-2 space-y-2 px-4 pb-4">
-          {/* Quantity Controls */}
-          <div className="flex justify-center">
-            <div className="flex items-center rounded-lg border border-[var(--border-subtle)] bg-[var(--background)]">
-              <button
-                onClick={() => handleQuantityChange(quantity - 1)}
-                disabled={quantity <= 1}
-                className="flex h-9 w-9 items-center justify-center text-[var(--foreground-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)] disabled:opacity-50"
-              >
-                <Minus className="h-3.5 w-3.5" />
-              </button>
-              <span className="w-9 text-center text-sm font-semibold text-[var(--foreground)]">
-                {quantity}
-              </span>
-              <button
-                onClick={() => handleQuantityChange(quantity + 1)}
-                disabled={quantity >= (product.stockQuantity || 99)}
-                className="flex h-9 w-9 items-center justify-center text-[var(--foreground-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)] disabled:opacity-50"
-              >
-                <Plus className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </div>
+          {catalogMode ? (
+            /* Catalog mode: single "Ver detalle" button linking to product page */
+            <Link
+              href={`/productos/${product.slug}`}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] text-sm font-semibold uppercase tracking-wide text-[var(--background)] hover:bg-[#00c9a7] hover:shadow-[0_0_20px_rgba(0,225,186,0.3)] transition-all"
+            >
+              <Eye className="h-4 w-4" />
+              <span>Ver detalle</span>
+            </Link>
+          ) : (
+            /* Normal mode: quantity controls + add-to-cart */
+            <>
+              {/* Quantity Controls */}
+              <div className="flex justify-center">
+                <div className="flex items-center rounded-lg border border-[var(--border-subtle)] bg-[var(--background)]">
+                  <button
+                    onClick={() => handleQuantityChange(quantity - 1)}
+                    disabled={quantity <= 1}
+                    className="flex h-9 w-9 items-center justify-center text-[var(--foreground-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)] disabled:opacity-50"
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </button>
+                  <span className="w-9 text-center text-sm font-semibold text-[var(--foreground)]">
+                    {quantity}
+                  </span>
+                  <button
+                    onClick={() => handleQuantityChange(quantity + 1)}
+                    disabled={quantity >= (product.stockQuantity || 99)}
+                    className="flex h-9 w-9 items-center justify-center text-[var(--foreground-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)] disabled:opacity-50"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
 
-          {/* Add to Cart Button — full width */}
-          <motion.div
-            whileTap={{ scale: 0.98 }}
-            onClick={handleAddToCart}
-            className={clsx(
-              "flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl text-sm font-semibold uppercase tracking-wide transition-all",
-              isAdding 
-                ? "bg-emerald-500 text-white" 
-                : "bg-[var(--accent)] text-[var(--background)] hover:bg-[#00c9a7] hover:shadow-[0_0_20px_rgba(0,225,186,0.3)]"
-            )}
-          >
-            {isAdding ? (
-              <>
-                <Check className="h-4 w-4" />
-                <span>Agregado</span>
-              </>
-            ) : (
-              <>
-                <ShoppingCart className="h-4 w-4" />
-                <span>Agregar</span>
-              </>
-            )}
-          </motion.div>
+              {/* Add to Cart Button — full width */}
+              <motion.div
+                whileTap={{ scale: 0.98 }}
+                onClick={handleAddToCart}
+                className={clsx(
+                  "flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl text-sm font-semibold uppercase tracking-wide transition-all",
+                  isAdding 
+                    ? "bg-emerald-500 text-white" 
+                    : "bg-[var(--accent)] text-[var(--background)] hover:bg-[#00c9a7] hover:shadow-[0_0_20px_rgba(0,225,186,0.3)]"
+                )}
+              >
+                {isAdding ? (
+                  <>
+                    <Check className="h-4 w-4" />
+                    <span>Agregado</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="h-4 w-4" />
+                    <span>Agregar</span>
+                  </>
+                )}
+              </motion.div>
 
-          {/* Ver detalles */}
-          <Link
-            href={`/productos/${product.slug}`}
-            className="flex h-9 w-full items-center justify-center rounded-lg border border-[var(--border-subtle)] text-xs font-medium text-[var(--foreground-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
-          >
-            Ver detalles
-          </Link>
+              {/* Ver detalles */}
+              <Link
+                href={`/productos/${product.slug}`}
+                className="flex h-9 w-full items-center justify-center rounded-lg border border-[var(--border-subtle)] text-xs font-medium text-[var(--foreground-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              >
+                Ver detalles
+              </Link>
+            </>
+          )}
         </div>
     </motion.div>
   );

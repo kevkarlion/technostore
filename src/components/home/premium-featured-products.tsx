@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Price } from "@/components/ui/price";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Product } from "@/types/domain";
+import { isCatalogMode } from "@/lib/catalog-mode";
 
 /**
  * Badge type for featured products
@@ -70,6 +71,7 @@ export function PremiumFeaturedProducts({
   title = "Productos Destacados",
   className,
 }: PremiumFeaturedProductsProps) {
+  const catalogMode = isCatalogMode();
   const [activeDot, setActiveDot] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const itemsPerPage = 4;
@@ -202,17 +204,26 @@ export function PremiumFeaturedProducts({
                   <h3 className="line-clamp-2 text-sm font-medium leading-snug text-[var(--foreground)]">
                     {product.name}
                   </h3>
-                  <div className="mt-1 flex items-center gap-1">
-                    <Price
-                      amount={product.price}
-                      originalAmount={product.originalPrice}
-                      convertToArs
-                    />
-                  </div>
-                  <div className="mt-0.5 flex items-center gap-1 text-xs text-[var(--foreground-muted)]">
-                    <span className="text-amber-400">{product.rating.toFixed(1)} ★</span>
-                    <span>({product.ratingCount})</span>
-                  </div>
+                  {!catalogMode && (
+                    <>
+                      <div className="mt-1 flex items-center gap-1">
+                        <Price
+                          amount={product.price}
+                          originalAmount={product.originalPrice}
+                          convertToArs
+                        />
+                      </div>
+                      <div className="mt-0.5 flex items-center gap-1 text-xs text-[var(--foreground-muted)]">
+                        <span className="text-amber-400">{product.rating.toFixed(1)} ★</span>
+                        <span>({product.ratingCount})</span>
+                      </div>
+                    </>
+                  )}
+                  {catalogMode && (
+                    <span className="mt-1 inline-block text-xs font-medium text-[var(--accent)]">
+                      Ver detalle →
+                    </span>
+                  )}
                 </div>
               </Link>
             </div>

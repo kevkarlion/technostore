@@ -67,11 +67,12 @@ export default function MainLayout({
             <div className="space-y-4">
               <Link href="/" className="inline-block">
                 <Image
-                  src="/logo-texto.png"
+                  src="/logo-texto.webp"
                   alt="TechnoStore"
-                  width={160}
-                  height={48}
+                  width={280}
+                  height={112}
                   className="h-12 w-auto"
+                  sizes="160px"
                 />
               </Link>
               <p className="text-sm text-[var(--foreground-muted)]">

@@ -289,14 +289,15 @@ function CompactNavbar() {
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4">
         {/* Logo Compacto */}
         <Link href="/" className="flex items-center gap-2">
-          <div className="h-8 w-auto relative">
+          <div className="inline-flex h-8 w-auto items-center">
             <Image
-              src="/logo2.png"
+              src="/logo2.webp"
               alt="TechnoStore"
-              width={100}
-              height={32}
-              className="h-8 w-auto object-contain"
+              width={280}
+              height={96}
+              className="h-full w-auto object-contain"
               priority
+              sizes="80px"
             />
           </div>
         </Link>
@@ -349,14 +350,15 @@ function ExpandedNavbar() {
         <div className="flex flex-wrap content-center items-center gap-4 py-3">
           {/* Logo */}
           <Link href="/" className="flex shrink-0 items-center gap-3">
-            <div className="h-12 w-auto relative">
+            <div className="inline-flex h-12 w-auto items-center sm:h-14">
               <Image
-                src="/logo2.png"
+                src="/logo2.webp"
                 alt="TechnoStore"
-                width={140}
-                height={48}
-                className="h-12 w-auto object-contain"
+                width={280}
+                height={96}
+                className="h-full w-auto object-contain"
                 priority
+                sizes="(max-width: 640px) 120px, 140px"
               />
             </div>
           </Link>

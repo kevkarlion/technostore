@@ -186,22 +186,15 @@ export function SiteHeader({ categories = [] }: SiteHeaderProps) {
             className="flex shrink-0 items-center gap-3 transition-transform hover:scale-[1.02]"
             aria-label="TechnoStore home"
           >
-            <span className="relative h-12 w-auto sm:h-14">
+            <span className="inline-flex h-12 w-auto items-center sm:h-14">
               <Image
-                src="/logo-texto.png"
+                src="/logo-texto.webp"
                 alt="TechnoStore"
-                width={160}
-                height={48}
-                className="block h-12 w-auto object-contain object-left sm:hidden"
+                width={280}
+                height={112}
+                className="h-full w-auto object-contain object-left"
                 priority
-              />
-              <Image
-                src="/logo-texto.png"
-                alt="TechnoStore"
-                width={220}
-                height={56}
-                className="hidden h-14 w-auto object-contain object-left sm:block"
-                priority
+                sizes="(max-width: 640px) 120px, 140px"
               />
             </span>
           </Link>

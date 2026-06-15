@@ -78,14 +78,15 @@ export function ScrollNavbar() {
                   className="flex shrink-0 items-center gap-3 transition-transform hover:scale-[1.02]"
                   aria-label="TechnoStore home"
                 >
-                  <span className="relative h-10 w-auto">
+                  <span className="inline-flex h-10 w-auto items-center">
                     <Image
-                      src="/logo-texto.png"
+                      src="/logo-texto.webp"
                       alt="TechnoStore"
-                      width={160}
-                      height={40}
-                      className="h-10 w-auto object-contain"
+                      width={280}
+                      height={112}
+                      className="h-full w-auto object-contain"
                       priority
+                      sizes="100px"
                     />
                   </span>
                 </Link>

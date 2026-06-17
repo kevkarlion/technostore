@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { CATEGORY_GROUPS } from "./category-groups";
+import { cleanProductName } from "@/domain/mappers/product-to-presentation";
 
 interface MarginProduct {
   id: string;
@@ -45,16 +46,19 @@ function getMarginLabel(margin: number): string {
 }
 
 /* ── Skeletons para mantener altura durante carga ─────────── */
-function SkeletonTableRows({ count = 6 }: { count?: number }) {
+function SkeletonTableRows() {
   return (
     <>
-      {Array.from({ length: count }).map((_, i) => (
+      {Array.from({ length: 6 }).map((_, i) => (
         <tr key={`skel-${i}`} className="animate-pulse">
           <td className="px-4 py-3">
             <div className="h-4 w-48 rounded bg-slate-800/60" />
           </td>
           <td className="px-4 py-3">
             <div className="h-4 w-24 rounded bg-slate-800/60" />
+          </td>
+          <td className="px-4 py-3">
+            <div className="h-4 w-16 rounded bg-slate-800/60" />
           </td>
           <td className="px-4 py-3">
             <div className="h-4 w-16 rounded bg-slate-800/60" />
@@ -89,8 +93,8 @@ function SkeletonCards({ count = 4 }: { count?: number }) {
             </div>
             <div className="h-8 w-20 rounded-lg bg-slate-800/60" />
           </div>
-          <div className="mt-3 grid grid-cols-3 gap-2">
-            {[1, 2, 3].map((j) => (
+          <div className="mt-3 grid grid-cols-4 gap-2">
+            {[1, 2, 3, 4].map((j) => (
               <div key={j} className="rounded-lg bg-slate-900/50 p-2.5">
                 <div className="h-3 w-10 rounded bg-slate-800/60" />
                 <div className="mt-1.5 h-4 w-14 rounded bg-slate-800/60" />
@@ -613,10 +617,13 @@ export default function AdminMargins() {
                   Categoría
                 </th>
                 <th className="sticky top-0 z-10 bg-slate-950 px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
-                  Costo (USD)
+                  Costo
                 </th>
                 <th className="sticky top-0 z-10 bg-slate-950 px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
-                  Precio (USD)
+                  Precio
+                </th>
+                <th className="sticky top-0 z-10 bg-slate-950 px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
+                  Ganancia
                 </th>
                 <th className="sticky top-0 z-10 bg-slate-950 px-4 py-3 text-left text-xs font-medium uppercase text-[var(--foreground-muted)]">
                   Margen
@@ -632,7 +639,7 @@ export default function AdminMargins() {
               ) : products.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="px-4 py-12 text-center text-sm text-[var(--foreground-muted)]"
                   >
                     No hay productos en esta categoría.
@@ -646,7 +653,7 @@ export default function AdminMargins() {
                   >
                     <td className="px-4 py-3">
                       <span className="text-sm font-medium text-[var(--foreground)]">
-                        {product.name}
+                        {cleanProductName(product.name)}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -666,7 +673,9 @@ export default function AdminMargins() {
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-sm font-medium text-[var(--foreground)]">
-                        {product.price != null ? `$${product.price.toFixed(2)}` : "—"}
+                        {product.price != null && product.costPrice != null
+                          ? `$${(product.price - product.costPrice).toFixed(2)}`
+                          : "—"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -724,7 +733,7 @@ export default function AdminMargins() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-[var(--foreground)] line-clamp-2">
-                      {product.name}
+                      {cleanProductName(product.name)}
                     </p>
                     <p className="mt-0.5 text-xs text-[var(--foreground-muted)]">
                       {product.category || "—"}
@@ -748,7 +757,7 @@ export default function AdminMargins() {
                   </Button>
                 </div>
 
-                <div className="mt-3 grid grid-cols-3 gap-2">
+                <div className="mt-3 grid grid-cols-4 gap-2">
                   <div className="rounded-lg bg-slate-900/50 p-2.5">
                     <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--foreground-muted)]">
                       Costo
@@ -767,10 +776,12 @@ export default function AdminMargins() {
                   </div>
                   <div className="rounded-lg bg-slate-900/50 p-2.5">
                     <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--foreground-muted)]">
-                      Precio
+                      Ganancia
                     </p>
                     <p className="mt-0.5 text-sm font-semibold text-[var(--foreground)]">
-                      {product.price != null ? `$${product.price.toFixed(2)}` : "—"}
+                      {product.price != null && product.costPrice != null
+                        ? `$${(product.price - product.costPrice).toFixed(2)}`
+                        : "—"}
                     </p>
                   </div>
                   <div className="rounded-lg bg-slate-900/50 p-2.5">
@@ -833,7 +844,7 @@ export default function AdminMargins() {
               </h3>
 
               <p className="mt-1 text-center text-sm text-[var(--foreground-muted)] line-clamp-2">
-                {marginModalProduct.name}
+                {cleanProductName(marginModalProduct.name)}
               </p>
 
               <div className="mt-6 space-y-5">
@@ -868,8 +879,6 @@ export default function AdminMargins() {
                   </label>
                   <Input
                     type="number"
-                    min={0}
-                    max={100}
                     step={0.1}
                     value={marginValue}
                     onChange={(e) =>
@@ -987,8 +996,6 @@ export default function AdminMargins() {
                   </label>
                   <Input
                     type="number"
-                    min={0}
-                    max={100}
                     step={0.1}
                     value={bulkMarginValue}
                     onChange={(e) =>

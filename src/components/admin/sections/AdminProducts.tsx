@@ -19,6 +19,7 @@ import {
 import { Toaster, toast } from "sonner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import ProductFormModal from "../ProductFormModal";
+import { cleanProductName } from "@/domain/mappers/product-to-presentation";
 
 interface Product {
   id: string;
@@ -433,7 +434,7 @@ export default function AdminProducts() {
                         )}
                       </div>
                       <span className="max-w-xs truncate text-sm font-medium text-[var(--foreground)]">
-                        {product.name}
+                        {cleanProductName(product.name)}
                       </span>
                     </div>
                   </td>
@@ -572,7 +573,7 @@ export default function AdminProducts() {
                             const data = await res.json();
                             setEditProduct({
                               id: data.id || data._id,
-                              name: data.name,
+                              name: cleanProductName(data.name),
                               description: data.description,
                               price: data.price,
                               currency: data.currency || "USD",
@@ -637,7 +638,7 @@ export default function AdminProducts() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-[var(--foreground)] line-clamp-2">
-                    {product.name}
+                    {cleanProductName(product.name)}
                   </p>
                   <p className="mt-0.5 text-xs text-[var(--foreground-muted)]">
                     {product.category}
@@ -676,7 +677,7 @@ export default function AdminProducts() {
                       const data = await res.json();
                       setEditProduct({
                         id: data.id || data._id,
-                        name: data.name,
+                        name: cleanProductName(data.name),
                         description: data.description,
                         price: data.price,
                         currency: data.currency || "USD",
@@ -866,7 +867,7 @@ export default function AdminProducts() {
                 pendingToggle.status === "active"
                   ? "dar de baja"
                   : "reactivar"
-              } "${pendingToggle.name}"?`
+              } "${cleanProductName(pendingToggle.name)}"?`
             : ""
         }
         confirmLabel={

@@ -137,16 +137,21 @@ export function toPresentationProduct(
 }
 
 /**
- * Cleans product name by removing price text that gets scraped along with the name.
- * Examples: "Kingston Fury 16GB U$D 50+ IVA 21%" -> "Kingston Fury 16GB"
+ * Cleans product name by removing price/IVA text that gets scraped along with the name.
+ * Only strips trailing price patterns — preserves model numbers in parentheses.
+ * Examples:
+ *   "Kingston Fury 16GB U$D 50+ IVA 21%"              -> "Kingston Fury 16GB"
+ *   "Base ... (NS-CN93R) RGBU$D 27,96+ IVA 21%$ ..."  -> "Base ... (NS-CN93R) RGB"
  */
 export function cleanProductName(name: string): string {
-  // Remove patterns like "U$D XXX+ IVA..." or "U$D XXX+IVA..."
+  if (!name) return name;
   return name
-    .replace(/\([^)]*\)/g, "") // Remove parentheses content first
-    .replace(/U\$D\s*[\d,]+\+?\s*IVA.*$/i, "")
-    .replace(/\$[\d,]+\.?\d*/g, "") // Remove dollar amounts
-    .replace(/\+?\s*IVA.*$/i, "")
-    .replace(/\s+/g, " ") // Normalize whitespace
+    // Remove trailing price/IVA: "U$D 50+ IVA 21%$ 123,45+ IVA 21%"
+    // Handles IVA percentages with comma decimal: "10,5%" (Argentine locale)
+    // \s* before ARS price handles "$ 12.293,20" (space after $ sign)
+    .replace(/\s*U\$D\s*[\d.,]+(?:\+?\s*IVA\s*[\d%,.]+%?)?(?:\s*\$\s*[\d.,]+(?:\+?\s*IVA\s*[\d%,.]+%?)?)?$/i, "")
+    // Fallback: just "$ price+ IVA xx%" at the end
+    .replace(/\s*\$\s*[\d.,]+\+?\s*IVA\s*[\d%,.]+%?$/i, "")
+    .replace(/\s+/g, " ")
     .trim();
 }

@@ -14,14 +14,9 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    if (
-      profitMargin == null ||
-      typeof profitMargin !== "number" ||
-      profitMargin < 0 ||
-      profitMargin > 100
-    ) {
+    if (profitMargin == null || typeof profitMargin !== "number") {
       return NextResponse.json(
-        { error: "profitMargin must be a number between 0 and 100" },
+        { error: "profitMargin debe ser un número válido" },
         { status: 400 }
       );
     }

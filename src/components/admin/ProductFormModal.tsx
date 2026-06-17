@@ -205,8 +205,8 @@ export default function ProductFormModal({
     if (!form.costPrice.trim() || isNaN(costPrice) || costPrice < 0)
       errs.costPrice = "Costo inválido";
     const profitMargin = parseFloat(form.profitMargin);
-    if (form.profitMargin.trim() && (isNaN(profitMargin) || profitMargin < 0 || profitMargin > 100))
-      errs.profitMargin = "Margen debe ser 0-100";
+    if (form.profitMargin.trim() && isNaN(profitMargin))
+      errs.profitMargin = "Margen inválido";
     const stock = parseInt(form.stock, 10);
     if (isNaN(stock) || stock < 0) errs.stock = "Stock inválido";
     setErrors(errs);
@@ -379,8 +379,6 @@ export default function ProductFormModal({
                 value={form.profitMargin}
                 onChange={set("profitMargin")}
                 step="0.1"
-                min={0}
-                max={100}
                 placeholder="0"
                 className={errors.profitMargin ? "border-rose-500" : ""}
               />

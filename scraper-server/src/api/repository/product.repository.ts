@@ -2,6 +2,7 @@ import { ObjectId } from "mongodb";
 import { getDb } from "@/config/db";
 import type { CreateProductDTO, UpdateProductDTO, ScrapedProductDTO } from "@/domain/dto/product.dto";
 import { productMapper } from "@/domain/mappers/product.mapper";
+import { generateProductSlug } from "@/domain/mappers/product-to-presentation";
 import type { Product } from "@/domain/models/product";
 
 const COLLECTION_NAME = "products";
@@ -73,6 +74,7 @@ export const productRepository = {
 
     const result = await collection.insertOne({
       ...data,
+      slug: generateProductSlug(data.name),
       createdAt: now,
       updatedAt: now,
     });
@@ -161,6 +163,7 @@ export const productRepository = {
       // Producto nuevo - crear
       const result = await collection.insertOne({
         ...data,
+        slug: generateProductSlug(data.name),
         lastSyncedAt: now,
         status: "active",
         createdAt: now,
@@ -212,6 +215,12 @@ export const productRepository = {
         updateOperations[field.key] = newVal;
         changes.push(field.key);
       }
+    }
+
+    // Si cambió el nombre, regenerar slug
+    if (changes.includes("name")) {
+      updateOperations.slug = generateProductSlug(data.name);
+      changes.push("slug");
     }
 
     // 3. Imágenes - lógica especial

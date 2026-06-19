@@ -7,6 +7,15 @@ import { generateProductSlug, cleanProductName } from "@/domain/mappers/product-
 
 const COLLECTION_NAME = "products";
 
+/** Normaliza texto: lowercase, sin acentos, trim */
+function normalizeText(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 export interface ListProductsParams {
   page?: number;
   limit?: number;
@@ -85,7 +94,7 @@ export const productRepository = {
 
   /**
    * Search products by name (case-insensitive and accent-insensitive).
-   * Returns ALL products matching the query, regardless of status or stock.
+   * Uses MongoDB $text search on pre-normalized searchName field.
    */
   async searchByName(
     query: string,
@@ -101,41 +110,42 @@ export const productRepository = {
     const db = await getDb();
     const collection = db.collection(COLLECTION_NAME);
 
-    // Normalize the query: remove accents and convert to lowercase
-    const normalizedQuery = query
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .trim();
+    // Normalize query: lowercase, sin acentos
+    const normalizedQuery = normalizeText(query);
 
-    // Fetch active products only (discontinued should not appear in search)
-    const docs = await collection
-      .find({ status: "active" })
+    // $text search on searchName + description, con paginación en una sola pasada
+    const [result] = await collection
+      .aggregate([
+        {
+          $match: {
+            $text: { $search: normalizedQuery },
+            status: "active",
+          },
+        },
+        {
+          $sort: { score: { $meta: "textScore" } },
+        },
+        {
+          $facet: {
+            metadata: [{ $count: "total" }],
+            items: [
+              { $skip: (page - 1) * limit },
+              { $limit: limit },
+            ],
+          },
+        },
+      ])
       .toArray();
 
-    const products = docs.map((doc) => productMapper.toDomain(doc as any));
+    const total = result?.metadata?.[0]?.total ?? 0;
+    const docs = result?.items ?? [];
 
-    // Split query into words for partial/fuzzy matching
-    // e.g. "silla oficina" matches "Silla de Oficina" (both words appear)
-    const words = normalizedQuery.split(/\s+/).filter(Boolean);
-
-    // Filter by normalized name (accent and case insensitive)
-    const filtered = products.filter((p) => {
-      if (!p.name) return false;
-      const normalizedName = p.name
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
-      // All words must appear in the name (order-independent)
-      return words.every((word) => normalizedName.includes(word));
-    });
-
-    // Apply pagination
-    const total = filtered.length;
-    const start = (page - 1) * limit;
-    const items = filtered.slice(start, start + limit);
-
-    return { items, total, page, limit };
+    return {
+      items: docs.map((doc: any) => productMapper.toDomain(doc)),
+      total,
+      page,
+      limit,
+    };
   },
 
   async create(data: CreateProductDTO): Promise<Product> {
@@ -149,6 +159,7 @@ export const productRepository = {
       costPrice: data.costPrice,
       profitMargin: data.profitMargin,
       slug: data.name ? generateProductSlug(data.name) : undefined,
+      searchName: data.name ? normalizeText(data.name) : undefined,
       createdAt: now,
       updatedAt: now,
     });
@@ -186,7 +197,11 @@ export const productRepository = {
     // Build $set only with fields that are actually provided (avoid overwriting with undefined)
     const setFields: Record<string, any> = { updatedAt: now };
 
-    if (data.name !== undefined) setFields.name = data.name;
+    if (data.name !== undefined) {
+      setFields.name = data.name;
+      setFields.searchName = normalizeText(data.name);
+      setFields.slug = generateProductSlug(data.name);
+    }
     if (data.description !== undefined) setFields.description = data.description;
     if (data.price !== undefined) setFields.price = data.price;
     if (data.costPrice !== undefined) setFields.costPrice = data.costPrice;
@@ -266,6 +281,7 @@ export const productRepository = {
         ...data,
         costPrice: data.price,
         slug: generateProductSlug(data.name),
+        searchName: normalizeText(data.name),
         lastSyncedAt: now,
         status: "active",
         createdAt: now,
@@ -339,10 +355,11 @@ export const productRepository = {
       }
     }
 
-    // Si cambió el nombre, regenerar slug
+    // Si cambió el nombre, regenerar slug y searchName
     if (changes.includes("name")) {
       updateOperations.slug = generateProductSlug(data.name);
-      changes.push("slug");
+      updateOperations.searchName = normalizeText(data.name);
+      changes.push("slug", "searchName");
     }
 
     // 3. Imágenes - lógica especial

@@ -554,6 +554,46 @@ export const productRepository = {
   },
 
   /**
+   * Find featured products by search terms.
+   * Uses $text search on searchName for each term, deduplicates, and returns top matches.
+   */
+  async findFeaturedBySearchTerms(
+    terms: string[],
+    options: { perTerm?: number; maxTotal?: number } = {}
+  ): Promise<Product[]> {
+    const db = await getDb();
+    const collection = db.collection(COLLECTION_NAME);
+    const perTerm = options.perTerm ?? 2;
+    const maxTotal = options.maxTotal ?? 10;
+    const seen = new Set<string>();
+    const results: Product[] = [];
+
+    for (const term of terms) {
+      const normalized = normalizeText(term);
+      const docs = await collection
+        .find(
+          { $text: { $search: normalized }, status: "active" },
+          { projection: { score: { $meta: "textScore" } } }
+        )
+        .sort({ score: { $meta: "textScore" } })
+        .limit(perTerm)
+        .toArray();
+
+      for (const doc of docs) {
+        const id = doc._id.toString();
+        if (!seen.has(id)) {
+          seen.add(id);
+          results.push(productMapper.toDomain(doc as any));
+        }
+      }
+
+      if (results.length >= maxTotal) break;
+    }
+
+    return results;
+  },
+
+  /**
    * Filtra productos por categoría con filtros adicionales (precio, marca)
    */
   async findByCategorySlugFiltered(

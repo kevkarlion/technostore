@@ -27,6 +27,13 @@ export const productService = {
     return productRepository.findFeatured(limit);
   },
 
+  async listFeaturedBySearchTerms(
+    terms: string[],
+    options: { perTerm?: number; maxTotal?: number } = {}
+  ): Promise<Product[]> {
+    return productRepository.findFeaturedBySearchTerms(terms, options);
+  },
+
   async getProductById(id: string): Promise<Product> {
     const product = await productRepository.findById(id);
     if (!product) {

@@ -4,30 +4,17 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { clsx } from "clsx";
-import { Badge } from "@/components/ui/badge";
 import { Price } from "@/components/ui/price";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Product } from "@/types/domain";
 import { isCatalogMode } from "@/lib/catalog-mode";
 
 /**
- * Badge type for featured products
- */
-export type FeaturedBadge = "new" | "sale" | "featured" | "hot";
-
-/**
- * Extended product interface for featured products
- */
-export interface FeaturedProduct extends Product {
-  featuredBadge?: FeaturedBadge;
-}
-
-/**
  * Props for PremiumFeaturedProducts component
  */
 interface PremiumFeaturedProductsProps {
   /** Array of products to display */
-  products: FeaturedProduct[];
+  products: Product[];
   /** Section title */
   title?: string;
   /** Additional CSS classes */
@@ -35,34 +22,11 @@ interface PremiumFeaturedProductsProps {
 }
 
 /**
- * Badge configuration based on type
- */
-const badgeConfig: Record<FeaturedBadge, { label: string; className: string }> = {
-  new: {
-    label: "NUEVO",
-    className: "bg-green-500 text-white",
-  },
-  sale: {
-    label: "OFERTA",
-    className: "bg-yellow-500 text-black",
-  },
-  featured: {
-    label: "MÁS VENDIDO ★",
-    className: "bg-rose-500 text-white",
-  },
-  hot: {
-    label: "HOT SALE 🔥",
-    className: "bg-red-600 text-white",
-  },
-};
-
-/**
- * PremiumFeaturedProducts - Horizontal carousel of featured products with badges
+ * PremiumFeaturedProducts - Horizontal carousel of featured products
  *
  * Features:
  * - Horizontal scroll with snap behavior
  * - Hide scrollbar but allow swipe
- * - Product badges (MÁS VENDIDO, NUEVO, HOT SALE, OFERTA)
  * - Navigation dots
  * - Mobile-first responsive design
  */
@@ -145,7 +109,6 @@ export function PremiumFeaturedProducts({
         >
         {products.map((product) => {
           const primaryImage = product.images?.[0];
-          const badge = product.featuredBadge;
 
           return (
             <div
@@ -181,20 +144,6 @@ export function PremiumFeaturedProducts({
                   ) : (
                     <div className="flex h-full items-center justify-center bg-[var(--background)] p-2 text-center text-xs text-[var(--foreground-muted)]">
                       {product.name.substring(0, 30)}...
-                    </div>
-                  )}
-
-                  {/* Badge overlay */}
-                  {badge && (
-                    <div className="absolute left-2 top-2">
-                      <span
-                        className={clsx(
-                          "inline-block rounded-md px-2 py-1 text-xs font-bold",
-                          badgeConfig[badge].className
-                        )}
-                      >
-                        {badgeConfig[badge].label}
-                      </span>
                     </div>
                   )}
                 </div>

@@ -4,36 +4,33 @@ import { toPresentationProduct } from "@/domain/mappers/product-to-presentation"
 import { HeroWrapper } from "@/components/home/hero-wrapper";
 import { CategoryShowcase } from "@/components/home/category-showcase";
 import { PremiumFeaturedProducts } from "@/components/home/premium-featured-products";
-import type { FeaturedProduct, FeaturedBadge } from "@/components/home/premium-featured-products";
 import { TrustBadges } from "@/components/home/trust-badges";
 import { ServiceDifferentials } from "@/components/home/service-differentials";
 import { ContactLocation } from "@/components/home/contact-location";
 import { ScrollRevealSection } from "@/components/home/scroll-reveal-section";
 import { getExchangeRateServer } from "@/lib/exchange-rate-server";
 
-// Assign badges dynamically based on position
-const badgeSequence: FeaturedBadge[] = ["featured", "new", "sale", "hot", "featured", "new", "sale", "hot"];
-
-function mapToFeaturedProducts(products: CatalogProduct[]): FeaturedProduct[] {
-  return products.map((product, index) => ({
-    ...product,
-    featuredBadge: badgeSequence[index % badgeSequence.length],
-  }));
-}
+// Search terms for featured products section
+const FEATURED_SEARCH_TERMS = [
+  "mochila red dragon",
+  "combos de mouse red dragon",
+  "monitores",
+  "alcohol isopropílico",
+  "perifericos para oficina con cable o inalambricos",
+];
 
 export default async function Home() {
   // Fetch exchange rate and featured products
   const exchangeRateResponse = getExchangeRateServer();
   const [exchangeRateData, featuredBackendProducts] = await Promise.all([
     exchangeRateResponse,
-    productService.listFeaturedProducts(8),
+    productService.listFeaturedBySearchTerms(FEATURED_SEARCH_TERMS, { perTerm: 2, maxTotal: 10 }),
   ]);
   const exchangeRate = exchangeRateData?.venta ?? undefined;
 
   const featuredProducts: CatalogProduct[] = featuredBackendProducts.map(
     (p) => toPresentationProduct(p, exchangeRate)
   );
-  const featuredProductsWithBadges = mapToFeaturedProducts(featuredProducts);
 
   // Fetch categories from DB (used in CategoryShowcase)
   // (Categories are now displayed in HeroCarousel + CategoryShowcase)

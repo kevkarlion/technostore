@@ -148,6 +148,7 @@ export const productRepository = {
       ...data,
       costPrice: data.costPrice,
       profitMargin: data.profitMargin,
+      slug: data.name ? generateProductSlug(data.name) : undefined,
       createdAt: now,
       updatedAt: now,
     });
@@ -264,6 +265,7 @@ export const productRepository = {
       const insertData = {
         ...data,
         costPrice: data.price,
+        slug: generateProductSlug(data.name),
         lastSyncedAt: now,
         status: "active",
         createdAt: now,
@@ -335,6 +337,12 @@ export const productRepository = {
         updateOperations[field.key] = newVal;
         changes.push(field.key);
       }
+    }
+
+    // Si cambió el nombre, regenerar slug
+    if (changes.includes("name")) {
+      updateOperations.slug = generateProductSlug(data.name);
+      changes.push("slug");
     }
 
     // 3. Imágenes - lógica especial
@@ -489,17 +497,15 @@ export const productRepository = {
   async findBySlug(slug: string): Promise<Product | null> {
     const db = await getDb();
     const collection = db.collection(COLLECTION_NAME);
-
     const targetSlug = slug.toLowerCase();
 
-    // Find by matching slug generation (no fallback by externalId to avoid bugs)
-    const docs = await collection
-      .find({ status: "active" })
-      .toArray();
+    // Fast path: direct slug query (O(1) after migration backfills slugs)
+    const doc = await collection.findOne({ slug: targetSlug, status: "active" });
+    if (doc) return productMapper.toDomain(doc as any);
 
-    for (const doc of docs) {
-      // Using generateProductSlug (which includes cleanProductName) 
-      // plus cleanProductName only version
+    // Slow fallback: for products not yet migrated, use cursor to avoid loading all into memory
+    const cursor = collection.find({ status: "active" }).batchSize(50);
+    for await (const doc of cursor) {
       const fullSlug = generateProductSlug(doc.name);
       const cleanedSlug = generateProductSlug(cleanProductName(doc.name));
 

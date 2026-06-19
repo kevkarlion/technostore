@@ -69,7 +69,7 @@ export default async function Home() {
       {/* 2. PremiumFeaturedProducts - abajo del hero */}
       <section className="py-16">
         <PremiumFeaturedProducts
-          products={featuredProductsWithBadges}
+          products={featuredProducts}
           title="Productos Destacados"
         />
       </section>

@@ -68,6 +68,7 @@ export default function AdminProducts() {
     status: string;
     categories: string[];
     imageUrls: string[];
+    cloudinaryUrls?: string[];
     costPrice?: number;
     profitMargin?: number;
   } | null>(null);
@@ -582,6 +583,7 @@ export default function AdminProducts() {
                               status: data.status || "active",
                               categories: data.categories || [],
                               imageUrls: data.imageUrls || [],
+                              cloudinaryUrls: data.cloudinaryUrls || [],
                               costPrice: data.costPrice,
                               profitMargin: data.profitMargin,
                             });
@@ -686,6 +688,7 @@ export default function AdminProducts() {
                         status: data.status || "active",
                         categories: data.categories || [],
                         imageUrls: data.imageUrls || [],
+                        cloudinaryUrls: data.cloudinaryUrls || [],
                         costPrice: data.costPrice,
                         profitMargin: data.profitMargin,
                       });

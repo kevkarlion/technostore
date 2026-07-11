@@ -28,21 +28,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       throw notFound("Product not found");
     }
     
-    // Get exchange rate for price conversion (use venta for selling price)
-    let exchangeRate: number | undefined;
-    try {
-      const res = await fetch(new URL("/api/exchange-rate", req.url).toString(), { 
-        cache: "no-store" 
-      });
-      if (res.ok) {
-        const data = await res.json();
-        exchangeRate = data?.venta ?? undefined;  // Use venta (sell price) not compra
-      }
-    } catch (err) {
-      console.error("[Products] Failed to get exchange rate:", err);
-    }
-    
-    const result = productMapper.toResponse(product, exchangeRate);
+    // Admin always works in USD — no exchange rate conversion
+    const result = productMapper.toResponse(product);
     
     return NextResponse.json(result, { status: 200 });
   } catch (error) {

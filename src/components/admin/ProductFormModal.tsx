@@ -23,6 +23,7 @@ interface ProductFormModalProps {
     status: string;
     categories: string[];
     imageUrls: string[];
+    cloudinaryUrls?: string[];
     costPrice?: number;
     profitMargin?: number;
   } | null;
@@ -89,13 +90,21 @@ export default function ProductFormModal({
         description: editProduct.description || "",
         currency: editProduct.currency,
         stock: String(editProduct.stock),
-        costPrice: editProduct.costPrice != null ? String(editProduct.costPrice) : "",
+        costPrice: editProduct.costPrice != null && editProduct.costPrice > 0
+          ? String(editProduct.costPrice)
+          : (editProduct.price > 0 ? String(editProduct.price) : ""),
         profitMargin: editProduct.profitMargin != null ? String(editProduct.profitMargin) : "",
         status: editProduct.status as any,
       });
       setSelectedCategories(new Set(editProduct.categories));
+      // Combinar imageUrls + cloudinaryUrls (deduplicar)
+      const allImageUrls = [
+        ...(editProduct.imageUrls || []),
+        ...(editProduct.cloudinaryUrls || []),
+      ];
+      const uniqueUrls = [...new Set(allImageUrls.filter(Boolean))];
       setImages(
-        (editProduct.imageUrls || []).map((url) => ({
+        uniqueUrls.map((url) => ({
           preview: url,
           cloudinaryUrl: url,
           uploading: false,

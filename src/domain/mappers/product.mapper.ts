@@ -87,7 +87,14 @@ export const productMapper = {
         priceInArs = Math.round(product.price * exchangeRate * 100) / 100;
       }
     }
-    
+
+    // Resolve relative image URLs to full jotakp URLs
+    const SUPPLIER_BASE = "https://jotakp.dyndns.org";
+    const resolveUrls = (urls?: string[]): string[] =>
+      (urls || []).map((url) =>
+        url.startsWith("http") ? url : `${SUPPLIER_BASE}/${url.replace(/^\//, "")}`
+      );
+
     return {
       id: product.id,
       name: product.name,
@@ -98,8 +105,8 @@ export const productMapper = {
       inStock: product.inStock,
       status: product.status,
       categories: product.categories,
-      imageUrls: product.imageUrls,
-      cloudinaryUrls: product.cloudinaryUrls,
+      imageUrls: resolveUrls(product.imageUrls),
+      cloudinaryUrls: resolveUrls(product.cloudinaryUrls),
       attributes: product.attributes,
       externalId: product.externalId,
       supplier: product.supplier,

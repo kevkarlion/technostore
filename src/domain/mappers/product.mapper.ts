@@ -85,13 +85,18 @@ export const productMapper = {
   },
 
   toResponse(product: Product, exchangeRate?: number): ProductResponseDTO {
-    // Always recalculate selling price from costPrice + profitMargin when both exist
+    // Use scraped price directly if it exists (> 0), otherwise calculate from cost + margin
     let sellingPrice = product.price;
-    if (product.costPrice != null && product.costPrice > 0 && product.profitMargin != null) {
-      sellingPrice = Math.round(product.costPrice * (1 + product.profitMargin / 100) * 100) / 100;
-    } else if (product.costPrice != null && product.costPrice > 0 && (product.price == null || product.price === 0)) {
-      // No margin set, price is 0/missing: use costPrice as selling price (0% margin)
-      sellingPrice = product.costPrice;
+    
+    // Only recalculate from costPrice + margin if price is 0/null/undefined
+    // This preserves the scraped price (which already includes IVA) as the final price
+    if ((!product.price || product.price === 0) && product.costPrice != null && product.costPrice > 0) {
+      if (product.profitMargin != null) {
+        sellingPrice = Math.round(product.costPrice * (1 + product.profitMargin / 100) * 100) / 100;
+      } else {
+        // No margin set: use costPrice as selling price (0% margin)
+        sellingPrice = product.costPrice;
+      }
     }
 
     // Convert price to ARS if exchangeRate is provided

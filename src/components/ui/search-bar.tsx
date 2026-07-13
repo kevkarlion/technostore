@@ -218,7 +218,7 @@ export function SearchBar({ className, variant = "full" }: SearchBarProps) {
               role="listbox"
               className={`
                 fixed inset-x-0 bottom-0 top-16 z-50 bg-[var(--surface)] overflow-y-auto
-                md:static md:inset-auto md:mt-2 md:rounded-xl md:border md:border-[var(--border-subtle)] md:shadow-xl md:overflow-hidden md:max-h-96
+                md:absolute md:left-0 md:right-0 md:top-full md:mt-2 md:rounded-xl md:border md:border-[var(--border-subtle)] md:shadow-xl md:overflow-hidden md:max-h-96 md:z-[60]
                 ${suggestions.length === 0 && !loading ? "" : ""}
               `}
             >

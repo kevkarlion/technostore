@@ -116,6 +116,8 @@ export default function AdminProducts() {
         id: p.id || p._id,
         name: p.name || "Sin nombre",
         price: p.price ?? 0,
+        costPrice: p.costPrice,
+        profitMargin: p.profitMargin,
         stock: p.stock ?? p.stockQuantity ?? 0,
         inStock: p.inStock ?? false,
         category: p.categories?.[0] || "Sin categoría",

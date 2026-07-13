@@ -27,15 +27,13 @@ export async function GET(req: NextRequest) {
       .toArray();
 
     const products = docs.map((doc) => {
-      // Si price es 0/null pero hay costPrice + profitMargin, calcularlo
+      // Siempre recalcular price desde costPrice + profitMargin cuando ambos existen
       let price = doc.price;
-      if (
-        (!price || price === 0) &&
-        doc.costPrice != null &&
-        doc.costPrice > 0 &&
-        doc.profitMargin != null
-      ) {
+      if (doc.costPrice != null && doc.costPrice > 0 && doc.profitMargin != null) {
         price = Math.round(doc.costPrice * (1 + (doc.profitMargin as number) / 100) * 100) / 100;
+      } else if (doc.costPrice != null && doc.costPrice > 0 && doc.profitMargin == null) {
+        // Sin margin configurado: price = costPrice (0% implícito)
+        price = doc.costPrice;
       }
 
       return {

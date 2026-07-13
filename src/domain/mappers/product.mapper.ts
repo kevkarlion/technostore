@@ -79,12 +79,21 @@ export const productMapper = {
   },
 
   toResponse(product: Product, exchangeRate?: number): ProductResponseDTO {
+    // Always recalculate selling price from costPrice + profitMargin when both exist
+    let sellingPrice = product.price;
+    if (product.costPrice != null && product.costPrice > 0 && product.profitMargin != null) {
+      sellingPrice = Math.round(product.costPrice * (1 + product.profitMargin / 100) * 100) / 100;
+    } else if (product.costPrice != null && product.costPrice > 0 && (product.price == null || product.price === 0)) {
+      // No margin set, price is 0/missing: use costPrice as selling price (0% margin)
+      sellingPrice = product.costPrice;
+    }
+
     // Convert price to ARS if exchangeRate is provided
-    let priceInArs = product.price;
-    if (exchangeRate && exchangeRate > 0 && product.price) {
+    let priceInArs = sellingPrice;
+    if (exchangeRate && exchangeRate > 0 && sellingPrice) {
       // If price appears to be in USD (less than 10000), convert to ARS
-      if (product.price < 10000) {
-        priceInArs = Math.round(product.price * exchangeRate * 100) / 100;
+      if (sellingPrice < 10000) {
+        priceInArs = Math.round(sellingPrice * exchangeRate * 100) / 100;
       }
     }
 

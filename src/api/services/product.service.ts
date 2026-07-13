@@ -87,8 +87,12 @@ export const productService = {
     } else if (dto.profitMargin !== undefined && dto.costPrice === undefined) {
       // Only margin changed — use existing costPrice from DB
       const existing = await productRepository.findById(id);
-      if (existing?.costPrice) {
+      if (existing?.costPrice != null && existing.costPrice > 0) {
         updateData.price = Math.round(existing.costPrice * (1 + dto.profitMargin / 100) * 100) / 100;
+      } else if (existing?.price != null && existing.price > 0) {
+        // Fallback: si costPrice es null pero price existe, tratar price como costo
+        updateData.costPrice = existing.price;
+        updateData.price = Math.round(existing.price * (1 + dto.profitMargin / 100) * 100) / 100;
       }
     }
 

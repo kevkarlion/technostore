@@ -326,11 +326,15 @@ export const productRepository = {
         updateOperations.costPrice = data.price;
         changes.push("costPrice");
 
-        // Recalculate selling price if product has a margin set
+        // Recalculate selling price from costPrice + margin
         const existingMargin = (existing as any).profitMargin;
-        if (existingMargin != null && existingMargin > 0) {
+        if (existingMargin != null) {
           const newPrice = Math.round(data.price * (1 + existingMargin / 100) * 100) / 100;
           updateOperations.price = newPrice;
+          changes.push("price");
+        } else {
+          // Sin margin: price = costPrice (0% implícito)
+          updateOperations.price = data.price;
           changes.push("price");
         }
       }

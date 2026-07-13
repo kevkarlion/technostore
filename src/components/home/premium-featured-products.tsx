@@ -163,8 +163,12 @@ export function PremiumFeaturedProducts({
                         />
                       </div>
                       <div className="mt-0.5 flex items-center gap-1 text-xs text-[var(--foreground-muted)]">
-                        <span className="text-amber-400">{product.rating.toFixed(1)} ★</span>
-                        <span>({product.ratingCount})</span>
+                        {product.rating != null && product.rating > 0 && (
+                          <>
+                            <span className="text-amber-400">{product.rating.toFixed(1)} ★</span>
+                            <span>({product.ratingCount ?? 0})</span>
+                          </>
+                        )}
                       </div>
                     </>
                   )}

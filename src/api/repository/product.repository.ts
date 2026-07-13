@@ -4,17 +4,12 @@ import type { CreateProductDTO, UpdateProductDTO, ScrapedProductDTO } from "@/do
 import { productMapper } from "@/domain/mappers/product.mapper";
 import type { Product } from "@/domain/models/product";
 import { generateProductSlug, cleanProductName } from "@/domain/mappers/product-to-presentation";
+import { searchEngine } from "@/lib/search/search-engine";
+import { extractFields } from "@/lib/search/field-extractor";
+
+import { normalizeText } from "@/lib/search/normalizer";
 
 const COLLECTION_NAME = "products";
-
-/** Normaliza texto: lowercase, sin acentos, trim */
-function normalizeText(text: string): string {
-  return text
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-}
 
 export interface ListProductsParams {
   page?: number;
@@ -93,58 +88,22 @@ export const productRepository = {
   },
 
   /**
-   * Search products by name (case-insensitive and accent-insensitive).
-   * Uses MongoDB $text search on pre-normalized searchName field.
+   * Search products by name using the intelligent search engine.
+   * Maintains the existing API contract — backward compatible.
    */
   async searchByName(
     query: string,
     options: { page?: number; limit?: number } = {}
   ): Promise<{ items: Product[]; total: number; page: number; limit: number }> {
-    const page = Math.max(1, options.page || 1);
-    const limit = Math.min(100, Math.max(1, options.limit || 20));
-
-    if (!query || !query.trim()) {
-      return { items: [], total: 0, page, limit };
-    }
-
-    const db = await getDb();
-    const collection = db.collection(COLLECTION_NAME);
-
-    // Normalize query: lowercase, sin acentos
-    const normalizedQuery = normalizeText(query);
-
-    // $text search on searchName + description, con paginación en una sola pasada
-    const [result] = await collection
-      .aggregate([
-        {
-          $match: {
-            $text: { $search: normalizedQuery },
-            status: "active",
-          },
-        },
-        {
-          $sort: { score: { $meta: "textScore" } },
-        },
-        {
-          $facet: {
-            metadata: [{ $count: "total" }],
-            items: [
-              { $skip: (page - 1) * limit },
-              { $limit: limit },
-            ],
-          },
-        },
-      ])
-      .toArray();
-
-    const total = result?.metadata?.[0]?.total ?? 0;
-    const docs = result?.items ?? [];
-
+    const result = await searchEngine.search(query, {
+      page: options.page,
+      limit: options.limit,
+    });
     return {
-      items: docs.map((doc: any) => productMapper.toDomain(doc)),
-      total,
-      page,
-      limit,
+      items: result.items.map((s) => s.product),
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
     };
   },
 
@@ -153,6 +112,7 @@ export const productRepository = {
     const collection = db.collection(COLLECTION_NAME);
 
     const now = new Date();
+    const extractedFields = data.name ? extractFields(data.name) : {};
 
     const result = await collection.insertOne({
       ...data,
@@ -160,6 +120,7 @@ export const productRepository = {
       profitMargin: data.profitMargin,
       slug: data.name ? generateProductSlug(data.name) : undefined,
       searchName: data.name ? normalizeText(data.name) : undefined,
+      ...extractedFields,
       createdAt: now,
       updatedAt: now,
     });
@@ -201,6 +162,8 @@ export const productRepository = {
       setFields.name = data.name;
       setFields.searchName = normalizeText(data.name);
       setFields.slug = generateProductSlug(data.name);
+      const extractedFields = extractFields(data.name);
+      Object.assign(setFields, extractedFields);
     }
     if (data.description !== undefined) setFields.description = data.description;
     if (data.price !== undefined) setFields.price = data.price;
@@ -277,11 +240,13 @@ export const productRepository = {
     if (!existing) {
       // Producto nuevo - crear
       // Set costPrice from scraper price, selling price starts equal to cost (0% margin)
+      const extractedFields = extractFields(data.name);
       const insertData = {
         ...data,
         costPrice: data.price,
         slug: generateProductSlug(data.name),
         searchName: normalizeText(data.name),
+        ...extractedFields,
         lastSyncedAt: now,
         status: "active",
         createdAt: now,
@@ -359,11 +324,13 @@ export const productRepository = {
       }
     }
 
-    // Si cambió el nombre, regenerar slug y searchName
+    // Si cambió el nombre, regenerar slug, searchName y campos de búsqueda
     if (changes.includes("name")) {
       updateOperations.slug = generateProductSlug(data.name);
       updateOperations.searchName = normalizeText(data.name);
-      changes.push("slug", "searchName");
+      const extractedFields = extractFields(data.name);
+      Object.assign(updateOperations, extractedFields);
+      changes.push("slug", "searchName", "brand", "productType", "capacity", "formFactor");
     }
 
     // 3. Imágenes - lógica especial
@@ -538,25 +505,6 @@ export const productRepository = {
     return null;
   },
 
-  async search(query: string, limit = 20): Promise<Product[]> {
-    const db = await getDb();
-    const collection = db.collection(COLLECTION_NAME);
-
-    const docs = await collection
-      .find({
-        status: "active",
-        $or: [
-          { name: { $regex: query, $options: "i" } },
-          { description: { $regex: query, $options: "i" } },
-        ],
-      })
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .toArray();
-
-    return docs.map((doc) => productMapper.toDomain(doc as any));
-  },
-
   /**
    * Find featured products by search terms.
    * Uses $text search on searchName for each term, deduplicates, and returns top matches.
@@ -696,64 +644,21 @@ export const productRepository = {
     const db = await getDb();
     const collection = db.collection(COLLECTION_NAME);
 
-    // Palabras a excluir (no son marcas)
-    const excludedWords = new Set([
-      "para", "con", "sin", "de", "el", "la", "los", "las", "un", "una",
-      "usb", "hdmi", "vga", "aux", "bluetooth", "wifi", "led", "rgb",
-      "pro", "plus", "max", "mini", "nano", "micro", "smart", "wireless",
-      "inalambrico", "inalámbrico", "recargable", "gamer", "gaming",
-      "premium", "ultimate", "edition", "series", "gen", "version",
-      "new", "original", "genuino", "compatible", "refurbished"
-    ]);
-
-    // Palabras que parecen marcas (capitalizadas o acrónimos)
-    const likelyBrands = new Set([
-      "Kolke", "Ugreen", "Netmak", "Nisuta", "Perfect", "Oculus",
-      "Logitech", "JBL", "Sony", "Redragon", "HyperX", "Razer", "Corsair",
-      "Samsung", "LG", "Philips", "Xiaomi", "Huawei", "Apple", "Microsoft",
-      "Lenovo", "HP", "Dell", "Asus", "Acer", "MSI", "Gigabyte", "Nvidia",
-      "Kingston", "Western", "Seagate", "Crucial", "Sandisk", "Toshiba",
-      "Soundcore", "Anker", "Edifier", "Bose", "Sennheiser", "Audio",
-      "Genius", "Trust", "Thermaltake", "Coolermaster", "Mars", "Targus",
-      "Belkin", "Fellowes", "Verbatim", "Klip", "Qin", "Fantech",
-      "Red", "Black", "White", "Silver", "Gold", "Premium", "Super"
-    ]);
-
-    const products = await collection
-      .find({ categories: categorySlug, status: "active" })
-      .project({ name: 1 })
+    const result = await collection
+      .aggregate([
+        {
+          $match: { categories: categorySlug, status: "active", brand: { $exists: true, $ne: null } },
+        },
+        {
+          $group: { _id: "$brand", count: { $sum: 1 } },
+        },
+        { $sort: { count: -1 } },
+        { $limit: 20 },
+        { $project: { _id: 0, brand: "$_id", count: 1 } },
+      ])
       .toArray();
 
-    const brandCounts: Record<string, number> = {};
-
-    // Extract brand from product name - detect first word(s)
-    for (const product of products) {
-      const name = product.name || "";
-      
-      // Get first word (before first space/parenthesis/number)
-      const firstWord = name.replace(/^([A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+).*$/, '$1').trim();
-      
-      if (firstWord && firstWord.length >= 3 && firstWord.length <= 20) {
-        // Check if it's not in excluded words
-        if (!excludedWords.has(firstWord.toLowerCase())) {
-          brandCounts[firstWord] = (brandCounts[firstWord] || 0) + 1;
-        }
-      }
-
-      // Also check for likely brands anywhere in name
-      for (const brand of likelyBrands) {
-        if (name.toLowerCase().includes(brand.toLowerCase())) {
-          brandCounts[brand] = (brandCounts[brand] || 0) + 1;
-        }
-      }
-    }
-
-    // Sort by count descending and filter brands with at least 2 products
-    return Object.entries(brandCounts)
-      .filter(([_, count]) => count >= 1)
-      .map(([brand, count]) => ({ brand, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 20); // Top 20 brands
+    return result as { brand: string; count: number }[];
   },
 
   /**

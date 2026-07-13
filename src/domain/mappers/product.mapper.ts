@@ -28,6 +28,9 @@ type ProductDocument = WithId<{
   costPrice?: number;
   profitMargin?: number;
   lastSyncedAt?: Date;
+  productType?: string;
+  capacity?: string;
+  formFactor?: string;
   createdAt: Date;
   updatedAt: Date;
 }>;
@@ -73,6 +76,9 @@ export const productMapper = {
       costPrice: doc.costPrice ?? undefined,
       profitMargin: doc.profitMargin ?? undefined,
       lastSyncedAt: doc.lastSyncedAt,
+      productType: doc.productType,
+      capacity: doc.capacity,
+      formFactor: doc.formFactor,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
     };

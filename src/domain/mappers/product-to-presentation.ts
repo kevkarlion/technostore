@@ -120,15 +120,13 @@ export function toPresentationProduct(
     slug,
     name: cleanProductName(dbProduct.name),
     category: mainCategory as DomainProduct["category"],
-    brand: "General", // Could be extracted from product name in the future
+    brand: dbProduct.brand || "General",
     price: dbProduct.price,
     priceARS,
     priceRaw: dbProduct.priceRaw, // Precio original USD
     originalPrice: undefined, // Not scraped
     inStock,
     stockQuantity: dbProduct.stock,
-    rating: 4.5, // Default rating
-    ratingCount: Math.floor(Math.random() * 50) + 10, // Random count for demo
     badges: [],
     shortDescription: dbProduct.description || `${cleanProductName(dbProduct.name)} - Available at TechnoStore`,
     specs, // Populated from scraped attributes

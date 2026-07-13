@@ -1,11 +1,13 @@
 import "dotenv/config";
-import { getDb } from "@/config/db";
+import { MongoClient } from "mongodb";
 
 /**
  * Backfill searchName for all active products + create text index.
  *
  * 1. Creates a MongoDB text index on searchName + description with Spanish stemming
- * 2. Backfills searchName for all active products that don't have it
+ * 2. Backfills searchName for all active products that don't have it or have it null
+ *
+ * Idempotent — safe to run multiple times.
  *
  * Usage:
  *   DOTENV_CONFIG_PATH=.env.local npx tsx scripts/backfill-search-name.ts
@@ -22,7 +24,16 @@ function normalizeText(text: string): string {
 async function main() {
   console.log("[Migration] Starting searchName backfill...\n");
 
-  const db = await getDb();
+  const uri = process.env.MONGODB_URI;
+  const dbName = process.env.MONGODB_DB_NAME;
+  if (!uri || !dbName) {
+    console.error("[Migration] Error: MONGODB_URI and MONGODB_DB_NAME must be set in .env.local");
+    process.exit(1);
+  }
+
+  const client = new MongoClient(uri);
+  await client.connect();
+  const db = client.db(dbName);
   const collection = db.collection("products");
 
   // 1. Create text index
@@ -56,10 +67,16 @@ async function main() {
     }
   }
 
-  // 2. Backfill searchName for products without it
+  // 2. Backfill searchName for products without it or with null
   const totalActive = await collection.countDocuments({ status: "active" });
   const missing = await collection
-    .find({ searchName: { $exists: false }, status: "active" })
+    .find({
+      status: "active",
+      $or: [
+        { searchName: { $exists: false } },
+        { searchName: null },
+      ],
+    })
     .project({ name: 1 })
     .toArray();
 
@@ -68,6 +85,7 @@ async function main() {
 
   if (missing.length === 0) {
     console.log("[Migration] Nothing to do — all products already have searchName.");
+    await client.close();
     process.exit(0);
   }
 
@@ -96,6 +114,7 @@ async function main() {
   }
 
   console.log(`\n[Migration] Done! Updated ${updated} products.`);
+  await client.close();
   process.exit(0);
 }
 

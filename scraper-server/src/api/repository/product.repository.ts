@@ -4,6 +4,7 @@ import type { CreateProductDTO, UpdateProductDTO, ScrapedProductDTO } from "@/do
 import { productMapper } from "@/domain/mappers/product.mapper";
 import { generateProductSlug } from "@/domain/mappers/product-to-presentation";
 import type { Product } from "@/domain/models/product";
+import { normalizeText } from "@/lib/normalize-text";
 
 const COLLECTION_NAME = "products";
 
@@ -75,6 +76,7 @@ export const productRepository = {
     const result = await collection.insertOne({
       ...data,
       slug: generateProductSlug(data.name),
+      searchName: normalizeText(data.name),
       createdAt: now,
       updatedAt: now,
     });
@@ -164,6 +166,7 @@ export const productRepository = {
       const result = await collection.insertOne({
         ...data,
         slug: generateProductSlug(data.name),
+        searchName: normalizeText(data.name),
         lastSyncedAt: now,
         status: "active",
         createdAt: now,
@@ -217,10 +220,11 @@ export const productRepository = {
       }
     }
 
-    // Si cambió el nombre, regenerar slug
+    // Si cambió el nombre, regenerar slug y searchName
     if (changes.includes("name")) {
       updateOperations.slug = generateProductSlug(data.name);
-      changes.push("slug");
+      updateOperations.searchName = normalizeText(data.name);
+      changes.push("slug", "searchName");
     }
 
     // 3. Imágenes - lógica especial

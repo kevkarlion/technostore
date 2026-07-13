@@ -25,6 +25,13 @@ export interface Product {
   cloudinaryUrls?: string[];
   /** Product specifications/characteristics */
   attributes?: ProductAttribute[];
+  // Search fields
+  brand?: string;
+  productType?: string;
+  capacity?: string;
+  formFactor?: string;
+  searchKeywords?: string;
+  searchText?: string;
   // Scraper fields
   externalId?: string;
   supplier?: string;

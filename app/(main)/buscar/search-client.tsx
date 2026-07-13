@@ -3,22 +3,37 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Sparkles, Zap } from "lucide-react";
 import { PremiumProductCardV2 } from "@/components/product-card/premium-product-card-v2";
 import type { Product } from "@/types/domain";
+
+interface SearchMeta {
+  query: string;
+  tokens: {
+    capacity: string | null;
+    formFactor: string | null;
+    productType: string | null;
+    brand: string | null;
+    model: string | null;
+  };
+  fuzzyUsed: boolean;
+  synonymsUsed: boolean;
+}
 
 interface SearchClientProps {
   initialProducts: Product[];
   initialQuery: string;
   initialTotal?: number;
   initialPage?: number;
+  searchMeta?: SearchMeta | null;
 }
 
 export function SearchClient({
   initialProducts,
   initialQuery,
   initialTotal = 0,
-  initialPage = 1
+  initialPage = 1,
+  searchMeta,
 }: SearchClientProps) {
   const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
@@ -27,26 +42,37 @@ export function SearchClient({
   const startItem = (initialPage - 1) * limit + 1;
   const endItem = Math.min(initialPage * limit, initialTotal);
 
-  const handleSearch = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    const params = new URLSearchParams();
-    if (query.trim()) {
-      params.set("q", query.trim());
-    }
-    params.set("page", "1");
-    router.push(`/buscar?${params.toString()}`);
-  }, [query, router]);
+  const handleSearch = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      const params = new URLSearchParams();
+      if (query.trim()) {
+        params.set("q", query.trim());
+      }
+      params.set("page", "1");
+      router.push(`/buscar?${params.toString()}`);
+    },
+    [query, router]
+  );
 
-  const goToPage = useCallback((newPage: number) => {
-    const params = new URLSearchParams();
-    if (initialQuery) params.set("q", initialQuery);
-    params.set("page", newPage.toString());
-    router.push(`/buscar?${params.toString()}`);
-  }, [router, initialQuery]);
+  const goToPage = useCallback(
+    (newPage: number) => {
+      const params = new URLSearchParams();
+      if (initialQuery) params.set("q", initialQuery);
+      params.set("page", newPage.toString());
+      router.push(`/buscar?${params.toString()}`);
+    },
+    [router, initialQuery]
+  );
+
+  const detectedTokens = searchMeta?.tokens;
+  const hasDetectedFilters =
+    detectedTokens &&
+    (detectedTokens.brand || detectedTokens.productType || detectedTokens.capacity);
 
   return (
     <div className="space-y-8 p-4 sm:p-6 lg:p-8">
-      {/* Header estático - no recarga */}
+      {/* Header */}
       <header className="space-y-4">
         <div className="text-center max-w-xl mx-auto">
           <h1 className="text-2xl md:text-3xl font-bold text-[var(--foreground)]">
@@ -71,13 +97,45 @@ export function SearchClient({
         </form>
       </header>
 
-      {/* Resultados */}
+      {/* Search intelligence badges */}
+      {searchMeta && initialQuery && hasDetectedFilters && (
+        <div className="flex flex-wrap items-center gap-2 justify-center max-w-2xl mx-auto">
+          {searchMeta.fuzzyUsed && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <Sparkles className="w-3 h-3" />
+              Búsqueda aproximada
+            </span>
+          )}
+          {searchMeta.synonymsUsed && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">
+              <Zap className="w-3 h-3" />
+              Sinónimos aplicados
+            </span>
+          )}
+          {detectedTokens.brand && (
+            <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              Marca: {detectedTokens.brand}
+            </span>
+          )}
+          {detectedTokens.productType && (
+            <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              Tipo: {detectedTokens.productType}
+            </span>
+          )}
+          {detectedTokens.capacity && (
+            <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+              Capacidad: {detectedTokens.capacity}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Results */}
       <section className="space-y-6">
         <p className="text-sm text-[var(--foreground-muted)]">
           {initialQuery
             ? `Mostrando ${startItem}-${endItem} de ${initialTotal} resultados para "${initialQuery}"`
-            : `Mostrando ${startItem}-${endItem} de ${initialTotal} productos`
-          }
+            : `Mostrando ${startItem}-${endItem} de ${initialTotal} productos`}
         </p>
 
         {initialProducts.length === 0 ? (
@@ -88,19 +146,22 @@ export function SearchClient({
             <p className="text-[var(--foreground-muted)]">
               {initialQuery
                 ? `No encontramos productos para "${initialQuery}". Probá con otro término.`
-                : "No hay productos disponibles."
-              }
+                : "No hay productos disponibles."}
             </p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {initialProducts.map((product, index) => (
-                <PremiumProductCardV2 key={product.id} product={product} index={index} />
+                <PremiumProductCardV2
+                  key={product.id}
+                  product={product}
+                  index={index}
+                />
               ))}
             </div>
 
-            {/* Paginación */}
+            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-2 pt-4">
                 <button

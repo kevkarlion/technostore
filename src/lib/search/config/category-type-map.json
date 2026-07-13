@@ -1,0 +1,7 @@
+{
+  "almacenamiento": ["ssd", "hdd", "nvme", "microsd", "pendrive"],
+  "memorias": ["ram"],
+  "componentes": ["gpu", "cpu", "motherboard", "fuente", "gabinete"],
+  "perifericos": ["teclado", "mouse", "auricular", "monitor", "webcam"],
+  "redes": ["router", "switch", "access-point"]
+}

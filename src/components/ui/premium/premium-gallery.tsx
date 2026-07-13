@@ -281,12 +281,16 @@ export function PremiumGallery({ product }: PremiumGalleryProps) {
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium text-[var(--foreground)]">
-                        {product.rating.toFixed(1)} ★
-                      </p>
-                      <p className="text-xs text-[var(--foreground-muted)]">
-                        {product.ratingCount.toLocaleString()} reviews
-                      </p>
+                      {product.rating != null && product.rating > 0 && (
+                        <>
+                          <p className="text-sm font-medium text-[var(--foreground)]">
+                            {product.rating.toFixed(1)} ★
+                          </p>
+                          <p className="text-xs text-[var(--foreground-muted)]">
+                            {product.ratingCount?.toLocaleString() || 0} reviews
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
                   <AddToCartButton

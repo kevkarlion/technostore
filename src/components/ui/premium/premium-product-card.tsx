@@ -152,10 +152,14 @@ export function PremiumProductCard({
                 </p>
               </div>
               <div className="flex flex-col items-end text-[0.7rem] text-amber-300">
-                <span>{product.rating.toFixed(1)} ★</span>
-                <span className="text-[var(--foreground-muted)]">
-                  {product.ratingCount.toLocaleString()} reviews
-                </span>
+                {product.rating != null && product.rating > 0 && (
+                  <>
+                    <span>{product.rating.toFixed(1)} ★</span>
+                    <span className="text-[var(--foreground-muted)]">
+                      {product.ratingCount?.toLocaleString() || 0} reviews
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>

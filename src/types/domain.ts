@@ -35,8 +35,8 @@ export interface Product {
   originalPrice?: number;
   inStock: boolean;
   stockQuantity?: number;
-  rating: number;
-  ratingCount: number;
+  rating?: number;
+  ratingCount?: number;
   badges?: ProductBadge[];
   shortDescription: string;
   specs: Record<string, string | number>;

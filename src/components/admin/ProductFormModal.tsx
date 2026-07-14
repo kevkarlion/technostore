@@ -90,8 +90,10 @@ export default function ProductFormModal({
         description: editProduct.description || "",
         currency: editProduct.currency,
         stock: String(editProduct.stock),
-        // COSTO = precio real del producto (mismo valor que la tabla)
-        costPrice: editProduct.price > 0 ? String(editProduct.price) : "",
+        // COSTO = costo fijo del producto, nunca cambia al guardar
+        costPrice: editProduct.costPrice != null && editProduct.costPrice > 0
+          ? String(editProduct.costPrice)
+          : "",
         // MARGEN = valor guardado en DB
         profitMargin: editProduct.profitMargin != null && editProduct.profitMargin > 0
           ? String(editProduct.profitMargin)

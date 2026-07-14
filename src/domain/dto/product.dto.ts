@@ -5,9 +5,9 @@ import type { ProductStatus } from "../models/product";
 const baseProductSchema = z.object({
   name: z.string().min(3).optional(),
   description: z.string().optional(),
-  price: z.number().nonnegative().optional(), // Optional - can be calculated from costPrice + profitMargin
-  costPrice: z.number().optional(),
-  profitMargin: z.number().optional(),
+  price: z.number().nonnegative().optional(), // Optional — computed server-side from costPrice + profitMargin
+  costPrice: z.number().nonnegative(),
+  profitMargin: z.number().nonnegative().default(0),
   currency: z.string().min(1).optional(),
   stock: z.number().int().nonnegative().optional(),
   inStock: z.boolean().optional(),
@@ -18,7 +18,8 @@ const baseProductSchema = z.object({
 
 export const createProductSchema = baseProductSchema.extend({
   name: z.string().min(3),
-  // price is optional - if not provided, it will be calculated from costPrice + profitMargin
+  costPrice: z.number().nonnegative(),
+  profitMargin: z.number().nonnegative().default(0),
   currency: z.string().min(1).default("USD"),
   stock: z.number().int().nonnegative().default(0),
   inStock: z.boolean().default(false),
@@ -60,8 +61,8 @@ export interface ProductResponseDTO {
   name: string;
   description?: string;
   price: number;
-  costPrice?: number;
-  profitMargin?: number;
+  costPrice: number;
+  profitMargin: number;
   currency: string;
   stock: number;
   inStock: boolean;

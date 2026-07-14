@@ -29,9 +29,8 @@ export interface Product {
   brand: string;
   price: number;
   priceARS?: number;
-  costPrice?: number;
-  profitMargin?: number;
-  priceRaw?: string; // Precio original USD del proveedor (ej: "98,75")
+  costPrice: number;
+  profitMargin: number;
   originalPrice?: number;
   inStock: boolean;
   stockQuantity?: number;

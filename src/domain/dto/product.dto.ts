@@ -1,13 +1,13 @@
 import { z } from "zod";
 import type { ProductStatus } from "../models/product";
 
-// Create schema WITHOUT defaults - used for validation to avoid overwriting existing fields
+// Base schema — used as update schema (all fields optional to avoid overwriting existing values)
 const baseProductSchema = z.object({
   name: z.string().min(3).optional(),
   description: z.string().optional(),
-  price: z.number().nonnegative().optional(), // Optional — computed server-side from costPrice + profitMargin
-  costPrice: z.number().nonnegative(),
-  profitMargin: z.number().nonnegative().default(0),
+  price: z.number().nonnegative().optional(), // Ignored on write — computed server-side from costPrice + profitMargin
+  costPrice: z.number().nonnegative().optional(), // Required on create, optional on update
+  profitMargin: z.number().nonnegative().optional(),
   currency: z.string().min(1).optional(),
   stock: z.number().int().nonnegative().optional(),
   inStock: z.boolean().optional(),

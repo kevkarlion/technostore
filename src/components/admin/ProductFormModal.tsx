@@ -90,8 +90,8 @@ export default function ProductFormModal({
         description: editProduct.description || "",
         currency: editProduct.currency,
         stock: String(editProduct.stock),
-        // COSTO = precio real del producto (price de DB), valor fijo
-        costPrice: editProduct.price > 0 ? String(editProduct.price) : "",
+        // costPrice = real cost of the product
+        costPrice: editProduct.costPrice > 0 ? String(editProduct.costPrice) : "",
         // MARGEN = valor guardado en DB
         profitMargin: editProduct.profitMargin != null && editProduct.profitMargin > 0
           ? String(editProduct.profitMargin)

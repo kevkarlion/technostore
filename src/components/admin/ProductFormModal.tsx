@@ -90,10 +90,12 @@ export default function ProductFormModal({
         description: editProduct.description || "",
         currency: editProduct.currency,
         stock: String(editProduct.stock),
-        costPrice: editProduct.costPrice != null && editProduct.costPrice > 0
-          ? String(editProduct.costPrice)
-          : (editProduct.price > 0 ? String(editProduct.price) : ""),
-        profitMargin: editProduct.profitMargin != null ? String(editProduct.profitMargin) : "",
+        // COSTO = precio real del producto (mismo valor que la tabla)
+        costPrice: editProduct.price > 0 ? String(editProduct.price) : "",
+        // MARGEN = valor guardado en DB
+        profitMargin: editProduct.profitMargin != null && editProduct.profitMargin > 0
+          ? String(editProduct.profitMargin)
+          : "",
         status: editProduct.status as any,
       });
       setSelectedCategories(new Set(editProduct.categories));
@@ -293,11 +295,11 @@ export default function ProductFormModal({
 
   const costPriceNum = parseFloat(form.costPrice);
   const profitMarginNum = parseFloat(form.profitMargin);
-  const hasCostAndMargin =
-    !isNaN(costPriceNum) && costPriceNum > 0 &&
-    !isNaN(profitMarginNum) && profitMarginNum >= 0;
-  const calculatedPrice = hasCostAndMargin
-    ? costPriceNum * (1 + profitMarginNum / 100)
+  const hasCost = !isNaN(costPriceNum) && costPriceNum > 0;
+  const hasMargin = !isNaN(profitMarginNum) && profitMarginNum > 0;
+  // COSTO es el precio base. Si no hay margen, el precio = COSTO
+  const calculatedPrice = hasCost
+    ? costPriceNum * (1 + (hasMargin ? profitMarginNum / 100 : 0))
     : null;
 
   const allUploaded = images.every(
@@ -397,18 +399,20 @@ export default function ProductFormModal({
             </div>
           </div>
 
-          {/* Calculated Price Preview */}
-          {calculatedPrice !== null && (
+          {/* Precio de venta */}
+          {hasCost && (
             <div className="rounded-lg border border-emerald-800/50 bg-emerald-950/20 px-4 py-3">
               <p className="text-xs text-[var(--foreground-muted)]">
-                Precio de venta (calculado)
+                {hasMargin ? "Precio de venta (calculado)" : "Precio de venta"}
               </p>
               <p className="text-xl font-bold text-emerald-400">
-                ${calculatedPrice.toFixed(2)} USD
+                ${calculatedPrice!.toFixed(2)} USD
               </p>
-              <p className="text-xs text-[var(--foreground-muted)]">
-                {form.costPrice} × (1 + {(parseFloat(form.profitMargin) || 0) / 100}) = ${calculatedPrice.toFixed(2)}
-              </p>
+              {hasMargin && (
+                <p className="text-xs text-[var(--foreground-muted)]">
+                  {form.costPrice} × (1 + {profitMarginNum / 100}) = ${calculatedPrice!.toFixed(2)}
+                </p>
+              )}
             </div>
           )}
 

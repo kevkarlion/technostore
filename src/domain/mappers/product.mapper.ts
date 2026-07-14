@@ -9,7 +9,7 @@ type ProductDocument = WithId<{
   price: number;
   currency: string;
   stock: number;
-  inStock: boolean; // Required field from database
+  inStock: boolean;
   status: string;
   categories: string[];
   imageUrls: string[];
@@ -25,8 +25,8 @@ type ProductDocument = WithId<{
   attributes?: Array<{ key: string; value: string }>;
   externalId?: string;
   supplier?: string;
-  costPrice?: number;
-  profitMargin?: number;
+  costPrice: number;
+  profitMargin: number;
   lastSyncedAt?: Date;
   productType?: string;
   capacity?: string;
@@ -73,8 +73,8 @@ export const productMapper = {
       attributes: doc.attributes,
       externalId: doc.externalId,
       supplier: doc.supplier,
-      costPrice: doc.costPrice ?? undefined,
-      profitMargin: doc.profitMargin ?? undefined,
+      costPrice: doc.costPrice,
+      profitMargin: doc.profitMargin,
       lastSyncedAt: doc.lastSyncedAt,
       productType: doc.productType,
       capacity: doc.capacity,
@@ -85,30 +85,12 @@ export const productMapper = {
   },
 
   toResponse(product: Product, exchangeRate?: number): ProductResponseDTO {
-    // Use scraped price directly if it exists (> 0), otherwise calculate from cost + margin
-    let sellingPrice = product.price;
-    
-    // Only recalculate from costPrice + margin if price is 0/null/undefined
-    // This preserves the scraped price (which already includes IVA) as the final price
-    if ((!product.price || product.price === 0) && product.costPrice != null && product.costPrice > 0) {
-      if (product.profitMargin != null) {
-        sellingPrice = Math.round(product.costPrice * (1 + product.profitMargin / 100) * 100) / 100;
-      } else {
-        // No margin set: use costPrice as selling price (0% margin)
-        sellingPrice = product.costPrice;
-      }
+    // Price is ALWAYS the stored product.price (computed at write time)
+    let priceInArs = product.price;
+    if (exchangeRate && exchangeRate > 0 && product.price < 10000) {
+      priceInArs = Math.round(product.price * exchangeRate * 100) / 100;
     }
 
-    // Convert price to ARS if exchangeRate is provided
-    let priceInArs = sellingPrice;
-    if (exchangeRate && exchangeRate > 0 && sellingPrice) {
-      // If price appears to be in USD (less than 10000), convert to ARS
-      if (sellingPrice < 10000) {
-        priceInArs = Math.round(sellingPrice * exchangeRate * 100) / 100;
-      }
-    }
-
-    // Resolve relative image URLs to full jotakp URLs
     const SUPPLIER_BASE = "https://jotakp.dyndns.org";
     const resolveUrls = (urls?: string[]): string[] =>
       (urls || []).map((url) =>

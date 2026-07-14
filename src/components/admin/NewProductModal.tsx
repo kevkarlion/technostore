@@ -197,14 +197,12 @@ export default function NewProductModal({
 
       const costPrice = parseFloat(form.costPrice);
       const profitMargin = parseFloat(form.profitMargin) || 0;
-      const price = Math.round(costPrice * (1 + profitMargin / 100) * 100) / 100;
 
       const body = {
         name: form.name.trim(),
         description: form.description.trim() || undefined,
         costPrice,
         profitMargin,
-        price,
         currency: form.currency,
         stock: parseInt(form.stock, 10),
         inStock: parseInt(form.stock, 10) > 0,

@@ -101,17 +101,9 @@ export function toPresentationProduct(
   }
 
   // Compute ARS price if exchange rate is available
-  // Priority: dbProduct.price (stored selling price) > costPrice * (1 + profitMargin/100)
   let priceARS: number | undefined;
-  if (exchangeRate && exchangeRate > 0) {
-    let usdPrice = dbProduct.price;
-    if ((!usdPrice || usdPrice <= 0) && dbProduct.costPrice != null && dbProduct.profitMargin != null) {
-      // Fallback: calculate selling price from cost + margin when price is not set
-      usdPrice = dbProduct.costPrice * (1 + dbProduct.profitMargin / 100);
-    }
-    if (usdPrice && usdPrice > 0) {
-      priceARS = Math.round(usdPrice * exchangeRate * 100) / 100;
-    }
+  if (exchangeRate && exchangeRate > 0 && dbProduct.price > 0) {
+    priceARS = Math.round(dbProduct.price * exchangeRate * 100) / 100;
   }
 
   // Default values for fields that aren't scraped
@@ -123,7 +115,8 @@ export function toPresentationProduct(
     brand: dbProduct.brand || "General",
     price: dbProduct.price,
     priceARS,
-    priceRaw: dbProduct.priceRaw, // Precio original USD
+    costPrice: dbProduct.costPrice,
+    profitMargin: dbProduct.profitMargin,
     originalPrice: undefined, // Not scraped
     inStock,
     stockQuantity: dbProduct.stock,

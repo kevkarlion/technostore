@@ -163,15 +163,20 @@ export const productRepository = {
 
     if (!existing) {
       // Producto nuevo - crear
-      const result = await collection.insertOne({
+      // costPrice = supplier price, selling price = costPrice (0% margin)
+      const insertData = {
         ...data,
+        costPrice: data.price,
+        profitMargin: 0,
+        price: data.price,
         slug: generateProductSlug(data.name),
         searchName: normalizeText(data.name),
         lastSyncedAt: now,
         status: "active",
         createdAt: now,
         updatedAt: now,
-      });
+      };
+      const result = await collection.insertOne(insertData);
 
       const inserted = await collection.findOne({ _id: result.insertedId });
       return {
@@ -189,10 +194,10 @@ export const productRepository = {
     };
 
     // Comparar cada campo
+    // NOTE: "price" is NOT compared — it's computed from costPrice + profitMargin
     const fieldsToCompare = [
       { key: "name", newVal: data.name },
       { key: "description", newVal: data.description },
-      { key: "price", newVal: data.price },
       { key: "priceRaw", newVal: data.priceRaw },
       { key: "currency", newVal: data.currency },
       { key: "stock", newVal: data.stock },
@@ -217,6 +222,20 @@ export const productRepository = {
       if (hasChanged) {
         updateOperations[field.key] = newVal;
         changes.push(field.key);
+      }
+    }
+
+    // Update costPrice from scraper data (supplier price), then recompute selling price
+    if (data.price !== undefined) {
+      const existingCost = (existing as any).costPrice;
+      if (JSON.stringify(existingCost) !== JSON.stringify(data.price)) {
+        updateOperations.costPrice = data.price;
+        changes.push("costPrice");
+
+        const existingMargin = (existing as any).profitMargin ?? 0;
+        const newPrice = Math.round(data.price * (1 + existingMargin / 100) * 100) / 100;
+        updateOperations.price = newPrice;
+        changes.push("price");
       }
     }
 

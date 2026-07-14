@@ -113,11 +113,14 @@ export const productRepository = {
 
     const now = new Date();
     const extractedFields = data.name ? extractFields(data.name) : {};
+    const margin = data.profitMargin ?? 0;
+    const price = Math.round(data.costPrice * (1 + margin / 100) * 100) / 100;
 
     const result = await collection.insertOne({
       ...data,
+      price,
       costPrice: data.costPrice,
-      profitMargin: data.profitMargin,
+      profitMargin: margin,
       slug: data.name ? generateProductSlug(data.name) : undefined,
       searchName: data.name ? normalizeText(data.name) : undefined,
       ...extractedFields,
@@ -166,7 +169,6 @@ export const productRepository = {
       Object.assign(setFields, extractedFields);
     }
     if (data.description !== undefined) setFields.description = data.description;
-    if (data.price !== undefined) setFields.price = data.price;
     if (data.costPrice !== undefined) setFields.costPrice = data.costPrice;
     if (data.profitMargin !== undefined) setFields.profitMargin = data.profitMargin;
     if (data.currency !== undefined) setFields.currency = data.currency;
@@ -175,6 +177,15 @@ export const productRepository = {
     if (data.status !== undefined) setFields.status = data.status;
     if (data.categories !== undefined) setFields.categories = data.categories;
     if (data.imageUrls !== undefined) setFields.imageUrls = data.imageUrls;
+
+    // Recompute price when costPrice or profitMargin changes
+    if (data.costPrice !== undefined || data.profitMargin !== undefined) {
+      // Fetch current doc to get the other value if only one is changing
+      const current = await collection.findOne({ _id: new ObjectId(id) });
+      const finalCost = data.costPrice ?? (current as any)?.costPrice ?? 0;
+      const finalMargin = data.profitMargin ?? (current as any)?.profitMargin ?? 0;
+      setFields.price = Math.round(finalCost * (1 + finalMargin / 100) * 100) / 100;
+    }
 
     // Si se están actualizando imageUrls y contienen URLs de Cloudinary,
     // sincronizar también cloudinaryUrls para que el front las muestre
@@ -239,11 +250,13 @@ export const productRepository = {
 
     if (!existing) {
       // Producto nuevo - crear
-      // Set costPrice from scraper price, selling price starts equal to cost (0% margin)
+      // costPrice = supplier price, selling price = costPrice (0% margin)
       const extractedFields = extractFields(data.name);
       const insertData = {
         ...data,
         costPrice: data.price,
+        profitMargin: 0,
+        price: data.price,
         slug: generateProductSlug(data.name),
         searchName: normalizeText(data.name),
         ...extractedFields,
@@ -270,8 +283,7 @@ export const productRepository = {
     };
 
     // Comparar cada campo
-    // NOTE: "price" is NOT in this list — the scraper updates costPrice, not selling price.
-    // Selling price is managed via admin margins (costPrice * (1 + margin/100)).
+    // NOTE: "price" is NOT compared — it's computed from costPrice + profitMargin
     const fieldsToCompare = [
       { key: "name", newVal: data.name },
       { key: "description", newVal: data.description },
@@ -283,25 +295,17 @@ export const productRepository = {
       { key: "attributes", newVal: data.attributes || [] },
     ];
 
-    // Update costPrice from scraper data (the supplier price)
-    // This is separate from the selling price field
+    // Update costPrice from scraper data (supplier price), then recompute selling price
     if (data.price !== undefined) {
       const existingCost = (existing as any).costPrice;
       if (JSON.stringify(existingCost) !== JSON.stringify(data.price)) {
         updateOperations.costPrice = data.price;
         changes.push("costPrice");
 
-        // Recalculate selling price from costPrice + margin
-        const existingMargin = (existing as any).profitMargin;
-        if (existingMargin != null) {
-          const newPrice = Math.round(data.price * (1 + existingMargin / 100) * 100) / 100;
-          updateOperations.price = newPrice;
-          changes.push("price");
-        } else {
-          // Sin margin: price = costPrice (0% implícito)
-          updateOperations.price = data.price;
-          changes.push("price");
-        }
+        const existingMargin = (existing as any).profitMargin ?? 0;
+        const newPrice = Math.round(data.price * (1 + existingMargin / 100) * 100) / 100;
+        updateOperations.price = newPrice;
+        changes.push("price");
       }
     }
 

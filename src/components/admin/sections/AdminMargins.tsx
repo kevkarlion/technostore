@@ -262,9 +262,7 @@ export default function AdminMargins() {
             ? {
                 ...p,
                 profitMargin: marginValue,
-                ...(p.costPrice != null
-                  ? { price: p.costPrice * (1 + marginValue / 100) }
-                  : {}),
+                price: Math.round(p.costPrice * (1 + marginValue / 100) * 100) / 100,
               }
             : p
         )

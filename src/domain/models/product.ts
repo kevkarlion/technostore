@@ -11,9 +11,8 @@ export interface Product {
   name: string;
   description?: string;
   price: number;
-  priceRaw?: string; // Precio original USD del proveedor (ej: "98,75")
-  costPrice?: number; // Precio de costo en USD
-  profitMargin?: number; // Margen de ganancia en % (0-100)
+  costPrice: number; // Precio de costo en USD
+  profitMargin: number; // Margen de ganancia en % (0-100)
   currency: string;
   stock: number;
   /** Indica si el producto está disponible para compra */

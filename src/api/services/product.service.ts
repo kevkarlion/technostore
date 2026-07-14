@@ -57,36 +57,18 @@ export const productService = {
       }
     }
 
-    if (dto.price !== undefined) {
-      // Price explicitly provided — use as-is (manual override)
-    } else if (dto.costPrice !== undefined && productData.profitMargin !== undefined) {
-      // Calculate price from cost + margin
-      productData.price = Math.round(dto.costPrice * (1 + productData.profitMargin / 100) * 100) / 100;
-    } else if (dto.costPrice !== undefined && productData.profitMargin === undefined) {
-      // Cost provided but no margin — use cost as price (0% margin)
-      productData.price = dto.costPrice;
-    }
-
-    if ((dto.costPrice === undefined) !== (dto.profitMargin === undefined)) {
-      console.warn(
-        "[ProductService] costPrice and profitMargin should be provided together; partial data may produce unexpected results"
-      );
+    // Price is ALWAYS computed server-side: costPrice * (1 + profitMargin / 100)
+    const margin = productData.profitMargin ?? 0;
+    if (dto.costPrice !== undefined) {
+      productData.price = Math.round(dto.costPrice * (1 + margin / 100) * 100) / 100;
     }
 
     return productRepository.create(productData);
   },
 
   async updateProduct(id: string, dto: UpdateProductDTO): Promise<Product> {
-    let updateData = { ...dto };
-
-    if (dto.price !== undefined) {
-      // Price explicitly provided — use as-is (manual override)
-    } else if (dto.costPrice !== undefined && dto.profitMargin !== undefined) {
-      // Both provided — calculate price
-      updateData.price = Math.round(dto.costPrice * (1 + dto.profitMargin / 100) * 100) / 100;
-    }
-    // Si solo cambia profitMargin (sin costPrice), NO sobreescribir price
-    // price en DB es el costo fijo del producto, no se toca
+    // Price is recomputed server-side in the repository — never send it from client
+    const updateData = { ...dto };
 
     const updated = await productRepository.update(id, updateData);
     if (!updated) {

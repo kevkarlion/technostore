@@ -26,25 +26,14 @@ export async function GET(req: NextRequest) {
       })
       .toArray();
 
-    const products = docs.map((doc) => {
-      // Siempre recalcular price desde costPrice + profitMargin cuando ambos existen
-      let price = doc.price;
-      if (doc.costPrice != null && doc.costPrice > 0 && doc.profitMargin != null) {
-        price = Math.round(doc.costPrice * (1 + (doc.profitMargin as number) / 100) * 100) / 100;
-      } else if (doc.costPrice != null && doc.costPrice > 0 && doc.profitMargin == null) {
-        // Sin margin configurado: price = costPrice (0% implícito)
-        price = doc.costPrice;
-      }
-
-      return {
-        id: doc._id.toString(),
-        name: doc.name,
-        costPrice: doc.costPrice,
-        price,
-        profitMargin: doc.profitMargin ?? undefined,
-        category: (doc.categories ?? [])[0] || "",
-      };
-    });
+    const products = docs.map((doc) => ({
+      id: doc._id.toString(),
+      name: doc.name,
+      costPrice: doc.costPrice,
+      price: doc.price,
+      profitMargin: doc.profitMargin ?? 0,
+      category: (doc.categories ?? [])[0] || "",
+    }));
 
     // Traer TODAS las categorías de la DB con conteo de productos
     const categories = await db

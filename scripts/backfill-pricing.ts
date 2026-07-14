@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { getDb } from "@/config/db";
+import { MongoClient } from "mongodb";
 
 /**
  * Backfill pricing: ensure costPrice and profitMargin exist on all products,
@@ -14,6 +14,9 @@ import { getDb } from "@/config/db";
  *
  * Usage:
  *   DOTENV_CONFIG_PATH=.env.local npx tsx scripts/backfill-pricing.ts
+ *
+ * NOTE: Uses MongoDB driver directly (not app's getDb) to avoid validating
+ * unrelated env vars like MercadoPago keys.
  */
 
 function round2(n: number): number {
@@ -23,7 +26,16 @@ function round2(n: number): number {
 async function main() {
   console.log("[Migration] Starting pricing backfill...\n");
 
-  const db = await getDb();
+  const uri = process.env.MONGODB_URI;
+  const dbName = process.env.MONGODB_DB_NAME;
+  if (!uri || !dbName) {
+    console.error("[Migration] Missing MONGODB_URI or MONGODB_DB_NAME in env");
+    process.exit(1);
+  }
+
+  const client = new MongoClient(uri);
+  await client.connect();
+  const db = client.db(dbName);
   const collection = db.collection("products");
 
   const totalProducts = await collection.countDocuments({ status: "active" });
@@ -113,6 +125,7 @@ async function main() {
   });
   console.log(`  Remaining without costPrice: ${remaining}`);
 
+  await client.close();
   process.exit(0);
 }
 

@@ -84,23 +84,9 @@ export const productService = {
     } else if (dto.costPrice !== undefined && dto.profitMargin !== undefined) {
       // Both provided — calculate price
       updateData.price = Math.round(dto.costPrice * (1 + dto.profitMargin / 100) * 100) / 100;
-    } else if (dto.profitMargin !== undefined && dto.costPrice === undefined) {
-      // Only margin changed — use existing costPrice from DB
-      const existing = await productRepository.findById(id);
-      if (existing?.costPrice != null && existing.costPrice > 0) {
-        updateData.price = Math.round(existing.costPrice * (1 + dto.profitMargin / 100) * 100) / 100;
-      } else if (existing?.price != null && existing.price > 0) {
-        // Fallback: si costPrice es null pero price existe, tratar price como costo
-        updateData.costPrice = existing.price;
-        updateData.price = Math.round(existing.price * (1 + dto.profitMargin / 100) * 100) / 100;
-      }
     }
-
-    if ((dto.costPrice === undefined) !== (dto.profitMargin === undefined)) {
-      console.warn(
-        "[ProductService] costPrice and profitMargin should be provided together; partial data may produce unexpected results"
-      );
-    }
+    // Si solo cambia profitMargin (sin costPrice), NO sobreescribir price
+    // price en DB es el costo fijo del producto, no se toca
 
     const updated = await productRepository.update(id, updateData);
     if (!updated) {

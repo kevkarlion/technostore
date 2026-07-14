@@ -90,10 +90,8 @@ export default function ProductFormModal({
         description: editProduct.description || "",
         currency: editProduct.currency,
         stock: String(editProduct.stock),
-        // COSTO = costo fijo del producto, nunca cambia al guardar
-        costPrice: editProduct.costPrice != null && editProduct.costPrice > 0
-          ? String(editProduct.costPrice)
-          : "",
+        // COSTO = precio real del producto (price de DB), valor fijo
+        costPrice: editProduct.price > 0 ? String(editProduct.price) : "",
         // MARGEN = valor guardado en DB
         profitMargin: editProduct.profitMargin != null && editProduct.profitMargin > 0
           ? String(editProduct.profitMargin)
@@ -236,16 +234,13 @@ export default function ProductFormModal({
         .map((img) => img.cloudinaryUrl)
         .filter(Boolean) as string[];
 
-      const costPrice = parseFloat(form.costPrice);
       const profitMargin = parseFloat(form.profitMargin) || 0;
-      const price = Math.round(costPrice * (1 + profitMargin / 100) * 100) / 100;
 
       const body: Record<string, any> = {
         name: form.name.trim(),
         description: form.description.trim() || undefined,
-        costPrice,
+        // NO mandar costPrice — el precio de DB es el costo fijo, no se toca
         profitMargin,
-        price,
         currency: form.currency,
         stock: parseInt(form.stock, 10),
         inStock: parseInt(form.stock, 10) > 0,

@@ -448,7 +448,10 @@ export default function AdminProducts() {
                   </td>
                   <td className="px-3 py-3">
                     <span className="text-sm font-medium text-[var(--foreground)]">
-                      ${product.price.toFixed(2)}
+                      ${(product.profitMargin != null && product.profitMargin > 0
+                        ? product.price * (1 + product.profitMargin / 100)
+                        : product.price
+                      ).toFixed(2)}
                     </span>
                   </td>
                   <td className="px-3 py-3">
@@ -714,7 +717,10 @@ export default function AdminProducts() {
                     Precio
                   </p>
                   <p className="mt-0.5 text-sm font-semibold text-[var(--foreground)]">
-                    ${product.price.toFixed(2)}
+                    ${(product.profitMargin != null && product.profitMargin > 0
+                      ? product.price * (1 + product.profitMargin / 100)
+                      : product.price
+                    ).toFixed(2)}
                   </p>
                 </div>
                 <div className="rounded-lg bg-slate-900/50 p-2.5">

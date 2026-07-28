@@ -5,13 +5,12 @@ import { categoryRepository } from "@/api/repository/category.repository";
 /**
  * Script to seed categories from Jotakp with parent-child hierarchy
  * Usage: npx tsx src/lib/scraper/seed-categories.ts
+ *
+ * NOTE: This script NEVER deletes categories. It only upserts (insert or update).
+ * To remove a category, do it manually via MongoDB or admin panel.
  */
 async function seedCategories() {
-  console.log("=== Seeding Categories from Jotakp ===\n");
-
-  // Clear existing categories FIRST
-  console.log("Clearing existing categories...");
-  await categoryRepository.deleteAll();
+  console.log("=== Seeding Categories from Jotakp (safe upsert only) ===\n");
 
   // Prepare all categories for upsert (both parent and subcategories)
   const categoriesToSeed = jotakpCategories.map((cat) => ({

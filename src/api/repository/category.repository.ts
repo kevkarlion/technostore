@@ -87,13 +87,8 @@ export const categoryRepository = {
     };
   },
 
-  async deleteAll(): Promise<{ deletedCount: number }> {
-    const db = await getDb();
-    const collection = db.collection(COLLECTION_NAME);
-
-    const result = await collection.deleteMany({});
-    return { deletedCount: result.deletedCount };
-  },
+  // deleteAll removed — categories must never be bulk-deleted.
+  // Use upsertMany() to sync categories safely.
 
   async upsertMany(
     categories: Array<{

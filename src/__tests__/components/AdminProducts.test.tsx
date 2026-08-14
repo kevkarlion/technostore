@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
+import { screen, waitFor, fireEvent, within } from "@testing-library/react";
 import { renderWithProviders, mockFetch } from "@/__tests__/utils";
+import { useAdminStore } from "@/store/admin-store";
 import AdminProducts from "@/components/admin/sections/AdminProducts";
 
 /* -------------------------------------------------------------------------- */
@@ -36,6 +37,8 @@ const mockProducts = [
 describe("AdminProducts", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    // Resetear el navState del store para que no se filtre entre tests
+    useAdminStore.getState().resetAllNavState();
   });
 
   it("renders products in table", async () => {
@@ -204,6 +207,182 @@ describe("AdminProducts", () => {
       const calls = vi.mocked(fetch).mock.calls;
       const lastUrl = calls[calls.length - 1]?.[0] as string;
       expect(lastUrl).toContain("page=2");
+    });
+  });
+
+  it("search debounce resets page to 1", async () => {
+    // Partimos en página 2
+    useAdminStore.getState().setNavState("products", { page: 2 });
+
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () =>
+        Promise.resolve({
+          items: mockProducts,
+          total: 30,
+          page: 2,
+          limit: 15,
+          totalPages: 3,
+        }),
+    });
+    vi.stubGlobal("fetch", fetch);
+
+    renderWithProviders(<AdminProducts />);
+
+    await waitFor(() => {
+      expect(
+        screen.getAllByText("Teclado Mecánico RGB").length
+      ).toBeGreaterThan(0);
+    });
+
+    const searchInput = screen.getByPlaceholderText("Buscar productos...");
+    fireEvent.change(searchInput, { target: { value: "teclado" } });
+
+    // El debounce (350ms) dispara setNavState({ search, page: 1 })
+    await waitFor(
+      () => {
+        const calls = vi.mocked(fetch).mock.calls;
+        const lastUrl = calls[calls.length - 1]?.[0] as string;
+        expect(lastUrl).toContain("page=1");
+        expect(lastUrl).toContain("search=teclado");
+      },
+      { timeout: 2000 }
+    );
+  });
+
+  it("status filter change resets page to 1", async () => {
+    // Partimos en página 2
+    useAdminStore.getState().setNavState("products", { page: 2 });
+
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () =>
+        Promise.resolve({
+          items: mockProducts,
+          total: 30,
+          page: 2,
+          limit: 15,
+          totalPages: 3,
+        }),
+    });
+    vi.stubGlobal("fetch", fetch);
+
+    renderWithProviders(<AdminProducts />);
+
+    await waitFor(() => {
+      expect(
+        screen.getAllByText("Teclado Mecánico RGB").length
+      ).toBeGreaterThan(0);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Activos/i }));
+
+    await waitFor(() => {
+      const calls = vi.mocked(fetch).mock.calls;
+      const lastUrl = calls[calls.length - 1]?.[0] as string;
+      expect(lastUrl).toContain("page=1");
+      expect(lastUrl).toContain("status=active");
+    });
+  });
+
+  it("modal onSuccess refetches with the current page (not page 1)", async () => {
+    // Partimos en página 5
+    useAdminStore.getState().setNavState("products", { page: 5 });
+
+    const fetch = vi.fn().mockImplementation((url: string, opts?: RequestInit) => {
+      if (url.includes("/api/categories")) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ items: [] }),
+        });
+      }
+      if (url.includes("/api/products/prod-1") && opts?.method === "PATCH") {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({}),
+        });
+      }
+      if (url.includes("/api/products/prod-1")) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () =>
+            Promise.resolve({
+              id: "prod-1",
+              name: "Teclado Mecánico RGB",
+              price: 89.99,
+              costPrice: 50,
+              profitMargin: 20,
+              currency: "USD",
+              stock: 15,
+              inStock: true,
+              status: "active",
+              categories: ["Periféricos"],
+              imageUrls: [],
+              cloudinaryUrls: [],
+            }),
+        });
+      }
+      // Listado de productos
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            items: mockProducts,
+            total: 30,
+            page: 5,
+            limit: 15,
+            totalPages: 5,
+          }),
+      });
+    });
+    vi.stubGlobal("fetch", fetch);
+
+    renderWithProviders(<AdminProducts />);
+
+    await waitFor(() => {
+      expect(
+        screen.getAllByText("Teclado Mecánico RGB").length
+      ).toBeGreaterThan(0);
+    });
+
+    // Abrir el modal de edición desde la fila de la tabla
+    const desktopRow = screen
+      .getAllByRole("row")
+      .find((row) => within(row).queryByText("Teclado Mecánico RGB"));
+    expect(desktopRow).toBeDefined();
+    const editButton = within(desktopRow!)
+      .getAllByRole("button")
+      .filter((b) => b.querySelector("svg.lucide-pen"))
+      .pop();
+    fireEvent.click(editButton!);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Editar Producto")
+      ).toBeInTheDocument();
+    });
+
+    // Esperar a que el modal esté estable (form precargado y categorías
+    // resueltas) antes de enviar, para evitar races de re-render
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /Guardar Cambios/i })
+      ).toBeEnabled();
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Guardar Cambios/i }));
+
+    // onSuccess refetchea con la página ACTUAL (5), no con la 1
+    await waitFor(() => {
+      const calls = vi.mocked(fetch).mock.calls;
+      const lastUrl = calls[calls.length - 1]?.[0] as string;
+      expect(lastUrl).toContain("/api/products?");
+      expect(lastUrl).toContain("page=5");
     });
   });
 

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAdminStore } from "@/store/admin-store";
 import {
   Search,
   Edit2,
@@ -46,10 +47,11 @@ const ITEMS_PER_PAGE = 15;
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [searchInput, setSearchInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "discontinued">("all");
-  const [currentPage, setCurrentPage] = useState(1);
+  // Inicializar el input desde el store para que un deep-link ?q=... muestre
+  // la búsqueda en el box (la URL es la fuente de verdad).
+  const [searchInput, setSearchInput] = useState(
+    () => useAdminStore.getState().navState.products.search
+  );
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -77,6 +79,22 @@ export default function AdminProducts() {
   const [pendingToggle, setPendingToggle] = useState<Product | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Estado de navegación sincronizado con la URL (la URL es la fuente de verdad)
+  const searchQuery = useAdminStore((s) => s.navState.products.search);
+  const statusFilter = useAdminStore((s) => s.navState.products.status);
+  const currentPage = useAdminStore((s) => s.navState.products.page);
+  const setNavState = useAdminStore((s) => s.setNavState);
+
+  // Mantener el input alineado con el store cuando cambia por hydration,
+  // back/forward o reset de sección. Ajuste de estado durante el render
+  // (patrón oficial de React) para no pisar lo que escribe el usuario:
+  // searchInput se actualiza localmente en onChange antes del debounce.
+  const [prevSearch, setPrevSearch] = useState(searchQuery);
+  if (searchQuery !== prevSearch) {
+    setPrevSearch(searchQuery);
+    setSearchInput(searchQuery);
+  }
 
   const fetchProducts = useCallback(async (search: string, page: number, status: string) => {
     // Cancel any in-flight request
@@ -148,12 +166,11 @@ export default function AdminProducts() {
     setSearchInput(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      setSearchQuery(value);
-      setCurrentPage(1);
+      setNavState("products", { search: value, page: 1 });
     }, 350);
   };
 
-  // Fetch cuando cambia searchQuery, currentPage o statusFilter
+  // Fetch cuando cambia searchQuery, currentPage o statusFilter en el store
   useEffect(() => {
     fetchProducts(searchQuery, currentPage, statusFilter);
   }, [searchQuery, currentPage, statusFilter, fetchProducts]);
@@ -301,8 +318,7 @@ export default function AdminProducts() {
           <button
             key={value}
             onClick={() => {
-              setStatusFilter(value);
-              setCurrentPage(1);
+              setNavState("products", { status: value, page: 1 });
             }}
             className={`rounded-md px-3.5 py-1.5 text-sm font-medium transition ${
               statusFilter === value
@@ -834,7 +850,9 @@ export default function AdminProducts() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              onClick={() =>
+                setNavState("products", { page: Math.max(1, currentPage - 1) })
+              }
               disabled={currentPage === 1}
             >
               ← Anterior
@@ -842,7 +860,9 @@ export default function AdminProducts() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              onClick={() =>
+                setNavState("products", { page: Math.min(totalPages, currentPage + 1) })
+              }
               disabled={currentPage === totalPages}
             >
               Siguiente →
@@ -854,7 +874,7 @@ export default function AdminProducts() {
       <ProductFormModal
         open={showProductForm}
         onClose={() => { setShowProductForm(false); setEditProduct(null); }}
-        onSuccess={() => fetchProducts(searchQuery, 1)}
+        onSuccess={() => fetchProducts(searchQuery, currentPage, statusFilter)}
         editProduct={editProduct}
       />
 

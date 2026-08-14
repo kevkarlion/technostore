@@ -29,7 +29,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 export function AdminSidebar() {
   const {
     activeSection,
-    setActiveSection,
+    navigateToSection,
     sidebarCollapsed,
     setSidebarCollapsed,
     sidebarOpen,
@@ -41,7 +41,9 @@ export function AdminSidebar() {
   const sidebarWidth = sidebarCollapsed ? "w-16" : "w-64";
 
   const handleNavClick = (section: typeof activeSection) => {
-    setActiveSection(section);
+    // Cambio atómico: activa la sección y resetea su navState en una sola
+    // escritura (evita dos pushes al historial con params viejos).
+    navigateToSection(section);
     // Close mobile sidebar after navigation
     if (typeof window !== "undefined" && window.innerWidth < 1024) {
       setSidebarOpen(false);

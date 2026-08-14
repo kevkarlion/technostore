@@ -1,12 +1,17 @@
 "use client";
 
+import { Suspense } from "react";
 import { useAdminStore } from "@/store/admin-store";
+import { useAdminNavSync } from "@/hooks/use-admin-nav-sync";
 import { AdminSidebar } from "./AdminSidebar";
 import { SectionRenderer } from "./SectionRenderer";
 import { AdminNotificationPopup } from "./AdminNotificationPopup";
 import { Menu, X } from "lucide-react";
 
-export function AdminDashboard() {
+function AdminDashboardContent() {
+  // Sincroniza el store con la URL (sección, página, búsqueda y filtros)
+  useAdminNavSync();
+
   const { sidebarOpen, setSidebarOpen, sidebarCollapsed } = useAdminStore();
 
   return (
@@ -45,5 +50,14 @@ export function AdminDashboard() {
         </div>
       </main>
     </div>
+  );
+}
+
+export function AdminDashboard() {
+  return (
+    // Suspense requerido por useSearchParams (CSR bailout en Next.js 16)
+    <Suspense fallback={null}>
+      <AdminDashboardContent />
+    </Suspense>
   );
 }

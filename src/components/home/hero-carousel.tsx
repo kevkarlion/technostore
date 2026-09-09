@@ -18,7 +18,6 @@
 
 import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import Image from "next/image";
 import Link from "next/link";
 import { clsx } from "clsx";
 
@@ -31,6 +30,7 @@ export interface HeroSlide {
   title: string;
   subtitle?: string;
   image: string;
+  imageMobile?: string;
   cta?: { label: string; href: string };
   badge?: string;
   gradient?: string;
@@ -52,7 +52,8 @@ const defaultSlides: HeroSlide[] = [
     id: "1",
     title: "Rendimiento Extremo",
     subtitle: "Componentes para armar tu PC",
-    image: "/componentes-gamer.png",
+    image: "/componentes-dsk.webp",
+    imageMobile: "/componentes-mobile.webp",
     cta: { label: "Armá tu PC", href: "/arma-tu-pc" },
     badge: "TOP",
     gradient: "from-blue-600/40 to-purple-600/40",
@@ -61,7 +62,8 @@ const defaultSlides: HeroSlide[] = [
     id: "3",
     title: "Cada Frame Cuenta",
     subtitle: "144Hz+ para respuesta instantánea",
-    image: "/monitores.png",
+    image: "/monitores-dsk.webp",
+    imageMobile: "/monitores.mb.webp",
     cta: { label: "Ver monitores", href: "/categorias/monitores-tv" },
     badge: "NEW",
     gradient: "from-orange-600/40 to-red-600/40",
@@ -70,7 +72,8 @@ const defaultSlides: HeroSlide[] = [
     id: "4",
     title: "Tu Trono Gamer",
     subtitle: "Ergonomía premium para sesiones maratón",
-    image: "/sillas.png",
+    image: "/sillas-dsk.webp",
+    imageMobile: "/sillas-mb.webp",
     cta: { label: "Ver sillas", href: "/categorias/silla-gamer" },
     gradient: "from-purple-600/40 to-pink-600/40",
   },
@@ -99,18 +102,19 @@ const HeroSlideContent = memo(function HeroSlideContent({
 }) {
   return (
     <div className="relative h-full w-full">
-      {/* Background image - optimizada con priority solo en primera */}
-      <Image
-        src={slide.image}
-        alt={slide.title}
-        fill
-        className="object-cover"
-        priority={isActive}
-        sizes="100vw"
-        quality={isActive ? 85 : 75}
-        placeholder={isActive ? "empty" : "empty"}
-        loading={isActive ? "eager" : "lazy"}
-      />
+      {/* Background image - responsive webp via native <picture> */}
+      <picture>
+        <source media="(min-width: 640px)" srcSet={slide.image} />
+        <source media="(max-width: 639.98px)" srcSet={slide.imageMobile ?? slide.image} />
+        <img
+          src={slide.image}
+          alt={slide.title}
+          className="absolute inset-0 h-full w-full object-cover"
+          loading={isActive ? "eager" : "lazy"}
+          decoding="async"
+          fetchPriority={isActive ? "high" : "auto"}
+        />
+      </picture>
 
       {/* Gradient overlay para legibilidad */}
       <div 

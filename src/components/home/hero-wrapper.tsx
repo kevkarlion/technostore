@@ -31,7 +31,8 @@ const heroSlides: HeroSlide[] = [
     id: "1",
     title: "Rendimiento Extremo",
     subtitle: "Componentes para armar tu PC",
-    image: "/componentes-gamer.png",
+    image: "/componentes-dsk.webp",
+    imageMobile: "/componentes-mobile.webp",
     cta: { label: "Armá tu PC", href: "/arma-tu-pc" },
     badge: "TOP",
   },
@@ -39,7 +40,8 @@ const heroSlides: HeroSlide[] = [
     id: "3",
     title: "Cada Frame Cuenta",
     subtitle: "144Hz+ para respuesta instantánea",
-    image: "/monitores.png",
+    image: "/monitores-dsk.webp",
+    imageMobile: "/monitores.mb.webp",
     cta: { label: "Ver monitores", href: "/categorias/monitores-tv" },
     badge: "NEW",
   },
@@ -47,7 +49,8 @@ const heroSlides: HeroSlide[] = [
     id: "4",
     title: "Tu Trono Gamer",
     subtitle: "Ergonomía premium para sesiones maratón",
-    image: "/sillas.png",
+    image: "/sillas-dsk.webp",
+    imageMobile: "/sillas-mb.webp",
     cta: { label: "Ver sillas", href: "/categorias/silla-gamer" },
   },
 ];
@@ -92,6 +95,14 @@ export function HeroWrapper({
       <link
         rel="preload"
         as="image"
+        media="(max-width: 639px)"
+        href={slides[0]?.imageMobile}
+        fetchPriority="high"
+      />
+      <link
+        rel="preload"
+        as="image"
+        media="(min-width: 640px)"
         href={slides[0]?.image}
         fetchPriority="high"
       />

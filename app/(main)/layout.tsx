@@ -6,6 +6,7 @@ import { SiteHeaderServer } from "@/components/layout/site-header-server";
 import { ScrollNavbar } from "@/components/layout/scroll-navbar";
 import { WhatsAppButton } from "@/components/ui/whatsapp-button";
 import { ExchangeRateBar } from "@/components/exchange-rate-bar";
+import { AnnouncementBar } from "@/components/layout/announcement-bar";
 
 // SVG icons para redes sociales
 const InstagramIcon = ({ className }: { className?: string }) => (
@@ -51,6 +52,7 @@ export default function MainLayout({
 }>) {
   return (
     <>
+      <AnnouncementBar />
       <SiteHeaderServer />
       <ScrollNavbar />
       <main className="pb-16">{children}</main>

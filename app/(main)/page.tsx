@@ -63,7 +63,7 @@ export default async function Home() {
 
       {/* 1.5. Hero Carousel - Categories visual */}
       <section className="pt-10">
-        <HeroWrapper />
+        <HeroWrapper className="-mx-4 sm:-mx-6 lg:-mx-8" />
       </section>
 
       {/* 2. PremiumFeaturedProducts - abajo del hero */}

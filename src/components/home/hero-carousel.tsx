@@ -332,7 +332,7 @@ export function HeroCarousel({
     <div
       id="hero-carousel"
       className={clsx(
-        "relative overflow-hidden rounded-xl",
+        "relative overflow-hidden",
         className
       )}
       style={{ touchAction: "pan-y" }}

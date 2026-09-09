@@ -25,7 +25,7 @@ function HeaderSkeleton() {
 function HeroCarouselSkeleton() {
   return (
     <section className="pt-10">
-      <div className="relative overflow-hidden rounded-xl aspect-[3/4] sm:aspect-[4/3] md:aspect-[5/2]">
+      <div className="relative overflow-hidden aspect-[3/4] sm:aspect-[4/3] md:aspect-[5/2]">
         <Skeleton className="absolute inset-0" />
       </div>
     </section>

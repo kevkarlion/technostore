@@ -47,10 +47,12 @@
   min-height: 100vh;
   background-color: var(--background);
   color: var(--foreground);
+  overscroll-behavior: none;
 }
 
 html {
   overflow-x: hidden;
+  overscroll-behavior: none;
 }
 
 .ts-container {

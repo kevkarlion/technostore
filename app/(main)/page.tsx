@@ -36,7 +36,7 @@ export default async function Home() {
   // (Categories are now displayed in HeroCarousel + CategoryShowcase)
 
   return (
-    <div className="pb-4 px-4 sm:px-6 lg:px-8">
+    <div className="pb-4 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
       {/* 1. Premium Hero - Compact version */}
       <section className="space-y-3 pt-8">
         <h1 className="text-3xl font-extrabold md:text-5xl uppercase">

@@ -81,7 +81,7 @@ export function HeroWrapper({
 }: HeroWrapperProps) {
   return (
     <section 
-      className={className}
+      className={`overflow-hidden ${className}`}
       aria-label="Carrusel destacado"
     >
       {/* Preconnect a recursos críticos */}

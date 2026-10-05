@@ -12,6 +12,8 @@ const envSchema = z.object({
   CLOUDINARY_FOLDER: z.string().optional(),
   // Cron
   CRON_SECRET: z.string().optional(),
+  CRON_BACKUP_USER: z.string().optional(),
+  CRON_BACKUP_PASSWORD: z.string().optional(),
   // Mercado Pago
   MERCADOPAGO_ACCESS_TOKEN: z.string().min(1, "MERCADOPAGO_ACCESS_TOKEN is required"),
   NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY: z.string().min(1, "NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY is required"),
@@ -49,6 +51,8 @@ export function getEnv(): Env {
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
     CLOUDINARY_FOLDER: process.env.CLOUDINARY_FOLDER,
     CRON_SECRET: process.env.CRON_SECRET,
+    CRON_BACKUP_USER: process.env.CRON_BACKUP_USER,
+    CRON_BACKUP_PASSWORD: process.env.CRON_BACKUP_PASSWORD,
     MERCADOPAGO_ACCESS_TOKEN: process.env.MERCADOPAGO_ACCESS_TOKEN,
     NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY: process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY,
     MERCADOPAGO_WEBHOOK_SECRET: process.env.MERCADOPAGO_WEBHOOK_SECRET,

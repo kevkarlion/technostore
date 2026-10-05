@@ -1,174 +1,143 @@
 import { NextResponse } from "next/server";
-import { createWriteStream, unlinkSync, existsSync, createReadStream, mkdirSync, rmSync } from "fs";
-import { pipeline } from "stream/promises";
-import { v2 as cloudinary } from "cloudinary";
-import { getEnv } from "@/config/env";
-import { getDb } from "@/config/db";
+import { runIncrementalScraper } from "@/lib/scraper/incremental-scraper.service";
 
+// Protection: only allow internal calls or cron jobs
 const CRON_SECRET = process.env.CRON_SECRET;
-
-// Force deploy
-
-/**
- * Initialize Cloudinary with config from env
- */
-function initCloudinary() {
-  const env = getEnv();
-  cloudinary.config({
-    cloud_name: env.CLOUDINARY_CLOUD_NAME,
-    api_key: env.CLOUDINARY_API_KEY,
-    api_secret: env.CLOUDINARY_API_SECRET,
-  });
-}
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
 /**
- * Get all collection names from the database
+ * Send notification to Discord when scraper finishes
  */
-async function getCollections(db: any): Promise<string[]> {
-  return await db.listCollections().toArray().then((collections: any[]) => 
-    collections.map(c => c.name)
-  );
-}
+async function sendDiscordNotification(result: {
+  success: boolean;
+  preCheck: { changed: string[]; unchanged: string[]; errors: string[] };
+  scrapeResult?: { created: number; updated: number; durationMs: number };
+}) {
+  if (!DISCORD_WEBHOOK_URL) return;
 
-/**
- * Backup a single collection to JSON
- */
-async function backupCollection(db: any, collectionName: string): Promise<any[]> {
-  const collection = db.collection(collectionName);
-  const documents = await collection.find({}).toArray();
-  return documents;
-}
-
-/**
- * Create a full database backup as JSON
- */
-async function createDatabaseBackup(): Promise<Record<string, any[]>> {
-  const db = await getDb();
-  const collections = await getCollections(db);
-
-  console.log(`[Backup] Found ${collections.length} collections`);
-
-  const backup: Record<string, any[]> = {};
-
-  for (const collectionName of collections) {
-    console.log(`[Backup] Backing up collection: ${collectionName}`);
-    backup[collectionName] = await backupCollection(db, collectionName);
-  }
-
-  return backup;
-}
-
-/**
- * Convert backup to a readable stream
- */
-function backupToStream(backup: Record<string, any[]>): NodeJS.ReadableStream {
-  const { Readable } = require("stream");
+  const { preCheck, scrapeResult, success } = result;
   
-  const jsonString = JSON.stringify(backup, null, 2);
-  const stream = Readable.from([jsonString]);
-  
-  return stream;
-}
-
-/**
- * Upload the backup to Cloudinary
- */
-async function uploadToCloudinary(
-  backup: Record<string, any[]>,
-  publicId: string
-): Promise<string> {
-  initCloudinary();
-
-  const jsonString = JSON.stringify(backup, null, 2);
-  
-  return new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
+  const embed = {
+    title: success ? "✅ Scraping Incremental - Completado" : "❌ Scraping - Error",
+    color: success ? 65280 : 16711680,
+    fields: [
       {
-        public_id: publicId,
-        folder: "backups",
-        resource_type: "raw",
-        format: "json",
-      },
-      (error, result) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(result?.secure_url || "");
-        }
+        name: "Pre-check",
+        value: `${preCheck.changed.length} cambiados • ${preCheck.unchanged.length} sin cambios • ${preCheck.errors.length} errores`,
+        inline: true
       }
-    );
+    ],
+    timestamp: new Date().toISOString(),
+    footer: { text: "TechnoStore Scraper" }
+  };
 
-    // Create a readable stream from the JSON string
-    const { Readable } = require("stream");
-    const stream = Readable.from([jsonString]);
-    stream.pipe(uploadStream);
-  });
+  if (scrapeResult) {
+    embed.fields.push({
+      name: "Resultado",
+      value: `${scrapeResult.created} creados • ${scrapeResult.updated} actualizados`,
+      inline: true
+    });
+    embed.fields.push({
+      name: "Duración",
+      value: `${Math.round(scrapeResult.durationMs / 1000 / 60)} min`,
+      inline: true
+    });
+  }
+
+  if (preCheck.errors.length > 0) {
+    embed.fields.push({
+      name: "Errores",
+      value: preCheck.errors.slice(0, 5).join("\n"),
+      inline: false
+    });
+  }
+
+  try {
+    await fetch(DISCORD_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        embeds: [embed],
+        username: "TechnoStore Scraper"
+      })
+    });
+    console.log("[Cron] Discord notification sent");
+  } catch (error) {
+    console.error("[Cron] Failed to send Discord notification:", error);
+  }
 }
 
 /**
- * Validate HTTP Basic Auth credentials
+ * Send a simple Discord notification
  */
-function validateAuth(request: Request): boolean {
-  const authHeader = request.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Basic ")) {
-    return false;
+async function sendStartNotification() {
+  if (!DISCORD_WEBHOOK_URL) return;
+  
+  try {
+    await fetch(DISCORD_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        content: "🔄 Iniciando scraper incremental...",
+        username: "TechnoStore Scraper"
+      })
+    });
+  } catch (error) {
+    console.error("[Cron] Failed to send start notification:", error);
   }
-
-  const base64Credentials = authHeader.slice(6);
-  const credentials = Buffer.from(base64Credentials, "base64").toString("utf-8");
-  const [username, password] = credentials.split(":");
-
-  const env = getEnv();
-
-  return (
-    username === env.CRON_BACKUP_USER &&
-    password === env.CRON_BACKUP_PASSWORD
-  );
 }
 
-export async function POST(request: Request) {
-  // Verify HTTP Basic Auth
-  if (!validateAuth(request)) {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const secret = searchParams.get("secret");
+
+  // Verify cron secret if provided
+  if (CRON_SECRET && secret !== CRON_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const backupName = `backup-${timestamp}`;
-
   try {
-    console.log(`[Backup] Starting backup at ${timestamp}`);
-
-    // Step 1: Create database backup (programmatic)
-    console.log("[Backup] Creating database backup...");
-    const backup = await createDatabaseBackup();
-
-    // Calculate stats
-    const totalCollections = Object.keys(backup).length;
-    const totalDocuments = Object.values(backup).reduce((sum, docs) => sum + docs.length, 0);
-
-    console.log(`[Backup] Collected ${totalDocuments} documents in ${totalCollections} collections`);
-
-    // Step 2: Upload to Cloudinary
-    console.log("[Backup] Uploading to Cloudinary...");
-    const cloudinaryUrl = await uploadToCloudinary(backup, backupName);
-
-    console.log(`[Backup] Completed: ${cloudinaryUrl}`);
-
+    console.log("[Cron] Starting incremental scraper...");
+    
+    // Notify start (optional)
+    if (searchParams.get("notify") === "true") {
+      await sendStartNotification();
+    }
+    
+    const result = await runIncrementalScraper();
+    
+    console.log("[Cron] Scraper completed:", result.success);
+    
+    // Send notification on finish (if webhook configured)
+    if (DISCORD_WEBHOOK_URL) {
+      await sendDiscordNotification(result);
+    }
+    
     return NextResponse.json({
       success: true,
-      backupUrl: cloudinaryUrl,
-      timestamp,
-      stats: {
-        collections: totalCollections,
-        documents: totalDocuments,
-      },
+      preCheck: result.preCheck,
+      scrapeResult: result.scrapeResult,
+      timestamp: result.timestamp
     });
   } catch (error) {
-    console.error("[Backup] Error:", error);
-
+    console.error("[Cron] Error:", error);
+    
+    // Send error notification
+    if (DISCORD_WEBHOOK_URL) {
+      try {
+        await fetch(DISCORD_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content: `❌ Error en scraper: ${error}`,
+            username: "TechnoStore Scraper"
+          })
+        });
+      } catch {}
+    }
+    
     return NextResponse.json(
-      { error: "Backup failed", details: String(error) },
+      { error: "Scraper failed", details: String(error) },
       { status: 500 }
     );
   }

@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   RefreshCw,
   Power,
+  Trash2,
 } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
@@ -85,6 +86,8 @@ export default function AdminProducts() {
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [toggleLoading, setToggleLoading] = useState<string | null>(null);
   const [pendingToggle, setPendingToggle] = useState<Product | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Product | null>(null);
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -251,6 +254,43 @@ export default function AdminProducts() {
     } finally {
       setToggleLoading(null);
       setPendingToggle(null);
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!pendingDelete || deletingProductId) return;
+
+    const productId = pendingDelete.id;
+    setDeletingProductId(productId);
+
+    try {
+      const res = await fetch(`/api/products/${productId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Error al borrar producto");
+      }
+
+      const remainingProducts = products.filter((product) => product.id !== productId);
+      const nextTotal = Math.max(0, totalItems - 1);
+      setProducts(remainingProducts);
+      setTotalItems(nextTotal);
+      setTotalPages(Math.ceil(nextTotal / ITEMS_PER_PAGE));
+      setPendingDelete(null);
+      toast.success("Producto borrado permanentemente");
+
+      if (remainingProducts.length === 0 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
+    } catch (err) {
+      console.error("[AdminProducts] Delete product error:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Error al borrar producto"
+      );
+    } finally {
+      setDeletingProductId(null);
     }
   };
 
@@ -625,6 +665,16 @@ export default function AdminProducts() {
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={deletingProductId === product.id}
+                        onClick={() => setPendingDelete(product)}
+                        title="Borrar producto"
+                        className="text-rose-400 hover:text-rose-300"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -729,6 +779,16 @@ export default function AdminProducts() {
                   }}
                 >
                   <Edit2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="shrink-0 h-9 w-9 p-0 text-rose-400 hover:text-rose-300"
+                  disabled={deletingProductId === product.id}
+                  onClick={() => setPendingDelete(product)}
+                  title="Borrar producto"
+                >
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
 
@@ -910,6 +970,22 @@ export default function AdminProducts() {
           if (pendingToggle) handleToggleStatus(pendingToggle);
         }}
         onCancel={() => setPendingToggle(null)}
+      />
+
+      <ConfirmModal
+        open={!!pendingDelete}
+        title="Borrar producto"
+        message={
+          pendingDelete
+            ? `Vas a borrar permanentemente "${cleanProductName(
+                pendingDelete.name
+              )}". Esta acción es permanente y no se puede deshacer. Las imágenes almacenadas en Cloudinary no se eliminan.`
+            : ""
+        }
+        confirmLabel="Sí, borrar producto"
+        variant="danger"
+        onConfirm={handleDeleteProduct}
+        onCancel={() => setPendingDelete(null)}
       />
     </div>
   );

@@ -393,6 +393,100 @@ describe("AdminProducts", () => {
     });
   });
 
+  it("does not delete when permanent-delete confirmation is cancelled", async () => {
+    const fetch = vi.fn((url: string | URL | Request, options?: RequestInit) => {
+      if (options?.method === "DELETE") {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ success: true }),
+        });
+      }
+
+      return mockFetch({
+        items: mockProducts,
+        total: mockProducts.length,
+        page: 1,
+        limit: 15,
+        totalPages: 1,
+      })();
+    });
+    vi.stubGlobal("fetch", fetch);
+
+    renderWithProviders(<AdminProducts />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Teclado Mecánico RGB").length).toBeGreaterThan(0);
+    });
+
+    fireEvent.click(screen.getAllByTitle("Borrar producto")[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+
+    expect(
+      fetch.mock.calls.some(
+        ([, options]) => (options as RequestInit)?.method === "DELETE"
+      )
+    ).toBe(false);
+    expect(screen.getAllByText("Teclado Mecánico RGB").length).toBeGreaterThan(0);
+  });
+
+  it("requires a permanent-delete confirmation before deleting a product", async () => {
+    let deleted = false;
+    const fetch = vi.fn((url: string | URL | Request, options?: RequestInit) => {
+      const href = typeof url === "string" ? url : url.toString();
+      if (href.includes("/api/products/prod-1") && options?.method === "DELETE") {
+        deleted = true;
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ success: true }),
+        });
+      }
+
+      return mockFetch({
+        items: deleted ? [] : mockProducts,
+        total: deleted ? 0 : mockProducts.length,
+        page: 1,
+        limit: 15,
+        totalPages: 1,
+      })();
+    });
+    vi.stubGlobal("fetch", fetch);
+
+    renderWithProviders(<AdminProducts />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Teclado Mecánico RGB").length).toBeGreaterThan(0);
+    });
+
+    fireEvent.click(screen.getAllByTitle("Borrar producto")[0]);
+
+    expect(
+      screen.getByText(/Esta acción es permanente y no se puede deshacer/i)
+    ).toBeInTheDocument();
+    expect(
+      fetch.mock.calls.some(
+        ([, options]) => (options as RequestInit)?.method === "DELETE"
+      )
+    ).toBe(false);
+
+    fireEvent.click(screen.getByRole("button", { name: "Sí, borrar producto" }));
+
+    await waitFor(() => {
+      const deleteCall = fetch.mock.calls.find(
+        ([url, options]) =>
+          typeof url === "string" &&
+          url.includes("/api/products/prod-1") &&
+          options?.method === "DELETE"
+      );
+      expect(deleteCall).toBeDefined();
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText("Teclado Mecánico RGB")).not.toBeInTheDocument();
+    });
+  });
+
   it("inline stock edit triggers PATCH", async () => {
     const productWithStock = {
       id: "prod-1",

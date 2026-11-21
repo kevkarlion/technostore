@@ -234,12 +234,13 @@ export default function ProductFormModal({
         .map((img) => img.cloudinaryUrl)
         .filter(Boolean) as string[];
 
+      const costPrice = parseFloat(form.costPrice);
       const profitMargin = parseFloat(form.profitMargin) || 0;
 
-      const body: Record<string, any> = {
+      const body: Record<string, unknown> = {
         name: form.name.trim(),
         description: form.description.trim() || undefined,
-        // NO mandar costPrice — el precio de DB es el costo fijo, no se toca
+        costPrice,
         profitMargin,
         currency: form.currency,
         stock: parseInt(form.stock, 10),

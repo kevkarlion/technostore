@@ -18,7 +18,7 @@ interface AuthState {
   isLoading: boolean;
   email: string | null;
   name: string | null;
-  role: "user" | "admin" | null;
+  role: "user" | "admin" | "superadmin" | null;
   userId: string | null;
   login: (
     email: string,
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
-  const [role, setRole] = useState<"user" | "admin" | null>(null);
+  const [role, setRole] = useState<"user" | "admin" | "superadmin" | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const router = useRouter();
 

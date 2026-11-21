@@ -77,6 +77,7 @@ function formatDate(dateStr: string | null | undefined): string {
 
 export default function AdminUsers() {
   const { userId: authUserId, role: authRole } = useAuth();
+  const canManageUsers = authRole === "admin" || authRole === "superadmin";
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -160,8 +161,9 @@ export default function AdminUsers() {
   }, []);
 
   useEffect(() => {
+    if (!canManageUsers) return;
     fetchUsers(search, currentPage);
-  }, [currentPage, fetchUsers]);
+  }, [canManageUsers, currentPage, fetchUsers]);
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -404,6 +406,20 @@ export default function AdminUsers() {
   };
 
   // ── Render ──────────────────────────────────────────────────────────────
+
+  if (!canManageUsers) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-950/50 px-6 text-center">
+        <Shield className="h-12 w-12 text-[var(--foreground-muted)]" />
+        <h1 className="mt-4 text-xl font-semibold text-[var(--foreground)]">
+          Acceso restringido
+        </h1>
+        <p className="mt-2 text-sm text-[var(--foreground-muted)]">
+          No tenés permisos para administrar usuarios
+        </p>
+      </div>
+    );
+  }
 
   if (error && users.length === 0) {
     return (

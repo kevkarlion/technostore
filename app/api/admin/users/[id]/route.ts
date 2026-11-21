@@ -1,26 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminUserRepository } from "@/api/repository/admin-user.repository";
-import { verifyToken } from "@/lib/auth/jwt";
-import { AUTH_CONFIG } from "@/lib/auth/config";
-import { badRequest, notFound, unauthorized } from "@/api/errors/http-error";
-
-async function getAuthUser(req: NextRequest): Promise<{ userId: string; role: string }> {
-  const token = req.cookies.get(AUTH_CONFIG.cookieName)?.value;
-  if (!token) throw unauthorized();
-
-  const payload = await verifyToken(token);
-  if (!payload) throw unauthorized();
-
-  return { userId: payload.userId ?? "", role: payload.role };
-}
+import { notFound } from "@/api/errors/http-error";
+import { requireAdmin } from "@/lib/auth/admin-authorization";
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authorization = await requireAdmin(req);
+  if (!authorization.ok) return authorization.response;
+
   try {
     const { id } = await params;
-    const authUser = await getAuthUser(req);
+    const authUser = authorization.auth;
     const body = await req.json();
     const { name, email, role, status } = body;
 
@@ -111,9 +103,12 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authorization = await requireAdmin(req);
+  if (!authorization.ok) return authorization.response;
+
   try {
     const { id } = await params;
-    const authUser = await getAuthUser(req);
+    const authUser = authorization.auth;
 
     // No eliminarse a sí mismo
     if (id === authUser.userId) {

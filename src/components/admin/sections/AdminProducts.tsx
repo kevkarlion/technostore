@@ -54,6 +54,14 @@ export default function AdminProducts() {
   );
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  // Status y paginación viven dentro de la sección para que cambiar un filtro
+  // no dispare una navegación global del dashboard.
+  const [statusFilter, setStatusFilter] = useState(
+    () => useAdminStore.getState().navState.products.status
+  );
+  const [currentPage, setCurrentPage] = useState(
+    () => useAdminStore.getState().navState.products.page
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingStock, setEditingStock] = useState<string | null>(null);
@@ -82,8 +90,6 @@ export default function AdminProducts() {
 
   // Estado de navegación sincronizado con la URL (la URL es la fuente de verdad)
   const searchQuery = useAdminStore((s) => s.navState.products.search);
-  const statusFilter = useAdminStore((s) => s.navState.products.status);
-  const currentPage = useAdminStore((s) => s.navState.products.page);
   const setNavState = useAdminStore((s) => s.setNavState);
 
   // Mantener el input alineado con el store cuando cambia por hydration,
@@ -94,6 +100,7 @@ export default function AdminProducts() {
   if (searchQuery !== prevSearch) {
     setPrevSearch(searchQuery);
     setSearchInput(searchQuery);
+    setCurrentPage(1);
   }
 
   const fetchProducts = useCallback(async (search: string, page: number, status: string) => {
@@ -166,6 +173,7 @@ export default function AdminProducts() {
     setSearchInput(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
+      setCurrentPage(1);
       setNavState("products", { search: value, page: 1 });
     }, 350);
   };
@@ -318,7 +326,8 @@ export default function AdminProducts() {
           <button
             key={value}
             onClick={() => {
-              setNavState("products", { status: value, page: 1 });
+              setStatusFilter(value);
+              setCurrentPage(1);
             }}
             className={`rounded-md px-3.5 py-1.5 text-sm font-medium transition ${
               statusFilter === value
@@ -850,9 +859,7 @@ export default function AdminProducts() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() =>
-                setNavState("products", { page: Math.max(1, currentPage - 1) })
-              }
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
             >
               ← Anterior
@@ -860,9 +867,7 @@ export default function AdminProducts() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() =>
-                setNavState("products", { page: Math.min(totalPages, currentPage + 1) })
-              }
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
             >
               Siguiente →

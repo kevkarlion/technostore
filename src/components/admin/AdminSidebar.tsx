@@ -1,6 +1,6 @@
 "use client";
 
-import { useAdminStore, adminNavItems } from "@/store/admin-store";
+import { useAdminStore, adminNavItems as allAdminNavItems } from "@/store/admin-store";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   Package,
@@ -36,8 +36,12 @@ export function AdminSidebar() {
     setSidebarOpen,
   } = useAdminStore();
 
-  const { name: userName, email: userEmail, logout } = useAuth();
+  const { name: userName, email: userEmail, role, logout } = useAuth();
 
+  const canManageUsers = role === "admin" || role === "superadmin";
+  const adminNavItems = canManageUsers
+    ? allAdminNavItems
+    : allAdminNavItems.filter((item) => item.section !== "users");
   const sidebarWidth = sidebarCollapsed ? "w-16" : "w-64";
 
   const handleNavClick = (section: typeof activeSection) => {

@@ -194,8 +194,7 @@ describe("AdminUsers", () => {
     expect(screen.getByText("(vos)")).toBeInTheDocument();
   });
 
-  it("auth guard hides action buttons for non-admin users", async () => {
-    // Mock useAuth with role "user" (not admin)
+  it("blocks the user-management panel for non-admin users", async () => {
     vi.mocked(useAuth).mockReturnValue(createAuthMock({ role: "user" }));
 
     const fetch = mockFetch(mockFetchResponse);
@@ -203,23 +202,11 @@ describe("AdminUsers", () => {
 
     renderWithProviders(<AdminUsers />);
 
-    await waitFor(() => {
-      expect(
-        screen.getAllByText("Admin User").length
-      ).toBeGreaterThan(0);
-    });
-
-    // With non-admin role, action buttons should NOT render
-    expect(screen.queryByText("Editar")).not.toBeInTheDocument();
-    expect(screen.queryByText("Bloquear")).not.toBeInTheDocument();
-    expect(screen.queryByText("Borrar")).not.toBeInTheDocument();
-    expect(screen.queryByText("Hacer admin")).not.toBeInTheDocument();
-    expect(screen.queryByText("Resetear contraseña")).not.toBeInTheDocument();
     expect(
-      screen.queryByText("Cambiar contraseña")
-    ).not.toBeInTheDocument();
-
-    // Header buttons should still be visible
-    expect(screen.getByText("Nuevo usuario")).toBeInTheDocument();
+      await screen.findByText("No tenés permisos para administrar usuarios")
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Admin User")).not.toBeInTheDocument();
+    expect(screen.queryByText("Nuevo usuario")).not.toBeInTheDocument();
+    expect(fetch).not.toHaveBeenCalled();
   });
 });

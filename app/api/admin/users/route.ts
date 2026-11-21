@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminUserRepository } from "@/api/repository/admin-user.repository";
 import { HttpError, badRequest, internalServerError } from "@/api/errors/http-error";
+import { requireAdmin } from "@/lib/auth/admin-authorization";
 
 export async function GET(req: NextRequest) {
+  const authorization = await requireAdmin(req);
+  if (!authorization.ok) return authorization.response;
+
   try {
     const url = new URL(req.url);
     const page = Math.max(1, parseInt(url.searchParams.get("page") ?? "1", 10) || 1);
@@ -35,6 +39,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const authorization = await requireAdmin(req);
+  if (!authorization.ok) return authorization.response;
+
   try {
     const body = await req.json();
     const { email, password, name, role } = body;

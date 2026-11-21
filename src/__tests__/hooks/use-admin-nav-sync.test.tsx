@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useAdminNavSync } from "@/hooks/use-admin-nav-sync";
 import { useAdminStore } from "@/store/admin-store";
@@ -28,6 +28,10 @@ describe("useAdminNavSync", () => {
     mockSearchParams = new URLSearchParams();
     window.history.replaceState({}, "", "/");
     resetStore();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("hidrata el store desde la URL al montar", () => {
@@ -83,25 +87,36 @@ describe("useAdminNavSync", () => {
     unmount();
   });
 
-  it("reemplaza la URL al cambiar búsqueda y filtros", () => {
+  it("actualiza la URL in-place al cambiar búsqueda y filtros", () => {
+    const historyReplaceState = vi.spyOn(window.history, "replaceState");
     const { unmount } = renderHook(() => useAdminNavSync());
 
     act(() => {
       useAdminStore.getState().setNavState("products", { search: "teclado", page: 1 });
     });
-    expect(replace).toHaveBeenCalledWith("/admin?section=products&q=teclado");
+    expect(historyReplaceState).toHaveBeenCalledWith(
+      null,
+      "",
+      "/admin?section=products&q=teclado"
+    );
 
     act(() => {
       useAdminStore.getState().setNavState("products", { status: "active", page: 1 });
     });
-    expect(replace).toHaveBeenCalledWith("/admin?section=products&q=teclado&status=active");
+    expect(historyReplaceState).toHaveBeenCalledWith(
+      null,
+      "",
+      "/admin?section=products&q=teclado&status=active"
+    );
 
     expect(push).not.toHaveBeenCalled();
+    expect(replace).not.toHaveBeenCalled();
 
     unmount();
   });
 
-  it("reemplaza la URL cuando la búsqueda resetea la página a 1", () => {
+  it("actualiza la URL in-place cuando la búsqueda resetea la página a 1", () => {
+    const historyReplaceState = vi.spyOn(window.history, "replaceState");
     const { unmount } = renderHook(() => useAdminNavSync());
 
     act(() => {
@@ -113,9 +128,13 @@ describe("useAdminNavSync", () => {
       useAdminStore.getState().setNavState("products", { search: "teclado", page: 1 });
     });
 
-    expect(replace).toHaveBeenCalledWith("/admin?section=products&q=teclado");
+    expect(historyReplaceState).toHaveBeenCalledWith(
+      null,
+      "",
+      "/admin?section=products&q=teclado"
+    );
     expect(push).toHaveBeenCalledTimes(1);
-    expect(replace).toHaveBeenCalledTimes(1);
+    expect(replace).not.toHaveBeenCalled();
 
     unmount();
   });

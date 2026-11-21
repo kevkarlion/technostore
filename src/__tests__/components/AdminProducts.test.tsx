@@ -277,6 +277,7 @@ describe("AdminProducts", () => {
       ).toBeGreaterThan(0);
     });
 
+    const navStateBeforeFilter = useAdminStore.getState().navState.products;
     fireEvent.click(screen.getByRole("button", { name: /Activos/i }));
 
     await waitFor(() => {
@@ -285,6 +286,12 @@ describe("AdminProducts", () => {
       expect(lastUrl).toContain("page=1");
       expect(lastUrl).toContain("status=active");
     });
+
+    // El filtro y la página son estado local de la sección: el store global
+    // no cambia y, por lo tanto, el dashboard no vuelve a navegar.
+    expect(useAdminStore.getState().navState.products).toEqual(
+      navStateBeforeFilter
+    );
   });
 
   it("modal onSuccess refetches with the current page (not page 1)", async () => {

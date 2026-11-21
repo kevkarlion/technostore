@@ -35,7 +35,8 @@ function canonicalQuery(search: string): string {
  *
  * - La URL es la fuente de verdad: al montar, hidrata el store desde los params.
  * - Los cambios del store se escriben de vuelta a la URL (push para sección y
- *   página, replace para búsqueda/filtros) para que el botón atrás funcione.
+ *   página, actualización in-place para búsqueda/filtros) para que el botón
+ *   atrás funcione sin provocar una navegación del dashboard completo.
  * - Si la URL cambia externamente (back/forward), rehidrata el store.
  */
 export function useAdminNavSync() {
@@ -104,13 +105,13 @@ export function useAdminNavSync() {
         state.navState[state.activeSection].status !==
         prevState.navState[state.activeSection].status;
 
-      // Push para sección y cambios de página; replace para búsquedas y
-      // filtros (aunque reseteen la página a 1) para no spamear el historial
-      // con cada tecla.
+      // Push para sección y cambios de página. Búsquedas y filtros se
+      // actualizan in-place: cambiar el query param no debe recargar ni
+      // desmontar el dashboard; solo debe re-renderizar la sección afectada.
       if (sectionChanged || (!searchChanged && !statusChanged)) {
         router.push(href);
       } else {
-        router.replace(href);
+        window.history.replaceState(null, "", href);
       }
     });
 
